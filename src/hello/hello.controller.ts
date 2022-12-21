@@ -12,6 +12,9 @@ import {
 import { GetDataDto, PostDataDto } from './dto/hello.dto';
 import { HelloService } from './hello.service';
 
+import { UserEntity } from '../entities/articles.entity';
+import { get } from 'http';
+
 @Controller('/hello')
 export class HelloController {
   constructor(private readonly helloService: HelloService) {}
@@ -40,4 +43,11 @@ export class HelloController {
   remove(@Query() { id }): string {
     return this.helloService.removeHello(id);
   }
+
+
+  @Get('list')
+  findAll(): Promise<UserEntity[]>{
+    return this.helloService.findAll();
+  }
+
 }

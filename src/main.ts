@@ -8,5 +8,8 @@ async function bootstrap() {
   await app.listen(prot, () => {
     Logger.log('th service is starting in http://' + prot);
   });
+  // 设置跨域
+  //https://blog.csdn.net/qq_31830547/article/details/123119206
+  app.enableCors();
 }
 bootstrap();
