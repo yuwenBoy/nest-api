@@ -12,7 +12,7 @@ import {
 import { GetDataDto, PostDataDto } from './dto/hello.dto';
 import { HelloService } from './hello.service';
 
-import { UserEntity } from '../entities/articles.entity';
+import { UserEntity } from '../entities/t_user.entity';
 import { get } from 'http';
 
 @Controller('/hello')
@@ -49,5 +49,4 @@ export class HelloController {
   findAll(): Promise<UserEntity[]>{
     return this.helloService.findAll();
   }
-
 }
