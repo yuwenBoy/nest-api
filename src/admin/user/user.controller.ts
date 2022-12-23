@@ -9,7 +9,7 @@ import { UserService } from './user.service';
  * createTime：2022年12月22日14:27:17
  * description：用户业务控制器模块
  */
-@Controller('/user')
+@Controller('/basic-api/user')
 export class UserController {
   constructor(private readonly UserService: UserService) {}
 
