@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { UserEntity } from '../../entities/t_user.entity';
 
 import { loginParamDto } from './dto/user.dto';
@@ -9,7 +10,8 @@ import { UserService } from './user.service';
  * createTime：2022年12月22日14:27:17
  * description：用户业务控制器模块
  */
-@Controller('/basic-api/user')
+@ApiTags("用户管理")
+@Controller('user')
 export class UserController {
   constructor(private readonly UserService: UserService) {}
 

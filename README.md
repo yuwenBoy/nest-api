@@ -3,7 +3,7 @@
 </p>
 
 nest中文文档：https://www.nestjs.com.cn/first-steps
-typeorm文档：https://typeorm.bootcss.com/select-query-builder
+typeorm文档：https://typeorm.bootcss.com/
 [circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
 [circleci-url]: https://circleci.com/gh/nestjs/nest
 

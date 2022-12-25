@@ -1,0 +1,10 @@
+{ 
+    "type": "mysql",
+    "host": "localhost", 
+    "port": 3306, 
+    "username": "root", 
+    "password": "roroot123456ot", 
+    "database": "zj_db_system", 
+    "entities": ["dist/**/*.entity{.ts,.js}"], 
+    "synchronize": true
+}

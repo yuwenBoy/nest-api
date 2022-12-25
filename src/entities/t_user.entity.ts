@@ -11,7 +11,7 @@ export class UserEntity extends BaseEntity {
   @Column({type:'varchar', name: 'password'})
   password: string;
 
-  @Column({type:'varchar', name: 'cname'})
+  @Column({type:'varchar', name: 'cname',length:10})
   cname: string;
 
   @Column({type:'varchar', name: 'email'})
@@ -20,8 +20,8 @@ export class UserEntity extends BaseEntity {
   @Column({type:'varchar', name: 'address'})
   address: string;
 
-  @Column({type:'varchar', name: 'create_time'})
-  create_time: string;
+  @Column({type: 'timestamp', default: () => "CURRENT_TIMESTAMP"})
+  create_time: Date;
 
   @Column({type:'varchar', name: 'update_by'})
   update_by: string;
@@ -32,8 +32,8 @@ export class UserEntity extends BaseEntity {
   @Column({type:'int', name: 'isdisabled'})
   isdisabled: Number;
 
-  @Column({type:'varchar', name: 'update_time'})
-  update_time: string;
+  @Column({type: 'timestamp', default: () => "CURRENT_TIMESTAMP"})
+  update_time: Date;
 
   @Column({type:'varchar', name: 'phone'})
   phone: string;
