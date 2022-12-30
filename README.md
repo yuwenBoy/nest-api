@@ -6,6 +6,8 @@ nest中文文档：https://www.nestjs.com.cn/first-steps
 typeorm文档：https://typeorm.bootcss.com/
 [circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
 [circleci-url]: https://circleci.com/gh/nestjs/nest
+快速创建模块： nest g resource login 其中login是模块名
+
 
   <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
     <p align="center">

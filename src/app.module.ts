@@ -6,7 +6,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { HelloModule } from './hello/hello.module';
 
 // 加载用户模块
-import {UserModule } from './admin/user/user.module'
+import {UserModule } from './admin/user/user.module';
+
+// 登录认证模块
+import { AuthModule } from './admin/auth/auth.module';
+import { UserEntity } from './entities/t_user.entity';
 
 
 @Module({
@@ -17,14 +21,15 @@ import {UserModule } from './admin/user/user.module'
     host:'127.0.0.1',
     port: 3306, // 端口
     username:'root',
-    password:'root123456',
+    password:'123456',
     database:'zj_db_system',
-    entities:[__dirname + '/**/*.entity(.ts,js)'], // 扫描本项目中.entity.ts 或者.entity.js的文件
-    synchronize:true, // 定义数据库表结构与实体类字段同步（这里一旦数据库少了字段就会自动加入，根据需要来使用）
+    entities: [UserEntity], // 扫描本项目中.entity.ts 或者.entity.js的文件
+    synchronize:false, // 定义数据库表结构与实体类字段同步（这里一旦数据库少了字段就会自动加入，根据需要来使用）
   }),
   // 加载子模块
   HelloModule,
   UserModule,
+  AuthModule
 ],
   controllers: [],
   providers: [],

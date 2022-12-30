@@ -1,6 +1,8 @@
 import { Column, Entity, PrimaryGeneratedColumn, BaseEntity } from 'typeorm';
+import { bcrypt } from 'bcryptjs';
+import { Exclude } from "class-transformer";
 
-@Entity()
+@Entity("t_user")
 export class UserEntity extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -8,6 +10,7 @@ export class UserEntity extends BaseEntity {
   @Column({type:'varchar', name: 'username'})
   username: string;
 
+  // @Exclude({toPlainOnly:true})
   @Column({type:'varchar', name: 'password'})
   password: string;
 
@@ -52,4 +55,8 @@ export class UserEntity extends BaseEntity {
 
   @Column({type:'varchar', name: 'birthday'})
   birthday: string;
+
+  async encryptPwd() {
+    this.password = await bcrypt.hashSync(this.password);
+  }
 }

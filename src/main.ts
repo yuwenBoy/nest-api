@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Logger, ParseArrayPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './core/filter/HttpException.filter';
@@ -6,16 +6,28 @@ import { HttpExceptionFilter } from './core/filter/HttpException.filter';
 import { TransformInterceptor  } from './core/filter/TransformInterceptor.filter';
 
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
-  const prot = 9000;
-  app.setGlobalPrefix('/basic-api/'); // 全局路由前缀
 
-  // 注册全局错误的过滤器
+  const prot = 9000;
+
+  // 全局使用管道:这里使用的是内置，也可以使用自定义管道，在下文
+  // app.useGlobalPipes(new ParseArrayPipe());
+
+  // app.use(LoggerMiddleware);
+
+  // 全局路由前缀
+  app.setGlobalPrefix('/basic-api/'); 
+
+  // 全局使用过滤器
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // 全局注册成功拦截器
+  // 全局使用守卫
+  // app.useGlobalGuards(new AuthGuard());
+
+  // 全局使用拦截器
   app.useGlobalInterceptors(new TransformInterceptor());
 
   // 设置swagger文档
@@ -29,7 +41,8 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
 
   await app.listen(prot, () => {
-    Logger.log('th service is starting in http://' + prot);
+    
+    Logger.log(`服务已经启动 http://localhost:${prot}`)
   });
 }
 bootstrap();

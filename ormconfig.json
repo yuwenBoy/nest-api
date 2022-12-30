@@ -1,10 +1,11 @@
-{ 
+[{ 
+    "name":"connection1",
     "type": "mysql",
     "host": "localhost", 
     "port": 3306, 
     "username": "root", 
-    "password": "roroot123456ot", 
+    "password": "123456", 
     "database": "zj_db_system", 
-    "entities": ["dist/**/*.entity{.ts,.js}"], 
+    "entities": ["/**/*.entity(.ts,js)"], 
     "synchronize": true
-}
+}]

@@ -1,4 +1,4 @@
 export class loginParamDto {
-    username: any;
+    username: string;
     password: string;
 }
