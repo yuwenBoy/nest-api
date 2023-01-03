@@ -12,7 +12,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       ? exception.message
       : `${status >= 500 ? 'Service Error' : 'Client Error'}`;
     const errorResponse = {
-      data: {},
+      result: {},
       message: message,
       code: -1,
     };

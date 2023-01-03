@@ -4,12 +4,13 @@ import { map, Observable } from 'rxjs';
 @Injectable()
 export class TransformInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    // 和前端返回格式一致
     return next.handle().pipe(
-      map((data) => {
+      map((result) => {
         return {
-          data,
+          result,
           code: 0,
-          msg: '请求成功',
+          message: '请求成功',
         };
       }),
     );

@@ -2,24 +2,41 @@ import {
   ClassSerializerInterceptor,
   Controller,
   Post,
+  Get,
   Body,
   UseGuards,
   UseInterceptors,
-  Req,
+  Request,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+//
 import { ApiTags } from '@nestjs/swagger';
-import { loginParamDto } from './admin/user/dto/user.dto';
+import { AuthService } from './admin/auth/auth.service';
+import { JwtAuthGuard } from './admin/auth/jwt.auth.guard';
+import { LocalAuthGuard } from './admin/auth/local.auth.guard';
+import { UserService } from './admin/user/user.service';
 
-@ApiTags('验证')
-@Controller('user')
-export class AuthController {
-  @UseGuards(AuthGuard('local'))
-  @UseInterceptors(ClassSerializerInterceptor)
+@ApiTags('用户身份认证即jwt鉴权')
+@Controller('auth')
+export class AppController {
+  constructor(private readonly authService: AuthService,
+    private readonly userService:UserService) {}
+
+  // 1.先进行登录验证，执行local.strategy.ts 文件中的calidate方法
+  @UseGuards(LocalAuthGuard)
+  // @UseInterceptors(ClassSerializerInterceptor)
   @Post('/login')
-  async login(@Body() user: loginParamDto, @Req() req) {
-    console.log('接收参数');
+  async login(@Request() req) {
+    // console.log('接收参数');
+    // 4.验证通过以后执行这个函数
+    return this.authService.login(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/getUserInfo')
+  async getUserInfo(@Request() req) {
+    console.log(`通过携带token请求用户信息 用户id为：${req.user.id}`);
+    const user = await this.userService.getUserById(req.user.id);
     console.log(user);
-    return req.user;
+    return user
   }
 }

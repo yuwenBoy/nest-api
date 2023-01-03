@@ -2,25 +2,40 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from 'src/entities/t_user.entity';
+import { Repository } from 'typeorm';
 
+import {UserService} from '../user/user.service';
+import { jwtContants } from './jwt.contants';
 @Injectable()
 export class AuthService {
   constructor(
-    private jwtService: JwtService,
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService,
   ) {}
 
- // 生成token
+  // 2.验证账号密码是否正确，正确返回user 错误返回null
+  async validateUser(account: string, pass: string): Promise<any> {
+    console.log('登录请求参数');
+    const user = await this.userService.getUserAccout(account);
+    if (user && user.password === pass) {
+      const { password, ...result } = user;
+      return result;
+    }
+    return null;
+  }
+
+  // 生成token
   createToken(user: Partial<UserEntity>) {
     return this.jwtService.sign(user);
   }
 
+  // 验证通过，生成token返回给客户端
   async login(user: Partial<UserEntity>) {
-    const token = this.createToken({
-      id: user.id,
-      username: user.username,
-      // role: user.role,
-    });
-
-    return { token };
+    console.log('登录成功，开始生成token');
+    console.log(user);
+    const payload = { username: user.username, id: user.id };
+    return {
+      token: this.jwtService.sign(payload,jwtContants),
+    };
   }
 }
