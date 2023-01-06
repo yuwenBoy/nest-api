@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn, BaseEntity } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert } from 'typeorm';
 import { bcrypt } from 'bcryptjs';
 import { Exclude } from "class-transformer";
 
@@ -55,7 +55,8 @@ export class UserEntity extends BaseEntity {
 
   @Column({type:'varchar', name: 'birthday'})
   birthday: string;
-
+  
+  @BeforeInsert()
   async encryptPwd() {
     this.password = await bcrypt.hashSync(this.password);
   }
