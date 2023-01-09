@@ -1,12 +1,15 @@
 import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert } from 'typeorm';
 import { bcrypt } from 'bcryptjs';
 import { Exclude } from "class-transformer";
+import { ZJBaseEntity } from './base.entity';
 
+/**
+ * description:用户实体表
+ * @createTime:2023-1-9 11:57:45
+ * @Author:zhao.jian
+ */
 @Entity("t_user")
-export class UserEntity extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class UserEntity extends ZJBaseEntity {
   @Column({type:'varchar', name: 'username'})
   username: string;
 
@@ -23,26 +26,14 @@ export class UserEntity extends BaseEntity {
   @Column({type:'varchar', name: 'address'})
   address: string;
 
-  @Column({type: 'timestamp', default: () => "CURRENT_TIMESTAMP"})
-  create_time: Date;
-
-  @Column({type:'varchar', name: 'update_by'})
-  update_by: string;
-
   @Column({type:'varchar', name: 'avatar'})
   avatar: string;
 
   @Column({type:'int', name: 'isdisabled'})
   isdisabled: Number;
 
-  @Column({type: 'timestamp', default: () => "CURRENT_TIMESTAMP"})
-  update_time: Date;
-
   @Column({type:'varchar', name: 'phone'})
   phone: string;
-
-  @Column({type:'varchar', name: 'create_by'})
-  create_by: string;
 
   @Column({type:'int', name: 'dept_id'})
   dept_id: Number;

@@ -1,11 +1,8 @@
 import {
-  ClassSerializerInterceptor,
   Controller,
   Post,
   Get,
-  Body,
   UseGuards,
-  UseInterceptors,
   Request,
 } from '@nestjs/common';
 //
@@ -31,12 +28,20 @@ export class AppController {
     return this.authService.login(req.user);
   }
 
+  /**
+   * 获取登录用户信息
+   * @param req token 
+   * @returns userInfo
+   */
   @UseGuards(JwtAuthGuard)
   @Get('/getUserInfo')
   async getUserInfo(@Request() req) {
     console.log(`通过携带token请求用户信息 用户id为：${req.user.id}`);
     const user = await this.userService.getUserById(req.user.id);
-    console.log(user);
-    return user
+    const result = {
+      homePath:'/dashboard/analysis', // 自定义首页跳转路径
+      ...user
+    };
+    return result
   }
 }

@@ -32,7 +32,7 @@ export class AuthService {
   // 验证通过，生成token返回给客户端
   async login(user: Partial<UserEntity>) {
     console.log('登录成功，开始生成token');
-    console.log(user);
+    // console.log(user);
     const payload = { username: user.username, id: user.id };
     return {
       token: this.jwtService.sign(payload,jwtContants),
