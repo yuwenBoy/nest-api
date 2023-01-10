@@ -1,4 +1,4 @@
-import { Logger, ParseArrayPipe } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './core/filter/HttpException.filter';
@@ -7,6 +7,7 @@ import { TransformInterceptor  } from './core/filter/TransformInterceptor.filter
 
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { ValidationPipe } from './common/pipe/validate.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
@@ -21,8 +22,11 @@ async function bootstrap() {
   // 全局路由前缀
   app.setGlobalPrefix('/basic-api/'); 
 
-  // 全局使用过滤器
-  app.useGlobalFilters(new HttpExceptionFilter());
+  // 全局注册通用验证管道validationPipe
+  app.useGlobalPipes(new ValidationPipe())
+
+  // 全局注册通用异常过滤器httpExceptionFilter
+  app.useGlobalFilters(new HttpExceptionFilter(new Logger()));
 
   // 全局使用守卫
   // app.useGlobalGuards(new AuthGuard());
@@ -34,6 +38,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('管理后台')   
     .setDescription('管理后台接口文档')
+    .addBearerAuth()
     .setVersion('1.0')
     .addBearerAuth()
     .build();
