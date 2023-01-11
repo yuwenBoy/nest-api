@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, RequestMethod,MiddlewareConsumer } from '@nestjs/common';
 // npm install --save @nestjs/typeorm typeorm mysql
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -8,9 +8,14 @@ import { HelloModule } from './hello/hello.module';
 // 加载用户模块
 import { UserModule } from './admin/user/user.module';
 
+// 菜单模块
+import { ModuleNESTModule } from './admin/module/module.module'
+
 // 登录认证模块
 import { AuthModule } from './admin/auth/auth.module';
 import { join } from 'path';
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -27,10 +32,17 @@ import { join } from 'path';
     }),
     // 加载子模块
     HelloModule,
-    UserModule,
-    AuthModule,
+    UserModule, // 用户模块
+    AuthModule, // 注册权限模块
+    ModuleNESTModule, // 注册菜单模块
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer:MiddlewareConsumer){
+    consumer.apply(LoggerMiddleware) // 应用中间件
+    .exclude({path:'/basic-api/auth',method:RequestMethod.POST}) // 排除auth的post方法
+    .forRoutes(AppController); // 监听路由 参数：路径名或*，*是匹配所有的路由
+  }
+}

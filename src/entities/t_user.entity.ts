@@ -1,6 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert } from 'typeorm';
+import { Column, Entity, BeforeInsert } from 'typeorm';
 import { bcrypt } from 'bcryptjs';
-import { Exclude } from "class-transformer";
 import { ZJBaseEntity } from './base.entity';
 
 /**
