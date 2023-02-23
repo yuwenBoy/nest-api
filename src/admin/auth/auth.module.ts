@@ -10,6 +10,8 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { jwtContants } from './jwt.contants';
+// 导入验证码模块
+import { ToolsService } from 'src/utils/tools/ToolsService';
 
 @Module({
   imports: [
@@ -22,6 +24,6 @@ import { jwtContants } from './jwt.contants';
   ], // 导入用户实体、身份验证、jwt
   exports: [JwtModule], // 输出jwt
   controllers: [AppController],
-  providers: [AuthService, UserService, LocalStorage, JwtStrategy],
+  providers: [AuthService, UserService, LocalStorage, JwtStrategy,ToolsService],
 })
 export class AuthModule {}
