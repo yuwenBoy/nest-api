@@ -17,7 +17,7 @@ import { jwtContants } from './jwt.contants';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: jwtContants.secret,
-      signOptions: { expiresIn: '300s' }, // d天后过期 s秒后过期
+      signOptions: { expiresIn: '180s' }, // d天后过期 s秒后过期
     }),
   ], // 导入用户实体、身份验证、jwt
   exports: [JwtModule], // 输出jwt
