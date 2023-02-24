@@ -35,7 +35,8 @@ export class AuthGuard implements CanActivate {
   };
   // 白名单数组
   private urlList: string[] = [
-    '/basic-api/auth/login'
+    '/basic-api/auth/login',
+    '/basic-api/auth/authcode'
   ];
 
   // 验证该次请求是否为白名单内的路由
