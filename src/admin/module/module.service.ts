@@ -31,29 +31,20 @@ export class ModuleService {
   async findAll(): Promise<ModuleNEST[]> {
     return await this.moduleRepository.query('select * from t_module');
   }
-
-    //   /*
-    // * 根据id查询子项数据
-    // * */
-    //   public List<ModuleListDto> moduleToTreeChild(List<Module> moduleList, Long id) {
-    //     List<ModuleListDto> trees = new ArrayList<>();
-    //     for (Module d : moduleList) {
-    //         if (d.getParentId() == id) {
-    //             ModuleListDto tree = new ModuleListDto();
-    //             ModuleMeta meta = new ModuleMeta();
-    //             tree.setComponent(d.getMenuPath());
-    //             tree.setName(d.getName());
-    //             tree.setPath(d.getMenuPath());
-    //             tree.setHidden(false);
-    //             meta.setTitle(d.getName());
-    //             meta.setNoCache(true);
-    //             meta.setIcon(d.getIcon());
-    //             tree.setMeta(meta);
-    //             trees.add(tree);
-    //         }
-    //     }
-    //     return trees;
-    // }
+ 
+  /**
+   * 获取用户操作权限
+   * @param moduleIds  菜单id
+   * @returns 对象
+   */
+  async getOptionByMenuId(moduleIds:Number):Promise<any>{
+    return await this.moduleRepository
+    .createQueryBuilder('menu')
+    .select('menu.permission')
+    .where('menu.id IN ('+moduleIds+')')
+    .setParameter('id',moduleIds)
+    .getRawMany();
+  }
    
    /**
     * 根据parentid获取子级菜单
