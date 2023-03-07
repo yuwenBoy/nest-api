@@ -67,7 +67,7 @@ export class ModuleService {
              const _meta = new menuMeta();
              _menuListModal.component = item._menuPath;
              _menuListModal.name = item._name;
-             _menuListModal.path = item._menuPath;
+             _menuListModal.path = item._menu_path;
              _menuListModal.hidden = false;
              _meta.title = item._name;
              _meta.noCache = true;
@@ -76,8 +76,6 @@ export class ModuleService {
              _menuList.push(_menuListModal)
         }
       })
-    console.log('调用二级菜单_menuList====================',_menuList);
-
       return _menuList;
     }
 
@@ -111,9 +109,7 @@ export class ModuleService {
           _meta.noCache = true;
           _meta.title = item._name;
           _menuDto.meta = _meta;
-          console.log('查看数据======begin======',JSON.stringify(moduleEntity))
           const childTree = this.getMenuChild(moduleEntity,item._id);
-          console.log('查看数据=========end===')
           if(childTree) {
              childTree.then(res=>{
               _menuDto.children =res;
@@ -123,9 +119,6 @@ export class ModuleService {
         }
       }
     });
-
-    console.log('权限菜单====================' + JSON.stringify(moduleEntity));
-    console.log('权限菜单====转换后===============' + JSON.stringify(menuList));
     return menuList;
   }
 }

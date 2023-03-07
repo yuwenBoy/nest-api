@@ -1,8 +1,6 @@
-import { Controller, Get, UseGuards, Request, Inject } from '@nestjs/common';
+import { Controller, Get, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { UserRole } from 'src/entities/t_user_role.entity';
-import { Any } from 'typeorm';
 import { RoleModuleService } from '../roleModule/roleModule.service';
 import { UserRoleService } from '../userRole/userRole.service';
 
@@ -29,13 +27,11 @@ export class ModuleController {
   @UseGuards(AuthGuard('jwt'))
   @Get('/getMenuAll')
   async getMenuAll(@Request() req) {
-    // 获取用户角色
     const roles =  await this.userRoleService.getRoleIds(req.user.id);
     const role_ids = roles.map(item=>{return item.role_id}).toString();
     const modules = await this.roleModuleService.getModuleIds(role_ids);
     const module_ids = modules.map(item=>{return item.t_module_id}).toString();
     const result = await this.moduleService.getMenuByIds(module_ids);
-    console.log('1200000000000000000==========='+roles.map(item=>{return item.role_id}).toString());
     return result;
   }
 }
