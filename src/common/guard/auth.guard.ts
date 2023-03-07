@@ -11,6 +11,7 @@ export class AuthGuard implements CanActivate {
     // 获取请求头中的token字段
     const token = context.switchToRpc().getData().headers.authorization;
     // 如果白名单内的路由就不拦截直接通过
+    console.log('14'+request.url)
     if (this.hasUrl(this.urlList, request.url)) {
       return true;
     }

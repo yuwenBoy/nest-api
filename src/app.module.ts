@@ -8,6 +8,12 @@ import { HelloModule } from './hello/hello.module';
 // 加载用户模块
 import { UserModule } from './admin/user/user.module';
 
+// 加载用户角色模块
+import { UserRoleModule } from './admin/userRole/userRole.module';
+
+// 角色模块表
+import { RoleModuleModule } from './admin/roleModule/roleModule.module'
+
 // 菜单模块
 import { ModuleNESTModule } from './admin/module/module.module'
 
@@ -33,6 +39,8 @@ import { AppController } from './app.controller';
     // 加载子模块
     HelloModule,
     UserModule, // 用户模块
+    UserRoleModule, // 用户角色模块
+    RoleModuleModule,
     AuthModule, // 注册权限模块
     ModuleNESTModule, // 注册菜单模块
   ],

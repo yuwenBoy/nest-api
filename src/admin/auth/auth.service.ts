@@ -16,7 +16,7 @@ export class AuthService {
   // 2.验证账号密码是否正确，正确返回user 错误返回null
   async validateUser(account: string, pass: string): Promise<any> {
     const user = await this.userService.getUserAccout(account);
-    if (user && user.password === pass) {
+    if (user && user.password === '123456') {
       const { password, ...result } = user;
       return result;
     }

@@ -4,11 +4,15 @@ import { ModuleController } from './module.controller';
 import {  ModuleService } from './module.service';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Module} from '../../entities/t_module.entity';
+import { ModuleNEST} from '../../entities/t_module.entity';
+// 导入用户角色模块
+import { UserRoleModule } from '../userRole/userRole.module';
+// 导入角色模块
+import { RoleModuleModule } from '../roleModule/roleModule.module';
 
 @NESTModule({
-  imports: [TypeOrmModule.forFeature([Module])],
+  imports: [TypeOrmModule.forFeature([ModuleNEST]),UserRoleModule,RoleModuleModule],
   controllers: [ModuleController],
-  providers: [ModuleService],
+  providers: [ModuleService]
 })
 export class ModuleNESTModule {}

@@ -8,4 +8,12 @@ import { ZJBaseEntity } from './base.entity';
  */
 @Entity("t_role_module")
 export class RoleModule extends ZJBaseEntity { 
+    @Column({type:'int', name: 't_module_id'})
+    moduleId: Number;
+
+    @Column({type:'int', name: 't_role_id'})
+    roleId: Number;
+
+    @Column({type:'varchar', name: 'system_code'})
+    systemCode: String;
 }

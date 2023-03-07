@@ -8,4 +8,9 @@ import { ZJBaseEntity } from './base.entity';
  */
 @Entity("t_user_role")
 export class UserRole extends ZJBaseEntity { 
+    @Column({type:'int', name: 'user_id'})
+    userId: Number;
+
+    @Column({type:'int', name: 'role_id'})
+    roleId: Number;
 }
