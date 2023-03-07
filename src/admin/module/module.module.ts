@@ -13,6 +13,7 @@ import { RoleModuleModule } from '../roleModule/roleModule.module';
 @NESTModule({
   imports: [TypeOrmModule.forFeature([ModuleNEST]),UserRoleModule,RoleModuleModule],
   controllers: [ModuleController],
-  providers: [ModuleService]
+  providers: [ModuleService],
+  exports:[ModuleService]
 })
 export class ModuleNESTModule {}

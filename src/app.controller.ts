@@ -10,7 +10,10 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './admin/auth/auth.service';
 import { JwtAuthGuard } from './admin/auth/jwt.auth.guard';
 import { LocalAuthGuard } from './admin/auth/local.auth.guard';
+import { ModuleService } from './admin/module/module.service';
+import { RoleModuleService } from './admin/roleModule/roleModule.service';
 import { UserService } from './admin/user/user.service';
+import { UserRoleService } from './admin/userRole/userRole.service';
 // import { ToolsService } from './utils/tools/ToolsService';
 
 @ApiTags('用户身份认证即jwt鉴权')
@@ -19,6 +22,9 @@ export class AppController {
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UserService,
+    private readonly userRoleService:UserRoleService,
+    private readonly roleModuleService:RoleModuleService,
+    private readonly moduleService:ModuleService,
     // private readonly toolsService: ToolsService,
   ) {}
 
@@ -56,9 +62,15 @@ export class AppController {
   async getUserInfo(@Request() req) {
     console.log(`通过携带token请求用户信息 用户id为：${req.user.id}`);
     const user = await this.userService.getUserById(req.user.id);
+    const roles =  await this.userRoleService.getRoleIds(req.user.id);
+    const role_ids = roles.map(item=>{return item.role_id}).toString();
+    const modules = await this.roleModuleService.getModuleIds(role_ids);
+    const module_ids = modules.map(item=>{return item.t_module_id}).toString();
+    const roleList = await this.moduleService.getOptionByMenuId(module_ids);
     const result = {
       homePath: '/dashboard/analysis', // 自定义首页跳转路径
-      ...user,
+      user:user,
+      roles:roleList
     };
     return result;
   }
