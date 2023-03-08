@@ -23,7 +23,7 @@ import { ModuleNESTModule } from '../module/module.module';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: jwtContants.secret,
-      signOptions: { expiresIn: '300s' }, // d天后过期 s秒后过期
+      signOptions: { expiresIn: '7d' }, // d天后过期 s秒后过期
     }),RoleModuleModule,UserRoleModule,ModuleNESTModule
   ], 
   exports: [JwtModule], // 输出jwt

@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-// import { PostDataDto } from './dto/hello.dto';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -23,19 +22,6 @@ export class UserRoleService {
         .createQueryBuilder('userRole')
         .select('userRole.role_id')
         .where('userRole.user_id = :userId',{userId:userId}).getRawMany();
-        console.log('==========='+JSON.stringify(result));
         return result;
      }
-
-
-      // return await this.userRoleRepository
-      // .createQueryBuilder('userRole')
-      // .select('userRole.role_id')
-      // .where('userRole.user_id=:userId', { userId: userId }).getRawMany()
-
-     getRoleModules(roleIds:Array<any>):Promise<any> {
-      console.log('roleIds================='+roleIds.toString());
-      
-      return;
-    }
 }

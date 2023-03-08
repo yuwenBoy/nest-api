@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 // import { PostDataDto } from './dto/hello.dto';
 
 import { InjectRepository } from '@nestjs/typeorm';
@@ -31,22 +31,69 @@ export class UserService {
     }
   }
 
-  getHello(id: string): string {
-    // 这里可以进行数据哭的相关操作，最后将需要返回的数据return出去
-    return `hello GET 参数id:${id}`;
+
+  // 分页查询
+  async pageQuery(parameter:any):Promise<any> {
+      let result = {
+        page:Number(parameter.page),
+        size:Number(parameter.size),
+        totalPage: 0,
+        totalElements:0,
+        content:[]
+      };
+
+      // 返回条数
+    let SQLwhere: any = {};
+    if (parameter.name != undefined) {
+      SQLwhere.name = parameter.name;
+    }
+    result.content = await this.userRepository.find({
+      where: SQLwhere,
+      order: {
+        id: 'DESC',
+      },
+      skip: (parameter.page - 1) * Number(parameter.size), // 分页，跳过几项
+      take: parameter.size, // 分页，取几项
+      cache: true,
+    });
+
+    // 总条数
+    result.totalElements = await this.userRepository.count();
+
+    // 总页数
+    result.totalPage = Math.ceil(
+      (await this.userRepository.count()) / parameter.size,
+    );
+
+    return result;
+
   }
-  //   postHello(data: PostDataDto) {
-  //     return `hello POST 参数code:${data.code};name:${data.name}`;
-  //   }
-  updateHello(id: string, message: string): string {
-    return `hello Patch 参数id:${id};message:${message}`;
-  }
-  removeHello(id: number): string {
-    return `hello delete 参数id:${id}`;
+   // 增加/更新
+   async save(parameter: any): Promise<boolean> {
+    Logger.log(`请求参数：${JSON.stringify(parameter)}`);
+    try {
+      let a = await this.userRepository.save(parameter);
+      return true;
+    } catch (error) {
+      Logger.log(`请求失败：${JSON.stringify(error)}`);
+      return false;
+    }
   }
 
-  async findAll(): Promise<UserEntity[]> {
-    return await this.userRepository.query('select * from t_user');
+  // 删除
+  async delete(ids: any): Promise<boolean> {
+    Logger.log(`请求参数：${JSON.stringify(ids)}`);
+    try {
+      let a = await this.userRepository.delete(ids.id);
+      Logger.log(`删除返回数据：${JSON.stringify(a)}`);
+      if (a.affected == 0) {
+        return false;
+      } else {
+        return true;
+      }
+    } catch (error) {
+      return false;
+    }
   }
 
   /**

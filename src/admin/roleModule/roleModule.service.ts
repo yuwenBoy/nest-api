@@ -25,8 +25,6 @@ export class RoleModuleService {
     .where('roleModule.t_role_id IN ('+roleIds+')')
     .setParameter('t_role_id',roleIds)
     .getRawMany();
-    console.log(`=====角色id为${roleIds}======的模块id为================${result.map(item=>{return item.t_module_id})}`);
     return result;
  }
-
 }

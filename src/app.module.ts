@@ -17,6 +17,9 @@ import { RoleModuleModule } from './admin/roleModule/roleModule.module'
 // 菜单模块
 import { ModuleNESTModule } from './admin/module/module.module'
 
+// 组织机构模块
+import { DeptModule } from './admin/dept/dept.module';
+
 // 登录认证模块
 import { AuthModule } from './admin/auth/auth.module';
 import { join } from 'path';
@@ -43,6 +46,7 @@ import { AppController } from './app.controller';
     RoleModuleModule,
     AuthModule, // 注册权限模块
     ModuleNESTModule, // 注册菜单模块
+    DeptModule, // 组织机构模块
   ],
   controllers: [],
   providers: [],

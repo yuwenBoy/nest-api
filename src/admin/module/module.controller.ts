@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, UseGuards, Request, Logger } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RoleModuleService } from '../roleModule/roleModule.service';
@@ -27,6 +27,7 @@ export class ModuleController {
   @UseGuards(AuthGuard('jwt'))
   @Get('/getMenuAll')
   async getMenuAll(@Request() req) {
+    Logger.log('当前用户'+req.user.id+'操作权限');
     const roles =  await this.userRoleService.getRoleIds(req.user.id);
     const role_ids = roles.map(item=>{return item.role_id}).toString();
     const modules = await this.roleModuleService.getModuleIds(role_ids);

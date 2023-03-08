@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req, Logger } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -14,20 +14,40 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly UserService: UserService) {}
 
-  // @Post('/login')
-  // login(@Body() data: loginParamDto) {
-  //   console.log('请求登录接口begin');
-  //   console.log(data);
-  //   return this.UserService.login(data);
-  //   console.log('请求登录接口end');
-  //   // return this.helloService.postHello(data);
-  // }
-
+ 
   @ApiOperation({ summary: '获取用户信息' })
   @ApiBearerAuth() // swagger文档设置token
   @UseGuards(AuthGuard('jwt'))
-  @Get()
-  getUserInfo(@Req() req) {
-    return req.user;
+  @Post('/getByCondition')
+  list(@Body() queryUserDto:[]):Promise<{}> {
+    Logger.log(`分页查询接受参数：${JSON.stringify(queryUserDto)}`);
+    return this.UserService.pageQuery(queryUserDto);
   }
+
+   /**
+   * 用户管理-增加用户
+   */
+   @Post('/add')
+   addUser(@Body() addUserDto: []): Promise<boolean> {
+     Logger.log(`增加用户接收参数：${JSON.stringify(addUserDto)}`);
+     return this.UserService.save(addUserDto);
+   }
+ 
+   /**
+    * 用户管理-编辑用户
+    */
+   @Post('/edit')
+   updateUser(@Body() updateUserDto: []): Promise<boolean> {
+     Logger.log(`编辑用户接收参数：${JSON.stringify(updateUserDto)}`);
+     return this.UserService.save(updateUserDto);
+   }
+ 
+   /**
+    * 用户管理-删除用户
+    */
+   @Post('/delete')
+   deleteUser(@Body() deleteUserDto: []): Promise<boolean> {
+     Logger.log(`删除用户接收参数：${JSON.stringify(deleteUserDto)}`);
+     return this.UserService.delete(deleteUserDto);
+   }
 }

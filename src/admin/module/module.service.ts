@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserRole } from 'src/entities/t_user_role.entity';
 import { Repository } from 'typeorm';
 import { ModuleNEST } from '../../entities/t_module.entity';
-import { UserRoleService } from '../userRole/userRole.service';
 import { menuDto, menuList, menuMeta } from './dto/menu.dto';
 
 @Injectable()
@@ -13,24 +11,6 @@ export class ModuleService {
     @InjectRepository(ModuleNEST)
     private readonly moduleRepository: Repository<ModuleNEST>,
   ) {}
-
-  getHello(id: string): string {
-    // 这里可以进行数据哭的相关操作，最后将需要返回的数据return出去
-    return `hello GET 参数id:${id}`;
-  }
-  //   postHello(data: PostDataDto) {
-  //     return `hello POST 参数code:${data.code};name:${data.name}`;
-  //   }
-  updateHello(id: string, message: string): string {
-    return `hello Patch 参数id:${id};message:${message}`;
-  }
-  removeHello(id: number): string {
-    return `hello delete 参数id:${id}`;
-  }
-
-  async findAll(): Promise<ModuleNEST[]> {
-    return await this.moduleRepository.query('select * from t_module');
-  }
  
   /**
    * 获取用户操作权限
@@ -38,12 +18,8 @@ export class ModuleService {
    * @returns 对象
    */
   async getOptionByMenuId(moduleIds:Number):Promise<any>{
-    return await this.moduleRepository
-    .createQueryBuilder('menu')
-    .select('menu.permission')
-    .where('menu.id IN ('+moduleIds+')')
-    .setParameter('id',moduleIds)
-    .getRawMany();
+    const result = await this.moduleRepository.query(`select permission from t_module where id in (${moduleIds})`);
+    return result;
   }
    
    /**
@@ -53,16 +29,16 @@ export class ModuleService {
    async getMenuChild(moduleList:any,pId:Number):Promise<any> {
       const _menuList = [];
       moduleList.forEach(item=>{
-        if(item._parent_id == pId){
+        if(item.parent_id == pId){
              const _menuListModal = new menuList();
              const _meta = new menuMeta();
-             _menuListModal.component = item._menuPath;
-             _menuListModal.name = item._name;
-             _menuListModal.path = item._menu_path;
+             _menuListModal.component = item.menu_path;
+             _menuListModal.name = item.menu_path.split('/')[0];
+             _menuListModal.path = item.menu_path;
              _menuListModal.hidden = false;
-             _meta.title = item._name;
+             _meta.title = item.name;
              _meta.noCache = true;
-             _meta.icon = item._icon;
+             _meta.icon = item.icon;
              _menuListModal.meta = _meta;
              _menuList.push(_menuListModal)
         }
@@ -76,12 +52,14 @@ export class ModuleService {
    * @returns 返回菜单
    */
   async getMenuByIds(moduleIds: Number): Promise<any> {
-    const moduleEntity = await this.moduleRepository
-      .createQueryBuilder(" ")
-      .where('id IN (' + moduleIds + ') AND menu_type !=1')
-      .orderBy('index_no', 'DESC')
-      .setParameter('id', moduleIds)
-      .getRawMany();
+
+    const moduleEntity = await this.moduleRepository.query(`select * from t_module where id in (${moduleIds}) and menu_type !=1 order by index_no desc`);
+    // const moduleEntity = await this.moduleRepository
+    //   .createQueryBuilder(" ")
+    //   .where('id IN (' + moduleIds + ') AND menu_type !=1')
+    //   .orderBy('index_no', 'DESC')
+    //   .setParameter('id', moduleIds)
+    //   .getRawMany();
     
    const menuList:Array<menuDto> = new Array<menuDto>();   
 
@@ -89,18 +67,18 @@ export class ModuleService {
       const _menuDto = new menuDto();
       const _meta = new menuMeta();
       if (item) {
-        if (item._parent_id == 0) {
-          _menuDto.name = item._name;
+        if (item.parent_id == 0) {
+          _menuDto.name = item.name;
           _menuDto.hidden = false;
           _menuDto.component = 'Layout';
-          _menuDto.path = '/' + item._menu_path;
+          _menuDto.path = '/' + item.menu_path;
           _menuDto.redirect = 'noredirect';
           _menuDto.alwaysShow = true;
-          _meta.icon = item._icon;
+          _meta.icon = item.icon;
           _meta.noCache = true;
-          _meta.title = item._name;
+          _meta.title = item.name;
           _menuDto.meta = _meta;
-          const childTree = this.getMenuChild(moduleEntity,item._id);
+          const childTree = this.getMenuChild(moduleEntity,item.id);
           if(childTree) {
              childTree.then(res=>{
               _menuDto.children =res;
