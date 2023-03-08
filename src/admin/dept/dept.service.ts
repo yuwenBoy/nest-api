@@ -32,16 +32,16 @@ export class DeptService {
     let parentId = pid ? pid : 0 ;
     const deptList = await this.deptServiceRepository.query(`select * from t_department where parent_id = ${ parentId }`);
     const _elTreeList = [];
-    deptList.forEach(item=>{
+     deptList.forEach(async item=>{
         const _elTree = new deptToTree();
         _elTree.id = item.id;
-        _elTree.leaf = false;
-         
-       _elTree.hasChildren = false
+        _elTree.leaf =parentId>0? (await this.getDownDept(item.id)>0?true:false):false;
+       _elTree.hasChildren =!_elTree.leaf;
         _elTree.label = item.department_name;
         _elTree.name = item.department_name;
         _elTreeList.push(_elTree);
     });
+    console.log("============_elTreeList", _elTreeList);
     return _elTreeList;
  }
 }
