@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert, OneToOne } from 'typeorm';
 import { ZJBaseEntity } from './base.entity';
+import { UserEntity } from './t_user.entity';
 
 /**
  * description:机构表
@@ -19,4 +20,7 @@ export class DeptEntity extends ZJBaseEntity {
 
     @Column({type:'varchar', name: 'department_code',comment:'组织编码'})
     department_code: String;
+
+    @OneToOne(type => UserEntity, user => user.dept_id)
+    user: UserEntity;
 }

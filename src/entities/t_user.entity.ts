@@ -2,6 +2,7 @@ import { Column, Entity, BeforeInsert, JoinColumn, OneToOne } from 'typeorm';
 import { bcrypt } from 'bcryptjs';
 import { ZJBaseEntity } from './base.entity';
 import { DeptEntity } from './dept.entity';
+import { PositionEntity } from './position.entity';
 
 /**
  * description:用户实体表
@@ -47,10 +48,13 @@ export class UserEntity extends ZJBaseEntity {
   @Column({type:'varchar', name: 'birthday'})
   birthday: string;
 
-  // @OneToOne(() => DeptEntity)
-  // @JoinColumn()
-  // @Column({type:'int', name: 'dept_id'})
-  // dept:DeptEntity
+  // 用户关联机构
+  @OneToOne(type => DeptEntity,dept =>dept.id)
+  deptName: DeptEntity[];
+
+  // 用户关联职位
+  @OneToOne(type => PositionEntity,posi => posi.id)
+  positionName:PositionEntity[];
   
   @BeforeInsert()
   async encryptPwd() {

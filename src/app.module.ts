@@ -20,6 +20,9 @@ import { ModuleNESTModule } from './admin/module/module.module'
 // 组织机构模块
 import { DeptModule } from './admin/dept/dept.module';
 
+// 职位模块
+import { PositionModule } from './admin/position/position.module';
+
 // 登录认证模块
 import { AuthModule } from './admin/auth/auth.module';
 import { join } from 'path';
@@ -34,7 +37,7 @@ import { AppController } from './app.controller';
       host: '127.0.0.1',
       port: 3306, // 端口
       username: 'root',
-      password: '123456',
+      password: 'root123456',
       database: 'zj_db_system',
       entities: [join(__dirname, './entities', '**/**.entity{.ts,.js}')],// 扫描本项目中.entity.ts 或者.entity.js的文件
       synchronize: false, // 定义数据库表结构与实体类字段同步（这里一旦数据库少了字段就会自动加入，根据需要来使用）
@@ -47,6 +50,7 @@ import { AppController } from './app.controller';
     AuthModule, // 注册权限模块
     ModuleNESTModule, // 注册菜单模块
     DeptModule, // 组织机构模块
+    PositionModule, // 职位模块
   ],
   controllers: [],
   providers: [],

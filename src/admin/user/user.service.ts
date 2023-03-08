@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 // import { PostDataDto } from './dto/hello.dto';
 
 import { InjectRepository } from '@nestjs/typeorm';
+import { DeptEntity } from 'src/entities/dept.entity';
+import { PositionEntity } from 'src/entities/position.entity';
 import { Repository } from 'typeorm';
 import { UserEntity } from '../../entities/t_user.entity';
 import { loginParamDto } from './dto/user.dto';
@@ -32,7 +34,11 @@ export class UserService {
   }
 
 
-  // 分页查询
+ /**
+  * 用户列表
+  * @param parameter 查询条件
+  * @returns list
+  */
   async pageQuery(parameter:any):Promise<any> {
       let result = {
         page:Number(parameter.page),
@@ -53,15 +59,25 @@ export class UserService {
     // us.* from t_user us join t_department te on us.dept_id = te.id join t_position po on us.position_id = po.id`
     // result.content = await this.userRepository.query(build_sql);
 
-    result.content = await this.userRepository.find({
-      where: SQLwhere,
-      order: {
-        id: 'DESC',
-      },
-      skip: (parameter.page - 1) * Number(parameter.size), // 分页，跳过几项
-      take: parameter.size, // 分页，取几项
-      cache: true
-    });
+    result.content = await this.userRepository.createQueryBuilder("user")
+                    // .innerJoin("user.dept_id","dept")
+                    .leftJoinAndMapOne('user.dept_id',DeptEntity,'dept','user.dept_id=dept.id')
+                    .innerJoinAndMapOne('user.position_id',PositionEntity,'posi','user.position_id=posi.id')
+                    // .where("")
+                    .skip((parameter.page - 1) * Number(parameter.size))
+                    .take(parameter.size)
+                    .printSql()
+                    .getMany()
+
+    // result.content = await this.userRepository.find({
+    //   where: SQLwhere,
+    //   order: {
+    //     id: 'DESC',
+    //   },
+    //   skip: (parameter.page - 1) * Number(parameter.size), // 分页，跳过几项
+    //   take: parameter.size, // 分页，取几项
+    //   cache: true
+    // });
 
     // 总条数
     result.totalElements = await this.userRepository.count();
