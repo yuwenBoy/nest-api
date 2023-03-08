@@ -63,7 +63,12 @@ export class UserService {
                     // .innerJoin("user.dept_id","dept")
                     .leftJoinAndMapOne('user.dept_id',DeptEntity,'dept','user.dept_id=dept.id')
                     .innerJoinAndMapOne('user.position_id',PositionEntity,'posi','user.position_id=posi.id')
-                    // .where("")
+                  
+                    .orWhere("user.cname like :name", {cname: '%' + parameter.cname + '%' })
+                    .orWhere("user.phone like :phone", {phone: '%' + parameter.cname + '%' })
+                    .orWhere("user.email like :email", {email: '%' + parameter.cname + '%' })
+                    .where("user.isdisabled=:isdisabled",{isdisabled: parameter.isdisabled})
+                    .where("user.dept_id=:dept_id",{dept_id: parameter.deptId})
                     .skip((parameter.page - 1) * Number(parameter.size))
                     .take(parameter.size)
                     .printSql()
