@@ -36,6 +36,7 @@ export class DeptService {
         const _elTree = new deptToTree();
         _elTree.id = item.id;
         _elTree.leaf = false;
+         
        _elTree.hasChildren = false
         _elTree.label = item.department_name;
         _elTree.name = item.department_name;

@@ -47,6 +47,12 @@ export class UserService {
     if (parameter.name != undefined) {
       SQLwhere.name = parameter.name;
     }
+
+    // let build_sql = ` select te.department_name dept_name,
+    // po.name position_name,
+    // us.* from t_user us join t_department te on us.dept_id = te.id join t_position po on us.position_id = po.id`
+    // result.content = await this.userRepository.query(build_sql);
+
     result.content = await this.userRepository.find({
       where: SQLwhere,
       order: {
@@ -54,7 +60,7 @@ export class UserService {
       },
       skip: (parameter.page - 1) * Number(parameter.size), // 分页，跳过几项
       take: parameter.size, // 分页，取几项
-      cache: true,
+      cache: true
     });
 
     // 总条数

@@ -1,6 +1,7 @@
-import { Column, Entity, BeforeInsert } from 'typeorm';
+import { Column, Entity, BeforeInsert, JoinColumn, OneToOne } from 'typeorm';
 import { bcrypt } from 'bcryptjs';
 import { ZJBaseEntity } from './base.entity';
+import { DeptEntity } from './dept.entity';
 
 /**
  * description:用户实体表
@@ -45,6 +46,11 @@ export class UserEntity extends ZJBaseEntity {
 
   @Column({type:'varchar', name: 'birthday'})
   birthday: string;
+
+  // @OneToOne(() => DeptEntity)
+  // @JoinColumn()
+  // @Column({type:'int', name: 'dept_id'})
+  // dept:DeptEntity
   
   @BeforeInsert()
   async encryptPwd() {
