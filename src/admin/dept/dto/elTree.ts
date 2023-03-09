@@ -10,7 +10,10 @@ export class deptToTree {
     enabled: Boolean; 
 
     @Column({type:'int', name: 'id',comment:''})
-    id: Boolean; 
+    id: Number; 
+
+    @Column({type:'int', name: 'pid',comment:''})
+    pid: Number; 
 
     
     @Column({type:'varchar', name: 'label',comment:'节点名称'})

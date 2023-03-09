@@ -23,4 +23,15 @@ export class DeptEntity extends ZJBaseEntity {
 
     @OneToOne(type => UserEntity, user => user.dept_id)
     user: UserEntity;
+
+    
+    pid: Number; 
+    
+    label: string; 
+
+    name: string; 
+
+    leaf: Boolean; 
+
+    hasChildren: Boolean; 
 }

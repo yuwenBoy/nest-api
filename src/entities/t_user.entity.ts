@@ -3,6 +3,9 @@ import { bcrypt } from 'bcryptjs';
 import { ZJBaseEntity } from './base.entity';
 import { DeptEntity } from './dept.entity';
 import { PositionEntity } from './position.entity';
+import { Disabled } from 'src/utils/enum/admin';
+
+
 
 /**
  * description:用户实体表
@@ -11,14 +14,14 @@ import { PositionEntity } from './position.entity';
  */
 @Entity("t_user")
 export class UserEntity extends ZJBaseEntity {
-  @Column({type:'varchar', name: 'username'})
+  @Column({type:'varchar', name: 'username',comment:'账号'})
   username: string;
 
   // @Exclude({toPlainOnly:true})
   @Column({type:'varchar', name: 'password'})
   password: string;
 
-  @Column({type:'varchar', name: 'cname',length:10})
+  @Column({type:'varchar', name: 'cname',length:10,comment:'姓名'})
   cname: string;
 
   @Column({type:'varchar', name: 'email'})
@@ -30,8 +33,8 @@ export class UserEntity extends ZJBaseEntity {
   @Column({type:'varchar', name: 'avatar'})
   avatar: string;
 
-  @Column({type:'int', name: 'isdisabled'})
-  isdisabled: Number;
+  @Column({type:'enum',default:Disabled.DISABLED,enum:Disabled, name: 'disabled',comment:'状态'})
+  disabled: Disabled;
 
   @Column({type:'varchar', name: 'phone'})
   phone: string;
@@ -47,6 +50,18 @@ export class UserEntity extends ZJBaseEntity {
 
   @Column({type:'varchar', name: 'birthday'})
   birthday: string;
+
+  @Column({type:'varchar', name: 'nick_name',comment:'昵称'})
+  nick_name: string;
+
+  @Column({type:'int', name: 'master_work_id',comment:'主管Id'})
+  master_work_id: Number;
+
+  @Column({type:'varchar', name: 'master_work_name',comment:'主管名称'})
+  master_work_name: string;
+
+  @Column({type:'varchar', name: 'employee_no',comment:'员工编号'})
+  employee_no: string;
 
   // 用户关联机构
   @OneToOne(type => DeptEntity,dept =>dept.id)

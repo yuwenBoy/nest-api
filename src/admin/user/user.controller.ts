@@ -19,9 +19,9 @@ export class UserController {
   @ApiBearerAuth() // swagger文档设置token
   @UseGuards(AuthGuard('jwt'))
   @Post('/getByCondition')
-  list(@Body() queryUserDto:[]):Promise<{}> {
-    Logger.log(`分页查询接受参数：${JSON.stringify(queryUserDto)}`);
-    return this.UserService.pageQuery(queryUserDto);
+  list(@Body() query):Promise<{}> {
+    Logger.log(`分页查询接受参数：${JSON.stringify(query)}`);
+    return this.UserService.pageQuery(query);
   }
 
    /**

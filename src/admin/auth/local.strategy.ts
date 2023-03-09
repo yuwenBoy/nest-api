@@ -19,6 +19,11 @@ export class LocalStorage extends PassportStrategy(Strategy) {
     console.log('登录请求参数');
     const user = await this.authService.validateUser(username, password);
     console.log(user);
+    if(user){
+      if(user.disabled == 2){
+        throw new HttpException('账号被禁用，请联系管理员！',HttpStatus.OK);
+      }
+    }
     if (!user) {
       throw new HttpException('账号或密码错误！',HttpStatus.OK);
     }
