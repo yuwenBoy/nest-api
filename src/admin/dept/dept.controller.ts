@@ -16,14 +16,14 @@ export class DeptController {
   constructor(private readonly deptService: DeptService) {}
 
  
-  @ApiOperation({ summary: '根据parentId获取机构' })
-  @ApiBearerAuth() // swagger文档设置token
-  @UseGuards(AuthGuard('jwt'))
-  @Get('/getDeptAll')
-  getDeptAll(@Query() query):Promise<any> {
-    console.log('接受query参数'+query.pid)
-    return this.deptService.getDeptAll(query.pid);
-  }
+  // @ApiOperation({ summary: '根据parentId获取机构' })
+  // @ApiBearerAuth() // swagger文档设置token
+  // @UseGuards(AuthGuard('jwt'))
+  // @Get('/getDeptAll')
+  // getDeptAll(@Query() query):Promise<any> {
+  //   console.log('接受query参数'+query.pid)
+  //   return this.deptService.getDeptAll(query.pid);
+  // }
 
 
   @ApiOperation({ summary: '查询所有机构' })
@@ -31,9 +31,6 @@ export class DeptController {
   @UseGuards(AuthGuard('jwt'))
   @Get('/getDeptTree')
   getDeptTree():Promise<any> {
-    // console.log('查询所有机构========接受query参数'+query.pid)
-    console.log('=========this.deptService.getDeptTree();========',this.deptService.getDeptTree())
     return this.deptService.getDeptTree();
   }
-  
 }
