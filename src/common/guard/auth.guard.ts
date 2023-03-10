@@ -37,6 +37,7 @@ export class AuthGuard implements CanActivate {
   // 白名单数组
   private urlList: string[] = [
     '/basic-api/auth/login',
+    '/basic-api/auth/logout',
     '/basic-api/auth/authcode'
   ];
 

@@ -50,8 +50,6 @@ export class AppController {
    * @returns null
    */
   @ApiOperation({ summary: '系统退出登录' })
-  @ApiBearerAuth() // swagger文档设置token
-  @UseGuards(JwtAuthGuard) // 需要jwt鉴权认证
   @Get('/logout')
   async logout() {
     return;

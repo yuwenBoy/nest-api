@@ -5,8 +5,6 @@ import { DeptEntity } from './dept.entity';
 import { PositionEntity } from './position.entity';
 import { Disabled } from 'src/utils/enum/admin';
 
-
-
 /**
  * description:用户实体表
  * @createTime:2023-1-9 11:57:45
@@ -17,7 +15,6 @@ export class UserEntity extends ZJBaseEntity {
   @Column({type:'varchar', name: 'username',comment:'账号'})
   username: string;
 
-  // @Exclude({toPlainOnly:true})
   @Column({type:'varchar', name: 'password'})
   password: string;
 
@@ -33,7 +30,7 @@ export class UserEntity extends ZJBaseEntity {
   @Column({type:'varchar', name: 'avatar'})
   avatar: string;
 
-  @Column({type:'enum',default:Disabled.DISABLED,enum:Disabled, name: 'disabled',comment:'状态'})
+  @Column({type:'enum',default:"1",enum:Disabled, name: 'disabled',comment:'状态'})
   disabled: Disabled;
 
   @Column({type:'varchar', name: 'phone'})

@@ -1,4 +1,6 @@
-import { Controller} from '@nestjs/common';
+import { Controller, Get, Query, UseGuards} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 
 import { PositionService } from './position.service';
 
@@ -10,4 +12,15 @@ import { PositionService } from './position.service';
 @Controller('position')
 export class PositionController {
   constructor(private readonly positionService: PositionService) {}
+
+
+  @ApiOperation({ summary: '查询机构下的职位' })
+  @ApiBearerAuth() // swagger文档设置token
+  @UseGuards(AuthGuard('jwt'))
+  @Get('/getPositionByDeptId')
+  getPositionByDeptId(@Query() query):Promise<any> {
+    console.log('接受query参数'+query.pid)
+    return this.positionService.getPositionByDeptId(query.deptId);
+  }
+
 }
