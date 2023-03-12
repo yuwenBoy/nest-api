@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -53,6 +53,11 @@ export class DeptService {
    * 查询全部机构
    */
   async getDeptTree():Promise<any> {
-  return  await this.deptServiceRepository.find();
+    try {
+      return  await this.deptServiceRepository.find();
+    }
+    catch(error){
+      Logger.error('查询机构失败，原因：'+error);
+    }
   }
 }

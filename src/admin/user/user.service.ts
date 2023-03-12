@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import moment from 'moment';
 import { DeptEntity } from 'src/entities/dept.entity';
 import { PositionEntity } from 'src/entities/position.entity';
 import { Brackets, Repository } from 'typeorm';
@@ -19,152 +20,167 @@ export class UserService {
    * @returns list
    */
   async pageQuery(parameter: any): Promise<any> {
-      try {
-        let result = {
-          page: Number(parameter.page),
-          size: Number(parameter.size),
-          totalPage: 0,
-          totalElements: 0,
-          content: [],
-        };
-        result.content = await this.userRepository
-          .createQueryBuilder('user')
-          .innerJoinAndMapOne(
-            'user.dept_id',
-            DeptEntity,
-            'dept',
-            'user.dept_id=dept.id',
-          )
-          .innerJoinAndMapOne(
-            'user.position_id',
-            PositionEntity,
-            'posi',
-            'user.position_id=posi.id',
-          )
-          .where(
-            new Brackets((qb) => {
-              if (parameter.cname) {
-                return qb.where(
-                  'user.cname LIKE :cname or user.phone LIKE :phone or user.email LIKE :email',
-                  {
-                    cname: `%${parameter.cname}%`,
-                    phone: `%${parameter.cname}%`,
-                    email: `%${parameter.cname}%`,
-                  },
-                );
-              } else {
-                return qb;
-              }
-            }),
-          )
-          .andWhere(
-            new Brackets((qb) => {
-              if (parameter.disabled) {
-                return qb.andWhere('user.disabled=:disabled', {
-                  disabled: parameter.disabled,
-                });
-              } else {
-                return qb;
-              }
-            }),
-          )
-          .andWhere(
-            new Brackets((qb) => {
-              if (parameter.deptId) {
-                return qb.andWhere('user.dept_id=:deptId', {
-                  deptId: parameter.deptId,
-                });
-              } else {
-                return qb;
-              }
-            }),
-          )
-          .orderBy(`user.${parameter.sort}`,'DESC')
-          .skip((parameter.page - 1) * Number(parameter.size))
-          .take(parameter.size)
-          .getMany();
-    
-        // 总条数
-        result.totalElements = await this.userRepository
-          .createQueryBuilder('user')
-          .innerJoinAndMapOne(
-            'user.dept_id',
-            DeptEntity,
-            'dept',
-            'user.dept_id=dept.id',
-          )
-          .innerJoinAndMapOne(
-            'user.position_id',
-            PositionEntity,
-            'posi',
-            'user.position_id=posi.id',
-          )
-          .where(
-            new Brackets((qb) => {
-              if (parameter.cname) {
-                return qb.where(
-                  'user.cname LIKE :cname or user.phone LIKE :phone or user.email LIKE :email',
-                  {
-                    cname: `%${parameter.cname}%`,
-                    phone: `%${parameter.cname}%`,
-                    email: `%${parameter.cname}%`,
-                  },
-                );
-              } else {
-                return qb;
-              }
-            }),
-          )
-          .andWhere(
-            new Brackets((qb) => {
-              if (parameter.disabled) {
-                return qb.andWhere('user.disabled=:disabled', {
-                  disabled: parameter.disabled,
-                });
-              } else {
-                return qb;
-              }
-            }),
-          )
-          .andWhere(
-            new Brackets((qb) => {
-              if (parameter.deptId) {
-                return qb.andWhere('user.dept_id=:deptId', {
-                  deptId: parameter.deptId,
-                });
-              } else {
-                return qb;
-              }
-            }),
-          )
-          .getCount();
-    
-        // 总页数
-        result.totalPage = Math.ceil(result.totalElements / parameter.size);
-    
-        return result;
-      }
-      catch(error){
-        Logger.log(`请求失败：${JSON.stringify(error)}`);
-        return false;
-      }
+    try {
+      let result = {
+        page: Number(parameter.page),
+        size: Number(parameter.size),
+        totalPage: 0,
+        totalElements: 0,
+        content: [],
+      };
+      result.content = await this.userRepository
+        .createQueryBuilder('user')
+        .innerJoinAndMapOne(
+          'user.dept_id',
+          DeptEntity,
+          'dept',
+          'user.dept_id=dept.id',
+        )
+        .innerJoinAndMapOne(
+          'user.position_id',
+          PositionEntity,
+          'posi',
+          'user.position_id=posi.id',
+        )
+        .where(
+          new Brackets((qb) => {
+            if (parameter.cname) {
+              return qb.where(
+                'user.cname LIKE :cname or user.phone LIKE :phone or user.email LIKE :email',
+                {
+                  cname: `%${parameter.cname}%`,
+                  phone: `%${parameter.cname}%`,
+                  email: `%${parameter.cname}%`,
+                },
+              );
+            } else {
+              return qb;
+            }
+          }),
+        )
+        .andWhere(
+          new Brackets((qb) => {
+            if (parameter.disabled) {
+              return qb.andWhere('user.disabled=:disabled', {
+                disabled: parameter.disabled,
+              });
+            } else {
+              return qb;
+            }
+          }),
+        )
+        .andWhere(
+          new Brackets((qb) => {
+            if (parameter.deptId) {
+              return qb.andWhere('user.dept_id=:deptId', {
+                deptId: parameter.deptId,
+              });
+            } else {
+              return qb;
+            }
+          }),
+        )
+        .orderBy(`user.${parameter.sort}`, 'DESC')
+        .skip((parameter.page - 1) * Number(parameter.size))
+        .take(parameter.size)
+        .getMany();
+
+      // 总条数
+      result.totalElements = await this.userRepository
+        .createQueryBuilder('user')
+        .innerJoinAndMapOne(
+          'user.dept_id',
+          DeptEntity,
+          'dept',
+          'user.dept_id=dept.id',
+        )
+        .innerJoinAndMapOne(
+          'user.position_id',
+          PositionEntity,
+          'posi',
+          'user.position_id=posi.id',
+        )
+        .where(
+          new Brackets((qb) => {
+            if (parameter.cname) {
+              return qb.where(
+                'user.cname LIKE :cname or user.phone LIKE :phone or user.email LIKE :email',
+                {
+                  cname: `%${parameter.cname}%`,
+                  phone: `%${parameter.cname}%`,
+                  email: `%${parameter.cname}%`,
+                },
+              );
+            } else {
+              return qb;
+            }
+          }),
+        )
+        .andWhere(
+          new Brackets((qb) => {
+            if (parameter.disabled) {
+              return qb.andWhere('user.disabled=:disabled', {
+                disabled: parameter.disabled,
+              });
+            } else {
+              return qb;
+            }
+          }),
+        )
+        .andWhere(
+          new Brackets((qb) => {
+            if (parameter.deptId) {
+              return qb.andWhere('user.dept_id=:deptId', {
+                deptId: parameter.deptId,
+              });
+            } else {
+              return qb;
+            }
+          }),
+        )
+        .getCount();
+
+      // 总页数
+      result.totalPage = Math.ceil(result.totalElements / parameter.size);
+
+      return result;
+    } catch (error) {
+      Logger.log(`请求失败：${JSON.stringify(error)}`);
+      return false;
+    }
   }
   // 增加/更新
   async save(parameter: any): Promise<boolean> {
     Logger.log(`请求参数：${JSON.stringify(parameter)}`);
     try {
-      parameter.disabled = 1;
-      let res =  await this.userRepository
-                  .createQueryBuilder()
-                  .insert()
-                  .into(UserEntity)
-                  .values([parameter])
-                  .execute();
-     if(res.raw){
-      return true
-     }else{
-      return false;
-     }
+      if (!parameter.id) {
+        // parameter.create_time = moment().format();
+        let res = await this.userRepository
+          .createQueryBuilder()
+          .insert()
+          .into(UserEntity)
+          .values([parameter])
+          .execute();
+        if (res.raw) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        // console.log("===========moment().format();",moment().format())
+        // parameter.update_time = moment().format();
+        let res = await this.userRepository.update(parameter.id,parameter)
+          // .createQueryBuilder()
+          // .update(UserEntity)
+          // .set(parameter)
+          // .where('id = :id', { id: parameter.id })
+          // .execute();s
+          if (res.raw) {
+            return true;
+          } else {
+            return false;
+          }
+      }
     } catch (error) {
       Logger.log(`请求失败：${JSON.stringify(error)}`);
       return false;

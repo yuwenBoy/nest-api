@@ -31,6 +31,6 @@ export class DeptController {
   @UseGuards(AuthGuard('jwt'))
   @Get('/getDeptTree')
   getDeptTree():Promise<any> {
-    return this.deptService.getDeptTree();
+    return  this.deptService.getDeptTree();
   }
 }
