@@ -1,7 +1,4 @@
 import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-
 import { UserRoleService } from './userRole.service';
 
 /***
@@ -12,4 +9,6 @@ import { UserRoleService } from './userRole.service';
 @Controller('userRole')
 export class UserRoleController {
   constructor(private readonly userRoleService: UserRoleService) {}
+
+
 }
