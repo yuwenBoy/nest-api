@@ -33,4 +33,13 @@ export class DeptController {
   getDeptTree():Promise<any> {
     return  this.deptService.getDeptTree();
   }
+
+  @ApiOperation({ summary: '查询机构列表' })
+  @ApiBearerAuth() // swagger文档设置token
+  @UseGuards(AuthGuard('jwt'))
+  @Post('/getByCondition')
+  list(@Body() query):Promise<{}> {
+    Logger.log(`分页查询接受参数：${JSON.stringify(query)}`);
+    return this.deptService.pageQuery(query);
+  }
 }

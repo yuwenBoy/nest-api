@@ -90,4 +90,12 @@ export class ModuleService {
     });
     return menuList;
   }
+
+  /**
+   * 查询系统全部资源
+   * @returns 返回全部资源【菜单模块表】
+   */
+  async getModuleTreeAll():Promise<any>{
+    return await this.moduleRepository.find();
+  }
 }

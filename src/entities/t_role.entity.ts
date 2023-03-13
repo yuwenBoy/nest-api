@@ -8,4 +8,18 @@ import { ZJBaseEntity } from './base.entity';
  */
 @Entity("t_role")
 export class Role extends ZJBaseEntity { 
+    @Column({type:'varchar',comment:'名称'})
+    name: string;
+
+    @Column({type:'varchar',comment:'编码'})
+    code: string;
+
+    @Column({type:'varchar',comment:'父级ID'})
+    parent_id: string;
+
+    @Column({type:'varchar',comment:'系统编码'})
+    system_code: string;
+
+    @Column({type:'varchar',comment:'备注'})
+    remark: string;
 }

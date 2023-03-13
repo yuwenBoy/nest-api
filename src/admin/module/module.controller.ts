@@ -35,4 +35,12 @@ export class ModuleController {
     const result = await this.moduleService.getMenuByIds(module_ids);
     return result;
   }
+
+  @ApiOperation({ summary: '获取系统全部资源' })
+  @ApiBearerAuth() // swagger文档设置token
+  @UseGuards(AuthGuard('jwt'))
+  @Get('/getModuleTreeAll')
+  async getModuleTreeAll(@Request() req) {
+     return await this.moduleService.getModuleTreeAll();
+  }
 }

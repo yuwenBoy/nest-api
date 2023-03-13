@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import moment from 'moment';
 import { DeptEntity } from 'src/entities/dept.entity';
 import { PositionEntity } from 'src/entities/position.entity';
 import { Brackets, Repository } from 'typeorm';
@@ -162,6 +161,7 @@ export class UserService {
           .values([parameter])
           .execute();
         if (res.raw) {
+          console.log(res.raw)
           return true;
         } else {
           return false;

@@ -15,12 +15,11 @@ export class PositionController {
 
 
   @ApiOperation({ summary: '查询机构下的职位' })
-  @ApiBearerAuth() // swagger文档设置token
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Get('/getPositionByDeptId')
   getPositionByDeptId(@Query() query):Promise<any> {
     console.log('接受query参数'+query.pid)
     return this.positionService.getPositionByDeptId(query.deptId);
   }
-
 }

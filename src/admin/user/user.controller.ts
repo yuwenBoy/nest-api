@@ -15,7 +15,7 @@ export class UserController {
   constructor(private readonly UserService: UserService) {}
 
  
-  @ApiOperation({ summary: '获取用户信息' })
+  @ApiOperation({ summary: '查詢用戶列表' })
   @ApiBearerAuth() // swagger文档设置token
   @UseGuards(AuthGuard('jwt'))
   @Post('/getByCondition')

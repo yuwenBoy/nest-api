@@ -8,6 +8,9 @@ import { HelloModule } from './hello/hello.module';
 // 加载用户模块
 import { UserModule } from './admin/user/user.module';
 
+// 加载角色模块
+import { RoleModule } from './admin/role/role.module';
+
 // 加载用户角色模块
 import { UserRoleModule } from './admin/userRole/userRole.module';
 
@@ -46,6 +49,7 @@ import { AppController } from './app.controller';
     // 加载子模块
     HelloModule,
     UserModule, // 用户模块
+    RoleModule, // 角色模块
     UserRoleModule, // 用户角色模块
     RoleModuleModule,
     AuthModule, // 注册权限模块

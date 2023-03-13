@@ -12,6 +12,9 @@ export class DeptEntity extends ZJBaseEntity {
     @Column({type:'int', name: 'department_type',comment:'组织类型 1 公司 2部门'})
     department_type: Number;
 
+    @Column({type:'int', name: 'sort',comment:'排序'})
+    sort: Number;
+
     @Column({type:'int', name: 'parent_id',comment:'父级id'})
     parent_id: Number;
 
