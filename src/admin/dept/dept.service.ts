@@ -48,7 +48,8 @@ export class DeptService {
             if (current["parent_id"] == parameter.pid) {
               console.log("================="+current)
               let  isChild = await this.deptRepository.createQueryBuilder('dept').where('dept.parent_id = :pid').setParameter('pid',parameter.id).getCount();
-              current['children'] = [{}]
+              current['hasChildren'] = isChild ? true: false
+
     
               // if (list.filter((t) => t.parent_id == current["id"]).length == 0) {
               //   current['children'] = isChild = undefined;
