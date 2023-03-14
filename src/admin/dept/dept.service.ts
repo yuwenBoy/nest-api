@@ -13,67 +13,55 @@ export class DeptService {
     private readonly deptRepository: Repository<DeptEntity>,
   ) {}
 
+   /**
+     * 将数值转换成树形展示
+     */
+    // arrayToTree(arr, pid) {
+    //   return arr.reduce((res, current) => {
+    //     if (current["parent_id"] == pid) {
+    //       // let obj = { department_name: "", label: "",id:"",department_code:'',department_type:'',children:[] };
+    //       // obj.id = current["id"];
+    //       // obj.department_name = current["department_name"];
+    //       // obj.department_code = current["department_code"];
+    //       // obj.department_type = current["department_type"] == 1?'机构':'部门';
+    //       // obj.children = this.arrayToTree(arr, current["id"]);
+    //       // if (arr.filter((t) => t.parent_id == current["id"]).length == 0) {
+    //       //   obj.children = undefined;
+    //       // }
+    //       return res.concat(obj);
+    //     }
+    //     return res;
+    //   }, []);
+    // }
 
   /**
-   * 用户列表
+   * 查询机构列表
    * @param parameter 查询条件
    * @returns list
    */
   async pageQuery(parameter: any): Promise<any> {
     try {
+      let list:any = await this.deptRepository.find()
       let result = {
-        page: Number(parameter.page),
-        size: Number(parameter.size),
-        totalPage: 0,
-        totalElements: 0,
-        content: [],
+        content:list.reduce(async (res, current) => {
+          console.log("==========res======="+res)
+            if (current["parent_id"] == parameter.pid) {
+              console.log("================="+current)
+              let  isChild = await this.deptRepository.createQueryBuilder('dept').where('dept.parent_id = :pid').setParameter('pid',parameter.id).getCount();
+              current['children'] = isChild ? []:undefined;
+    
+              // if (list.filter((t) => t.parent_id == current["id"]).length == 0) {
+              //   current['children'] = isChild = undefined;
+              // } 
+              return res.concat(current);
+            }
+            return res;
+          }, [])
       };
-      result.content = await this.deptRepository
-        .createQueryBuilder('dept')
-        .where(
-          new Brackets((qb) => {
-            if (parameter.name) {
-              return qb.where(
-                'dept.department_name LIKE :cname',
-                {
-                  cname: `%${parameter.name}%`,
-                },
-              );
-            } else {
-              return qb;
-            }
-          }),
-        )
-        .orderBy(`user.${parameter.sort}`, 'DESC')
-        .skip((parameter.page - 1) * Number(parameter.size))
-        .take(parameter.size)
-        .getMany();
-
-      // 总条数
-      result.totalElements = await this.deptRepository
-        .createQueryBuilder('dept')
-        .where(
-          new Brackets((qb) => {
-            if (parameter.name) {
-              return qb.where(
-                'dept.department_name LIKE :cname',
-                {
-                  cname: `%${parameter.name}%`
-                },
-              );
-            } else {
-              return qb;
-            }
-          }),
-        )
-        .getCount();
-
-      // 总页数
-      result.totalPage = Math.ceil(result.totalElements / parameter.size);
-
+      console.log("==========res======="+parameter.pid)
       return result;
     } catch (error) {
-      Logger.log(`请求失败：${JSON.stringify(error)}`);
+      Logger.error(`机构列表请求失败,原因：${JSON.stringify(error)}`);
       return false;
     }
   }
