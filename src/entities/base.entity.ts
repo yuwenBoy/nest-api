@@ -19,11 +19,6 @@ import { Request } from '@nestjs/common';
  * @create_time：2023-1-9 11:59:11
  */
 export abstract class ZJBaseEntity extends BaseEntity {
-  @AfterLoad()
-  load(@Request() req) {
-    this.update_by = req.user.username;
-  }
-
   @PrimaryGeneratedColumn()
   id: number;
 
