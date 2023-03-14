@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeptEntity } from 'src/entities/dept.entity';
 import { PositionEntity } from 'src/entities/position.entity';
@@ -156,6 +156,13 @@ export class UserService {
     try {
       if (!parameter.id) {
         // parameter.create_time = moment().format();
+
+        // const { usename } = parameter;
+        // const existUser = await this.userRepository.findOne({where:{'username=:username',username:usename}})
+        // if(existUser){
+        //     throw new HttpException('账号已存在',HttpStatus.OK)
+        // }
+
         let res = await this.userRepository
           .createQueryBuilder()
           .insert()
@@ -177,7 +184,7 @@ export class UserService {
         }
       }
     } catch (error) {
-      Logger.log(`请求失败：${JSON.stringify(error)}`);
+      Logger.error(`请求失败：${JSON.stringify(error)}`);
       return false;
     }
   }

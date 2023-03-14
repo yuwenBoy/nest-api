@@ -120,7 +120,7 @@ export class DeptService {
   async getDeptTree():Promise<any> {
     try {
       return await this.deptRepository.createQueryBuilder('dept')
-      .select(['id','department_name AS label','parent_id'])
+      .select(['id','department_name AS label','parent_id','department_type AS type'])
       .where('1=1').getRawMany();
     }
     catch(error){
