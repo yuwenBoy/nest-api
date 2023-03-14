@@ -119,7 +119,9 @@ export class DeptService {
    */
   async getDeptTree():Promise<any> {
     try {
-      return  await this.deptRepository.find();
+      return await this.deptRepository.createQueryBuilder('dept')
+      .select(['id','department_name AS label','parent_id'])
+      .where('1=1').getRawMany();
     }
     catch(error){
       Logger.error('查询机构失败，原因：'+error);

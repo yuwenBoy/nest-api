@@ -15,12 +15,7 @@ import { UserRoleService } from './admin/userRole/userRole.service';
 export class AppController {
   constructor(
     private readonly authService: AuthService,
-    private readonly userService: UserService,
-    private readonly userRoleService: UserRoleService,
-    private readonly roleModuleService: RoleModuleService,
-    private readonly moduleService: ModuleService,
-  ) // private readonly toolsService: ToolsService,
-  {}
+  ) {}
 
   // 1.先进行登录验证，执行local.strategy.ts 文件中的calidate方法
   @UseGuards(LocalAuthGuard) // 无需token验证
@@ -65,26 +60,9 @@ export class AppController {
   @UseGuards(JwtAuthGuard) // 需要jwt鉴权认证
   @Get('/getUserInfo')
   async getUserInfo(@Request() req) {
-    console.log(`通过携带token请求用户信息 用户id为：${req.user.id}`);
-    const user = await this.userService.getUserById(req.user.id);
-    const roles = await this.userRoleService.getRoleIds(req.user.id);
-    const role_ids = roles
-      .map((item) => {
-        return item.role_id;
-      })
-      .toString();
-    const modules = await this.roleModuleService.getModuleIds(role_ids);
-    const module_ids = modules
-      .map((item) => {
-        return item.t_module_id;
-      })
-      .toString();
-    const roleList = await this.moduleService.getOptionByMenuId(module_ids);
-    const result = {
-      homePath: '/dashboard/analysis', // 自定义首页跳转路径
-      user: user,
-      roles: roleList,
-    };
-    return result;
+    try {
+      console.log(`通过携带token请求用户信息 用户id为：${req.user.id}`);
+      return await this.authService.userInfo(req.user.id);
+    } catch (error) {}
   }
 }

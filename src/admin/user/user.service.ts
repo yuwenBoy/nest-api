@@ -27,6 +27,8 @@ export class UserService {
         totalElements: 0,
         content: [],
       };
+
+
       result.content = await this.userRepository
         .createQueryBuilder('user')
         .innerJoinAndMapOne(
@@ -52,7 +54,7 @@ export class UserService {
                   email: `%${parameter.cname}%`,
                 },
               );
-            } else {
+            }else{
               return qb;
             }
           }),
@@ -161,25 +163,18 @@ export class UserService {
           .values([parameter])
           .execute();
         if (res.raw) {
-          console.log(res.raw)
+          console.log(res.raw);
           return true;
         } else {
           return false;
         }
       } else {
-        // console.log("===========moment().format();",moment().format())
-        // parameter.update_time = moment().format();
-        let res = await this.userRepository.update(parameter.id,parameter)
-          // .createQueryBuilder()
-          // .update(UserEntity)
-          // .set(parameter)
-          // .where('id = :id', { id: parameter.id })
-          // .execute();s
-          if (res.raw) {
-            return true;
-          } else {
-            return false;
-          }
+        let res = await this.userRepository.update(parameter.id, parameter);
+        if (res.raw) {
+          return true;
+        } else {
+          return false;
+        }
       }
     } catch (error) {
       Logger.log(`请求失败：${JSON.stringify(error)}`);
@@ -221,10 +216,22 @@ export class UserService {
    * 根据用户id获取用户
    * @param userId 用户id
    */
-  async getUserById(userId: string | number): Promise<UserEntity> {
+  async getUserById(userId: string | number): Promise<any> {
     return await this.userRepository
-      .createQueryBuilder('user')
-      .where('user.id = :userId', { userId: userId })
-      .getOne();
+    .createQueryBuilder('user')
+    .innerJoinAndMapOne(
+      'user.dept_id',
+      DeptEntity,
+      'dept',
+      'user.dept_id=dept.id',
+    )
+    .innerJoinAndMapOne(
+      'user.position_id',
+      PositionEntity,
+      'posi',
+      'user.position_id=posi.id',
+    ).where('user.id = :userId')
+    .setParameter("userId",userId)
+    .getOne();
   }
 }

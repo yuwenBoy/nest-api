@@ -32,6 +32,8 @@ import { join } from 'path';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { AppController } from './app.controller';
 
+// import { RedisModule } from 'nestjs-redis';
+
 @Module({
   imports: [
     // 加载连接数据库 如果连接失败，npm uninstall mysql 安装npm i mysql2
@@ -46,6 +48,12 @@ import { AppController } from './app.controller';
       synchronize: false, // 定义数据库表结构与实体类字段同步（这里一旦数据库少了字段就会自动加入，根据需要来使用）
       dateStrings:true, // ‘2023-03-10T08:27:22.000Z’转换为 ‘2023-03-10 8:27:22’
     }),
+    // RedisModule.register({
+    //   port: '123',
+    //   host:'127.0.0.1',
+    //   password:'',
+    //   db:0
+    // }),
     // 加载子模块
     HelloModule,
     UserModule, // 用户模块

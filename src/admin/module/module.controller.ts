@@ -1,4 +1,5 @@
 import { Controller, Get, UseGuards, Request, Logger } from '@nestjs/common';
+import { Query } from '@nestjs/common/decorators';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RoleModuleService } from '../roleModule/roleModule.service';
@@ -29,11 +30,18 @@ export class ModuleController {
   async getMenuAll(@Request() req) {
     Logger.log('当前用户'+req.user.id+'操作权限');
     const roles =  await this.userRoleService.getRoleIds(req.user.id);
-    const role_ids = roles.map(item=>{return item.role_id}).toString();
-    const modules = await this.roleModuleService.getModuleIds(role_ids);
-    const module_ids = modules.map(item=>{return item.t_module_id}).toString();
-    const result = await this.moduleService.getMenuByIds(module_ids);
-    return result;
+    if(roles.length>0){
+      const role_ids = roles.map(item=>{return item.role_id}).toString();
+      const modules = await this.roleModuleService.getModuleIds(role_ids);
+      if(modules.length>0){
+        const module_ids = modules.map(item=>{return item.t_module_id}).toString();
+        const result = await this.moduleService.getMenuByIds(module_ids);
+        return result;
+      }
+    
+    }else{
+      return []
+    }
   }
 
   @ApiOperation({ summary: '获取系统全部资源' })
@@ -42,5 +50,13 @@ export class ModuleController {
   @Get('/getModuleTreeAll')
   async getModuleTreeAll(@Request() req) {
      return await this.moduleService.getModuleTreeAll();
+  }
+  @ApiOperation({ summary: '查询权限资源' })
+  @ApiBearerAuth() // swagger文档设置token
+  @UseGuards(AuthGuard('jwt'))
+  @Get('/findByRoleId')
+  async findByRoleId(@Query() query) {
+    Logger.log('【菜单模块---->【查询权限资源】-------->findByRoleId接口----> 请求参数】'+query.roleId)
+     return await this.moduleService.findByRoleId(query.roleId);
   }
 }

@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ModuleNEST } from '../../entities/t_module.entity';
+import { RoleModuleService } from '../roleModule/roleModule.service';
 import { menuDto, menuList, menuMeta } from './dto/menu.dto';
 
 @Injectable()
@@ -10,6 +11,7 @@ export class ModuleService {
   constructor(
     @InjectRepository(ModuleNEST)
     private readonly moduleRepository: Repository<ModuleNEST>,
+    protected readonly roleModuleService:RoleModuleService,
   ) {}
  
   /**
@@ -96,6 +98,29 @@ export class ModuleService {
    * @returns 返回全部资源【菜单模块表】
    */
   async getModuleTreeAll():Promise<any>{
-    return await this.moduleRepository.find();
+    return await this.moduleRepository.createQueryBuilder('module')
+    .select(['id','name AS label','parent_id'])
+    .where('1=1').getRawMany();
+  }
+
+  /**
+   * 根据角色id查询资源
+   * @param roleId 角色id
+   * @returns 
+   */
+  async findByRoleId(roleId:Number):Promise<any> {
+    try {
+      // let sql = `select t_module_id t_role_module where t_role_id = ${roleId}`;
+      // let moduleIds= await this.moduleRepository.query(sql);
+      let moduleIds =  await this.roleModuleService.getRoleModuleById(roleId);
+      console.log('moduleIds============='+moduleIds.map(t=>{return t.t_module_id}).toString())
+      let ids = moduleIds.map(t=>{return t.t_module_id})
+       let result = await this.moduleRepository.findByIds(ids)
+       console.log('result======='+result);
+       return result;
+    } catch (error) {
+        Logger.error(`查询findByRoleId接口失败，原因：`+error);
+    }
+    
   }
 }
