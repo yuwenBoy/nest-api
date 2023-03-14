@@ -13,8 +13,8 @@ import {
 
 import { Request } from '@nestjs/common';
 
-/**https://lequ7.com/guan-yu-nestjsnestjs-xue-xi-zong-jie-pian.html
- * @description：系统中的基类
+/**
+ * @description：系统基类
  * @author:zhao.jian
  * @create_time：2023-1-9 11:59:11
  */
