@@ -73,34 +73,3 @@ export class UserEntity extends ZJBaseEntity {
     this.password = await bcrypt.hashSync(this.password);
   }
 }
-
-
-
-
-
-// DROP TABLE `zj_db_system`.`t_user`
-// GO
-// CREATE TABLE `t_user` (
-//   `id` bigint NOT NULL AUTO_INCREMENT,
-//   `username` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '账号',
-//   `password` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '123456' COMMENT '密码',
-//   `cname` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT '姓名',
-//   `email` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT '邮箱',
-//   `address` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT '地址',
-//   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-//   `update_by` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '‘’' COMMENT '更新人',
-//   `avatar` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT '头像',
-//   `phone` varchar(11) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT '手机',
-//   `create_by` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '‘’' COMMENT '创建人',
-//   `dept_id` bigint DEFAULT NULL COMMENT '机构',
-//   `position_id` bigint DEFAULT NULL COMMENT '职位',
-//   `sex` int DEFAULT '0' COMMENT '（1.男2.女）',
-//   `birthday` varchar(254) DEFAULT NULL COMMENT '出生日期',
-//   `nick_name` varchar(20) DEFAULT NULL COMMENT '昵称',
-//   `master_work_id` int DEFAULT NULL COMMENT '主管id',
-//   `master_work_name` varchar(254) DEFAULT NULL COMMENT '主管名称',
-//   `employee_no` varchar(254) DEFAULT NULL COMMENT '员工编号',
-//   `disabled` int DEFAULT '1' COMMENT '1.启用2.锁定',
-//   `update_time` timestamp NULL DEFAULT NULL COMMENT '更新时间',
-//   PRIMARY KEY (`id`)
-// ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb3
