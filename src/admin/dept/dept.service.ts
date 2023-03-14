@@ -43,12 +43,12 @@ export class DeptService {
     try {
       let list:any = await this.deptRepository.find()
       let result = {
-        content:list.reduce(async (res, current) => {
+        content:await  list.reduce(async (res, current) => {
           console.log("==========res======="+res)
             if (current["parent_id"] == parameter.pid) {
               console.log("================="+current)
               let  isChild = await this.deptRepository.createQueryBuilder('dept').where('dept.parent_id = :pid').setParameter('pid',parameter.id).getCount();
-              current['children'] = isChild ? []:undefined;
+              current['children'] = [{}]
     
               // if (list.filter((t) => t.parent_id == current["id"]).length == 0) {
               //   current['children'] = isChild = undefined;
