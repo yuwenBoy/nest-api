@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-
+// import { Transaction, TransactionManager, EntityManager } from 'typeorm';// 开启事务  
 import { RoleService } from './role.service';
 
 /***
@@ -55,8 +55,9 @@ export class RoleController {
   @ApiBearerAuth() // swagger文档设置token
   @UseGuards(AuthGuard('jwt'))
   @Post('/setRoles')
+  // @Transaction()
   setRoles(@Body() query): Promise<any> {
-    console.log('接受query参数999999999999999999999',query);
+    console.log('【设置角色】接口，接受前端传递参数：',query);
     try {
       if (!query.userId) {
         return null;

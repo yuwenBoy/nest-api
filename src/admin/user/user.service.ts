@@ -14,7 +14,7 @@ export class UserService {
   ) {}
 
   /**
-   * 用户列表
+   * 查询用户分页列表
    * @param parameter 查询条件
    * @returns list
    */
@@ -28,8 +28,7 @@ export class UserService {
         content: [],
       };
 
-
-      result.content = await this.userRepository
+      let qb = await this.userRepository
         .createQueryBuilder('user')
         .innerJoinAndMapOne(
           'user.dept_id',
@@ -54,7 +53,7 @@ export class UserService {
                   email: `%${parameter.cname}%`,
                 },
               );
-            }else{
+            } else {
               return qb;
             }
           }),
@@ -83,113 +82,54 @@ export class UserService {
         )
         .orderBy(`user.${parameter.sort}`, 'DESC')
         .skip((parameter.page - 1) * Number(parameter.size))
-        .take(parameter.size)
-        .getMany();
+        .take(parameter.size);
 
-      // 总条数
-      result.totalElements = await this.userRepository
-        .createQueryBuilder('user')
-        .innerJoinAndMapOne(
-          'user.dept_id',
-          DeptEntity,
-          'dept',
-          'user.dept_id=dept.id',
-        )
-        .innerJoinAndMapOne(
-          'user.position_id',
-          PositionEntity,
-          'posi',
-          'user.position_id=posi.id',
-        )
-        .where(
-          new Brackets((qb) => {
-            if (parameter.cname) {
-              return qb.where(
-                'user.cname LIKE :cname or user.phone LIKE :phone or user.email LIKE :email',
-                {
-                  cname: `%${parameter.cname}%`,
-                  phone: `%${parameter.cname}%`,
-                  email: `%${parameter.cname}%`,
-                },
-              );
-            } else {
-              return qb;
-            }
-          }),
-        )
-        .andWhere(
-          new Brackets((qb) => {
-            if (parameter.disabled) {
-              return qb.andWhere('user.disabled=:disabled', {
-                disabled: parameter.disabled,
-              });
-            } else {
-              return qb;
-            }
-          }),
-        )
-        .andWhere(
-          new Brackets((qb) => {
-            if (parameter.deptId) {
-              return qb.andWhere('user.dept_id=:deptId', {
-                deptId: parameter.deptId,
-              });
-            } else {
-              return qb;
-            }
-          }),
-        )
-        .getCount();
+      result.content = await qb.getMany();
+      result.totalElements = await qb.getCount(); // 按条件查询的数量
 
       // 总页数
       result.totalPage = Math.ceil(result.totalElements / parameter.size);
-
       return result;
     } catch (error) {
-      Logger.log(`请求失败：${JSON.stringify(error)}`);
+      Logger.error(`查询用户分页列表失败，原因：${JSON.stringify(error)}`);
       return false;
     }
   }
-  // 增加/更新
-  async save(parameter: any): Promise<boolean> {
+
+  /**
+   * 新增|编辑 用户
+   * @param parameter 参数
+   * @returns 布尔类型
+   */
+  async save(parameter: any): Promise<any> {
     Logger.log(`请求参数：${JSON.stringify(parameter)}`);
     try {
       if (!parameter.id) {
-        // parameter.create_time = moment().format();
-
-        // const { usename } = parameter;
-        // const existUser = await this.userRepository.findOne({where:{'username=:username',username:usename}})
-        // if(existUser){
-        //     throw new HttpException('账号已存在',HttpStatus.OK)
-        // }
-
-        let res = await this.userRepository
-          .createQueryBuilder()
-          .insert()
-          .into(UserEntity)
-          .values([parameter])
-          .execute();
-        if (res.raw) {
-          console.log(res.raw);
-          return true;
-        } else {
-          return false;
+        const { username } = parameter;
+        const existUser = await this.userRepository.exist({
+          where: { username },
+        });
+        if (existUser) {
+          return '用户账号已存在';
         }
+      }
+      // 必须用save 更新时间才生效
+      let res = await this.userRepository.save(parameter);
+      if (res.id > 0) {
+        return true;
       } else {
-        let res = await this.userRepository.update(parameter.id, parameter);
-        if (res.raw) {
-          return true;
-        } else {
-          return false;
-        }
+        return false;
       }
     } catch (error) {
       Logger.error(`请求失败：${JSON.stringify(error)}`);
-      return false;
     }
   }
 
-  // 删除
+  /**
+   * 批量删除用户
+   * @param ids 用户id
+   * @returns
+   */
   async delete(ids: any): Promise<boolean> {
     Logger.log(`请求参数：${JSON.stringify(ids)}`);
     try {
@@ -225,20 +165,21 @@ export class UserService {
    */
   async getUserById(userId: string | number): Promise<any> {
     return await this.userRepository
-    .createQueryBuilder('user')
-    .innerJoinAndMapOne(
-      'user.dept_id',
-      DeptEntity,
-      'dept',
-      'user.dept_id=dept.id',
-    )
-    .innerJoinAndMapOne(
-      'user.position_id',
-      PositionEntity,
-      'posi',
-      'user.position_id=posi.id',
-    ).where('user.id = :userId')
-    .setParameter("userId",userId)
-    .getOne();
+      .createQueryBuilder('user')
+      .innerJoinAndMapOne(
+        'user.dept_id',
+        DeptEntity,
+        'dept',
+        'user.dept_id=dept.id',
+      )
+      .innerJoinAndMapOne(
+        'user.position_id',
+        PositionEntity,
+        'posi',
+        'user.position_id=posi.id',
+      )
+      .where('user.id = :userId')
+      .setParameter('userId', userId)
+      .getOne();
   }
 }

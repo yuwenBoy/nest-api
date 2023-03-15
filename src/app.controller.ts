@@ -4,10 +4,6 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './admin/auth/auth.service';
 import { JwtAuthGuard } from './admin/auth/jwt.auth.guard';
 import { LocalAuthGuard } from './admin/auth/local.auth.guard';
-import { ModuleService } from './admin/module/module.service';
-import { RoleModuleService } from './admin/roleModule/roleModule.service';
-import { UserService } from './admin/user/user.service';
-import { UserRoleService } from './admin/userRole/userRole.service';
 // import { ToolsService } from './utils/tools/ToolsService';
 
 @ApiTags('用户身份认证即jwt鉴权')

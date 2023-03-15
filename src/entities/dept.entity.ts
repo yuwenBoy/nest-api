@@ -37,4 +37,5 @@ export class DeptEntity extends ZJBaseEntity {
     leaf: Boolean; 
 
     hasChildren: Boolean; 
+    typeName: string;
 }

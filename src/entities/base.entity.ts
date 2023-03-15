@@ -25,12 +25,8 @@ export abstract class ZJBaseEntity extends BaseEntity {
   @Column({ type: 'varchar', name: 'update_by' })
   update_by: string;
 
-  @CreateDateColumn({ name: 'create_time', nullable: true })
+  @CreateDateColumn()
   create_time: Timestamp;
-
-  // 必须这样设置才生效
-  // `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  // `update_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
 
   @UpdateDateColumn()
   update_time: Timestamp;
