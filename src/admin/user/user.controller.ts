@@ -25,7 +25,7 @@ export class UserController {
   }
 
    /**
-   * 用户管理-增加用户
+   * 用户管理-新增用户
    */
    @Post('/add')
    addUser(@Body() addUserDto: []): Promise<boolean> {
