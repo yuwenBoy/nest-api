@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, UseGuards, Req, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req, Logger,Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-
+import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 import { UserService } from './user.service';
 
 /***
@@ -14,7 +14,6 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly UserService: UserService) {}
 
- 
   @ApiOperation({ summary: '查詢用戶列表' })
   @ApiBearerAuth() // swagger文档设置token
   @UseGuards(AuthGuard('jwt'))
@@ -27,19 +26,26 @@ export class UserController {
    /**
    * 用户管理-新增用户
    */
+   @ApiOperation({ summary: '新增用户' })
+   @ApiBearerAuth() // swagger文档设置token
+   @UseGuards(JwtAuthGuard) // 需要jwt鉴权认证
    @Post('/add')
-   addUser(@Body() addUserDto: []): Promise<boolean> {
+   addUser(@Body() addUserDto: [],@Request() req): Promise<boolean> {
      Logger.log(`增加用户接收参数：${JSON.stringify(addUserDto)}`);
-     return this.UserService.save(addUserDto);
+     return this.UserService.save(addUserDto,req.user);
    }
  
    /**
     * 用户管理-编辑用户
     */
+   @ApiOperation({ summary: '编辑用户' })
+   @ApiBearerAuth() // swagger文档设置token
+   @UseGuards(JwtAuthGuard) // 需要jwt鉴权认证
    @Post('/edit')
-   updateUser(@Body() updateUserDto: []): Promise<boolean> {
+   updateUser(@Body() updateUserDto: [],@Request() req): Promise<boolean> {
      Logger.log(`编辑用户接收参数：${JSON.stringify(updateUserDto)}`);
-     return this.UserService.save(updateUserDto);
+     console.log('user', req.user)
+     return this.UserService.save(updateUserDto,req.user);
    }
  
    /**

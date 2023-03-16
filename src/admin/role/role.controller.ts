@@ -7,9 +7,11 @@ import {
   Req,
   Query,
   Logger,
+  Request
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 // import { Transaction, TransactionManager, EntityManager } from 'typeorm';// 开启事务  
 import { RoleService } from './role.service';
 
@@ -68,4 +70,39 @@ export class RoleController {
       Logger.error('接口role/setRoles错误，原因:'+error);
     }
   }
+
+
+  
+   /**
+   * 角色管理-新增角色
+   */
+   @ApiOperation({ summary: '新增角色' })
+   @ApiBearerAuth() // swagger文档设置token
+   @UseGuards(JwtAuthGuard) // 需要jwt鉴权认证
+   @Post('/add')
+   addUser(@Body() addUserDto: [],@Request() req): Promise<boolean> {
+     Logger.log(`新增角色接收参数：${JSON.stringify(addUserDto)}`);
+     return this.roleService.save(addUserDto,req.user);
+   }
+ 
+   /**
+    * 角色管理-编辑角色
+    */
+   @ApiOperation({ summary: '编辑角色' })
+   @ApiBearerAuth() // swagger文档设置token
+   @UseGuards(JwtAuthGuard) // 需要jwt鉴权认证
+   @Post('/edit')
+   updateUser(@Body() updateUserDto: [],@Request() req): Promise<boolean> {
+     Logger.log(`编辑角色接收参数：${JSON.stringify(updateUserDto)}`);
+     return this.roleService.save(updateUserDto,req.user);
+   }
+ 
+   /**
+    * 角色管理-删除角色
+    */
+   @Post('/delete')
+   deleteUser(@Body() deleteUserDto: []): Promise<boolean> {
+     Logger.log(`删除用户接收参数：${JSON.stringify(deleteUserDto)}`);
+     return this.roleService.delete(deleteUserDto);
+   }
 }

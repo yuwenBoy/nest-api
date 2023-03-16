@@ -42,7 +42,71 @@ export class RoleModuleService {
         .where('roleModule.t_role_id=:roleId', { roleId: roleId })
         .getRawMany();
     } catch (error) {
-      Logger.error('【查询getRoleModuleById接口失败】，原因：'+error);
+      Logger.error('【查询getRoleModuleById接口失败】，原因：' + error);
+    }
+  }
+
+  /**
+   * 保存角色模块关系权限
+   * @param parameter 角色id 模块ids
+   * @param user 用户信息
+   * @returns 对象
+   */
+  async saveOptionAuthority(parameter: any, user: any): Promise<boolean> {
+    await this.delete(parameter);
+    parameter.moduleId.forEach(async (item) => {
+      await this.save({
+        id: null,
+        roleId: parameter.roleId,
+        moduleId: item,
+      },user);
+    });
+    return true;
+  }
+
+  
+  /**
+   * 保存角色模块表
+   * @param parameter 参数
+   * @returns 布尔类型
+   */
+  async save(parameter: any,user:any): Promise<any> {
+    Logger.log(`请求参数：${JSON.stringify(parameter)}`);
+    try {
+      if (!parameter.id) {
+        parameter.create_by = user.username;
+      }
+      // 必须用save 更新时间才生效
+      let res = await this.roleModuleRepository.save(parameter);
+      if (res.id > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      Logger.error(`【新增|编辑】用户请求失败：${JSON.stringify(error)}`);
+    }
+  }
+
+  // 删除
+  async delete(params: any): Promise<boolean> {
+    Logger.log(`请求删除参数：${JSON.stringify(params)}`);
+    try {
+      let a = await this.roleModuleRepository
+        .createQueryBuilder()
+        .delete()
+        .from(RoleModule)
+        .where('t_role_id = :roleId', { roleId: params.roleId })
+        .execute();
+      Logger.log(`删除返回数据：${JSON.stringify(a)}`);
+      if (a.affected == 0) {
+        return false;
+      } else {
+        return true;
+      }
+    } catch (error) {
+      Logger.log(`请求失败：${JSON.stringify(error)}`);
+      return false;
     }
   }
 }

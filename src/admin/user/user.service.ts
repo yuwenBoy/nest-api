@@ -4,6 +4,7 @@ import { DeptEntity } from 'src/entities/dept.entity';
 import { PositionEntity } from 'src/entities/position.entity';
 import { Brackets, Repository } from 'typeorm';
 import { UserEntity } from '../../entities/t_user.entity';
+import { UserRoleService } from '../userRole/userRole.service';
 
 @Injectable()
 export class UserService {
@@ -11,6 +12,7 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    private readonly userRoleService: UserRoleService,
   ) {}
 
   /**
@@ -101,7 +103,7 @@ export class UserService {
    * @param parameter 参数
    * @returns 布尔类型
    */
-  async save(parameter: any): Promise<any> {
+  async save(parameter: any,user:any): Promise<any> {
     Logger.log(`请求参数：${JSON.stringify(parameter)}`);
     try {
       if (!parameter.id) {
@@ -112,6 +114,10 @@ export class UserService {
         if (existUser) {
           return '用户账号已存在';
         }
+        parameter.create_by = user.username;
+        parameter.password = 'jxxqz123';
+      }else{
+        parameter.update_by = user.username;
       }
       // 必须用save 更新时间才生效
       let res = await this.userRepository.save(parameter);
@@ -121,7 +127,7 @@ export class UserService {
         return false;
       }
     } catch (error) {
-      Logger.error(`请求失败：${JSON.stringify(error)}`);
+      Logger.error(`【新增|编辑】用户请求失败：${JSON.stringify(error)}`);
     }
   }
 
@@ -130,18 +136,23 @@ export class UserService {
    * @param ids 用户id
    * @returns
    */
-  async delete(ids: any): Promise<boolean> {
-    Logger.log(`请求参数：${JSON.stringify(ids)}`);
+  async delete(ids: any): Promise<any> {
+    Logger.log(`【批量删除用户】请求参数：${JSON.stringify(ids)}`);
     try {
+      let userRoleModal = await this.userRoleService.getRoleIdsByUserIds(ids);
+      let username = userRoleModal.map((r=>{return r.username})).toString();
+      if (userRoleModal.length > 0) {
+        return `账号【${username}】已关联角色，删除失败。`;
+      }
       let a = await this.userRepository.delete(ids);
-      Logger.log(`删除返回数据：${JSON.stringify(a)}`);
+      Logger.log(`【批量删除用户】删除返回数据：${JSON.stringify(a)}`);
       if (a.affected == 0) {
         return false;
       } else {
         return true;
       }
     } catch (error) {
-      Logger.log(`请求失败：${JSON.stringify(error)}`);
+      Logger.log(`【批量删除用户】请求失败：${JSON.stringify(error)}`);
       return false;
     }
   }

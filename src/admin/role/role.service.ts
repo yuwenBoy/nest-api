@@ -104,7 +104,6 @@ export class RoleService {
   }
 
   // 设置角色
-
   async setRoles(parameter: any): Promise<boolean> {
     await this.userRoleService.delete(parameter);
     parameter.roles.forEach(async (item) => {
@@ -116,5 +115,73 @@ export class RoleService {
       await this.userRoleService.save(request);
     });
     return true;
+  }
+
+  
+  /**
+   * 新增|编辑 角色
+   * @param parameter 参数
+   * @returns 布尔类型
+   */
+  async save(parameter: any,user:any): Promise<any> {
+    Logger.log(`请求参数：${JSON.stringify(parameter)}`);
+    try {
+      if (!parameter.id) {
+        const { name } = parameter;
+        const existUser = await this.roleRepository.exist({
+          where: { name },
+        });
+        if (existUser) {
+          return '角色已存在';
+        }
+        parameter.create_by = user.username;
+      }else{
+        parameter.update_by = user.username;
+      }
+      // 必须用save 更新时间才生效
+      let res = await this.roleRepository.save(parameter);
+      if (res.id > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      Logger.error(`【新增|编辑】角色请求失败：${JSON.stringify(error)}`);
+    }
+  }
+
+  /**
+   * 批量删除
+   * @param ids id
+   * @returns
+   */
+  async delete(ids: any): Promise<any> {
+    Logger.log(`【批量删除角色】请求参数：${JSON.stringify(ids)}`);
+    try {
+    
+      // 查询角色是否有关联的模块
+      let roleModuleEntity = await this.roleRepository.query(`select m.name,rm.* from t_role_module rm inner join t_module m on rm.t_module_id = m.id where rm.t_role_id IN (${ids})`);
+
+      if(roleModuleEntity.length > 0) {
+         return `当前角色已有关联的资源，删除失败。`;
+      }
+
+      // 查询当前角色是否关联用户
+      let userRoleModal = await this.userRoleService.getUserByRoleIds(ids);
+      let name = userRoleModal.map((r=>{return r.name})).toString();
+      if (userRoleModal.length > 0) {
+        return `角色【${name}】已关联账号，删除失败。`;
+      }
+      let a = await this.roleRepository.delete(ids);
+      Logger.log(`【批量删除角色】删除返回数据：${JSON.stringify(a)}`);
+      if (a.affected == 0) {
+        return false;
+      } else {
+        return true;
+      }
+    } catch (error) {
+      Logger.log(`【批量删除角色】请求失败：${JSON.stringify(error)}`);
+      return false;
+    }
   }
 }
