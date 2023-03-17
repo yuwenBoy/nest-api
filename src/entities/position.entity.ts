@@ -9,14 +9,16 @@ import { UserEntity } from './t_user.entity';
  */
 @Entity("t_position")
 export class PositionEntity extends ZJBaseEntity { 
-    //==============================当前字段不知道代表什么？？？？？？？？？？
-    // @Column({type:'int', name: 't_department_id',comment:'组织id'})
-    // t_department_id: Number;
+    @Column({type:'int', name: 't_department_id',comment:'组织id'})
+    deptId: Number;
 
-    @Column({type:'varchar', name: 'name',comment:'组织名称'})
+    @Column({type:'int', name: 'sort',comment:'组织id'})
+    sort: Number;
+
+    @Column({type:'varchar', name: 'name',comment:'职位名称'})
     name: String;
 
-    @Column({type:'varchar', name: 'code',comment:'组织编码'})
+    @Column({type:'varchar', name: 'code',comment:'职位编码'})
     code: String;
     
     @Column({type:'int', name: 'parent_id',comment:'父级id'})

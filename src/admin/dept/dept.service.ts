@@ -27,18 +27,22 @@ export class DeptService {
       };
       let findSql = {
         where: [],
+        
+        order:{}
       };
       parameter.pid = parameter.pid ? parameter.pid : 0;
       findSql.where.push({ parent_id: parameter.pid });
       if(parameter.DepartmentName){
         findSql.where.push({ department_name:Like(`%${parameter.DepartmentName}%`) })
       }
+      if (parameter.sort) findSql.order[parameter.sort] = 'ASC';
       let data = await this.deptRepository.find(findSql);
       let list = [];
       for (let i = 0; i < data.length; i++) {
         let isChild = await this.deptRepository
           .createQueryBuilder('dept')
           .where('dept.parent_id = :pid', { pid: data[i].id })
+          // .orderBy(`dept.${parameter.sort}`,'DESC')
           .getMany();
         data[i].hasChildren = isChild.length > 0 ? true : false;
         data[i].typeName = data[i].department_type == 1? '机构':'部门'
@@ -70,6 +74,75 @@ export class DeptService {
         .getRawMany();
     } catch (error) {
       Logger.error('查询机构失败，原因：' + error);
+    }
+  }
+
+  
+  
+  /**
+   * 新增|编辑 组织
+   * @param parameter 参数
+   * @returns 布尔类型
+   */
+  async save(parameter: any,user:any): Promise<any> {
+    Logger.log(`请求参数：${JSON.stringify(parameter)}`);
+    try {
+      if (!parameter.id) {
+        const { department_name } = parameter;
+        const existUser = await this.deptRepository.exist({
+          where: { department_name },
+        });
+        if (existUser) {
+          return '组织已存在';
+        }
+        parameter.create_by = user.username;
+      }else{
+        parameter.update_by = user.username;
+      }
+      // 必须用save 更新时间才生效
+      let res = await this.deptRepository.save(parameter);
+      if (res.id > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      Logger.error(`【新增|编辑】组织请求失败：${JSON.stringify(error)}`);
+    }
+  }
+
+  /**
+   * 批量删除
+   * @param ids id
+   * @returns
+   */
+  async delete(ids: any): Promise<any> {
+    Logger.log(`【批量删除角色】请求参数：${JSON.stringify(ids)}`);
+    try {
+    
+      // // 查询角色是否有关联的模块
+      // let roleModuleEntity = await this.deptRepository.query(`select m.name,rm.* from t_role_module rm inner join t_module m on rm.t_module_id = m.id where rm.t_role_id IN (${ids})`);
+
+      // if(roleModuleEntity.length > 0) {
+      //    return `当前角色已有关联的资源，删除失败。`;
+      // }  
+
+      // // 查询当前角色是否关联用户
+      // let userRoleModal = await this.userRoleService.getUserByRoleIds(ids);
+      // let name = userRoleModal.map((r=>{return r.name})).toString();
+      // if (userRoleModal.length > 0) {
+      //   return `角色【${name}】已关联账号，删除失败。`;
+      // }
+      let a = await this.deptRepository.delete(ids);
+      Logger.log(`【批量删除组织】删除返回数据：${JSON.stringify(a)}`);
+      if (a.affected == 0) {
+        return false;
+      } else {
+        return true;
+      }
+    } catch (error) {
+      Logger.log(`【批量删除组织】请求失败：${JSON.stringify(error)}`);
+      return false;
     }
   }
 }

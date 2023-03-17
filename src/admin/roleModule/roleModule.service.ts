@@ -52,6 +52,7 @@ export class RoleModuleService {
    * @param user 用户信息
    * @returns 对象
    */
+  
   async saveOptionAuthority(parameter: any, user: any): Promise<boolean> {
     await this.delete(parameter);
     parameter.moduleId.forEach(async (item) => {

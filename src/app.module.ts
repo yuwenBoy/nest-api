@@ -28,11 +28,22 @@ import { PositionModule } from './admin/position/position.module';
 
 // 登录认证模块
 import { AuthModule } from './admin/auth/auth.module';
+
+
+// 日志模块
+import { OperationLogModule } from './security/operation.module';
+
 import { join } from 'path';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { AppController } from './app.controller';
+import { ChannelSubscriber } from './core/security/subscirber';
+// import { RedisModule } from 'nestjs-redis';
+import { ConfigModule } from './config/config.module';
+import { ConfigService } from './config/config.service';
 
 // import { RedisModule } from 'nestjs-redis';
+
+// http://www.javashuo.com/article/p-trkdmpss-wu.html  日志系统
 
 @Module({
   imports: [
@@ -47,7 +58,16 @@ import { AppController } from './app.controller';
       entities: [join(__dirname, './entities', '**/**.entity{.ts,.js}')],// 扫描本项目中.entity.ts 或者.entity.js的文件
       synchronize: false, // 定义数据库表结构与实体类字段同步（这里一旦数据库少了字段就会自动加入，根据需要来使用）
       dateStrings:true, // ‘2023-03-10T08:27:22.000Z’转换为 ‘2023-03-10 8:27:22’
+      logging:false, // 关闭日志
+      subscribers:[ChannelSubscriber,join(__dirname, './core/security', '**/**{.ts,.js}')]
     }),
+    // RedisModule.forRootAsync({
+    //   imports:[ConfigModule],
+    //   useFactory: (configService: ConfigService) => {
+    //     return { url:configService.get('redis') }
+    //   },       
+    //   inject:[ConfigService]
+    // }),
     // RedisModule.register({
     //   port: '123',
     //   host:'127.0.0.1',
@@ -64,6 +84,7 @@ import { AppController } from './app.controller';
     ModuleNESTModule, // 注册菜单模块
     DeptModule, // 组织机构模块
     PositionModule, // 职位模块
+    OperationLogModule, // 日志模块
   ],
   controllers: [],
   providers: [],

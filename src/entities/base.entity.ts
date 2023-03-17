@@ -22,15 +22,15 @@ export abstract class ZJBaseEntity extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', name: 'update_by' })
+  @Column({ type: 'varchar', name: 'update_by',select:false })
   update_by: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({select:false})
   create_time: Timestamp;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({select:false})
   update_time: Timestamp;
 
-  @Column({ type: 'varchar', name: 'create_by' })
+  @Column({ type: 'varchar', name: 'create_by',select:false })
   create_by: string;
 }

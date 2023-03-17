@@ -1,4 +1,4 @@
-[{ 
+{ 
     "name":"connection1",
     "type": "mysql",
     "host": "localhost", 
@@ -8,4 +8,4 @@
     "database": "zj_db_system", 
     "entities": ["/**/*.entity(.ts,js)"], 
     "synchronize": true
-}]
+}

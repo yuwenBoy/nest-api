@@ -18,6 +18,8 @@ async function bootstrap() {
   // 全局注册xml支持中间件（这里必须调用.use才能够注册）
   app.use(new XMLMiddleware().use);
 
+  // app.useLogger()
+
   // 全局使用管道:这里使用的是内置，也可以使用自定义管道，在下文
   app.useGlobalPipes(new ValidationPipe());
 
