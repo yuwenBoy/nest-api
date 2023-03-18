@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { ModuleNEST } from '../../entities/t_module.entity';
 import { RoleModuleService } from '../roleModule/roleModule.service';
 import { menuDto, menuList, menuMeta } from './dto/menu.dto';
@@ -49,19 +49,14 @@ export class ModuleService {
     }
 
   /**
-   * 根据角色id获取权限菜单
-   * @param moduleIds 当前角色所在的模块id
+   * 根据资源id获取权限菜单
+   * @param moduleIds 当前资源所在的模块id
    * @returns 返回菜单
    */
   async getMenuByIds(moduleIds: Number): Promise<any> {
 
     const moduleEntity = await this.moduleRepository.query(`select * from t_module where id in (${moduleIds}) and menu_type !=1 order by index_no desc`);
-    // const moduleEntity = await this.moduleRepository
-    //   .createQueryBuilder(" ")
-    //   .where('id IN (' + moduleIds + ') AND menu_type !=1')
-    //   .orderBy('index_no', 'DESC')
-    //   .setParameter('id', moduleIds)
-    //   .getRawMany();
+    
     
    const menuList:Array<menuDto> = new Array<menuDto>();   
 
@@ -104,14 +99,13 @@ export class ModuleService {
   }
 
   /**
-   * 根据角色id查询资源
-   * @param roleId 角色id
+   * 根据资源id查询资源
+   * @param roleId 资源id
    * @returns 
    */
   async findByRoleId(roleId:Number):Promise<any> {
     try {
-      // let sql = `select t_module_id t_role_module where t_role_id = ${roleId}`;
-      // let moduleIds= await this.moduleRepository.query(sql);
+ 
       let moduleIds =  await this.roleModuleService.getRoleModuleById(roleId);
       console.log('moduleIds============='+moduleIds.map(t=>{return t.t_module_id}).toString())
       let ids = moduleIds.map(t=>{return t.t_module_id})
@@ -122,5 +116,111 @@ export class ModuleService {
         Logger.error(`查询findByRoleId接口失败，原因：`+error);
     }
     
+  }
+
+  
+  /**
+   * 查询资源列表
+   * @param parameter 查询条件
+   * @returns list
+   */
+  async pageQuery(parameter: any): Promise<any> {
+    try {
+      console.log(
+        'service层查询资源列表接受参数：' + JSON.stringify(parameter),
+      );
+      let result = {
+        content: [],
+      };
+      let findSql = {
+        where: [],
+        
+        order:{}
+      };
+      parameter.pid = parameter.pid ? parameter.pid : 0;
+      findSql.where.push({ parent_id: parameter.pid });
+      // if(parameter.name){
+      //   findSql.where.push({ name:Like(`%${parameter.name}%`) })
+      // }
+      if (parameter.sort) findSql.order[parameter.sort] = 'ASC';
+      let data = await this.moduleRepository.find(findSql);
+      let list = [];
+      for (let i = 0; i < data.length; i++) {
+        let isChild = await this.moduleRepository
+          .createQueryBuilder('m')
+          .where('m.parent_id = :pid', { pid: data[i].id })
+          // .andWhere('m.name LIKE :name ',{name: `%${parameter.name}%`})
+          .getMany();
+        data[i].hasChildren = isChild.length > 0 ? true : false;
+        list.push(data[i]);
+      }
+
+      result.content = list;
+      return result;
+    } catch (error) {
+      Logger.error(`资源列表请求失败,原因：${JSON.stringify(error)}`);
+      return false;
+    }
+  }
+
+  
+  
+  /**
+   * 新增|编辑 资源
+   * @param parameter 参数
+   * @returns 布尔类型
+   */
+  async save(parameter: any,user:any): Promise<any> {
+    Logger.log(`请求参数：${JSON.stringify(parameter)}`);
+    try {
+      if (!parameter.id) {
+        // const { name } = parameter;
+        // const existUser = await this.moduleRepository.exist({
+        //   where: { name },
+        // });
+        // if (existUser) {
+        //   return '资源已存在';
+        // }
+        parameter.create_by = user.username;
+      }else{
+        parameter.update_by = user.username;
+      }
+      // 必须用save 更新时间才生效
+      let res = await this.moduleRepository.save(parameter);
+      if (res.id > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      Logger.error(`【新增|编辑】资源请求失败：${JSON.stringify(error)}`);
+    }
+  }
+
+  async getChidIds(id:any):Promise<any> {
+    let list = await this.moduleRepository.query('select * from t_module where parent_id = '+id+'');
+    return list;
+  }
+
+  /**
+   * 批量删除
+   * @param ids id
+   * @returns
+   */
+  async delete(ids: any): Promise<any> {
+    Logger.log(`【批量删除资源】请求参数：${JSON.stringify(ids)}`);
+    try {
+      let a = await this.moduleRepository.delete(ids);
+       await this.roleModuleService.deleteByModuleIds(ids);
+      Logger.log(`【批量删除资源】删除返回数据：${JSON.stringify(a)}`);
+      if (a.affected == 0) {
+        return false;
+      } else {
+        return true;
+      }
+    } catch (error) {
+      Logger.log(`【批量删除资源】请求失败：${JSON.stringify(error)}`);
+      return false;
+    }
   }
 }

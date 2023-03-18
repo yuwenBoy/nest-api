@@ -52,26 +52,28 @@ export class RoleModuleService {
    * @param user 用户信息
    * @returns 对象
    */
-  
+
   async saveOptionAuthority(parameter: any, user: any): Promise<boolean> {
     await this.delete(parameter);
     parameter.moduleId.forEach(async (item) => {
-      await this.save({
-        id: null,
-        roleId: parameter.roleId,
-        moduleId: item,
-      },user);
+      await this.save(
+        {
+          id: null,
+          roleId: parameter.roleId,
+          moduleId: item,
+        },
+        user,
+      );
     });
     return true;
   }
 
-  
   /**
    * 保存角色模块表
    * @param parameter 参数
    * @returns 布尔类型
    */
-  async save(parameter: any,user:any): Promise<any> {
+  async save(parameter: any, user: any): Promise<any> {
     Logger.log(`请求参数：${JSON.stringify(parameter)}`);
     try {
       if (!parameter.id) {
@@ -101,6 +103,30 @@ export class RoleModuleService {
         .execute();
       Logger.log(`删除返回数据：${JSON.stringify(a)}`);
       if (a.affected == 0) {
+        return false;
+      } else {
+        return true;
+      }
+    } catch (error) {
+      Logger.log(`请求失败：${JSON.stringify(error)}`);
+      return false;
+    }
+  }
+
+  /**
+   * 删除关系表（角色模块表）
+   * @param params 模块ids
+   * @returns
+   */
+  async deleteByModuleIds(params: any): Promise<boolean> {
+    Logger.log(`请求删除参数：${JSON.stringify(params)}`);
+    try {
+      let entityList = await this.roleModuleRepository.query(
+        `select * from t_role_module where t_module_id IN (${params.toString()})`,
+      );
+      let a = await this.roleModuleRepository.remove(entityList);
+      Logger.log(`删除返回数据：${JSON.stringify(a)}`);
+      if (a.length == 0) {
         return false;
       } else {
         return true;

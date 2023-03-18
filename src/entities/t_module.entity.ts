@@ -15,7 +15,7 @@ export class ModuleNEST extends ZJBaseEntity {
     code: string;
 
     @Column({type:'int', name: 'parent_id'})
-    parentId: Number;
+    parent_id: Number;
 
     @Column({type:'varchar', name: 'system_code'})
     systemCode: string;
@@ -34,4 +34,6 @@ export class ModuleNEST extends ZJBaseEntity {
 
     @Column({type:'varchar', name: 'permission'})
     permission: string;
+
+    hasChildren:boolean;
 }

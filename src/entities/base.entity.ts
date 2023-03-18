@@ -25,10 +25,10 @@ export abstract class ZJBaseEntity extends BaseEntity {
   @Column({ type: 'varchar', name: 'update_by',select:false })
   update_by: string;
 
-  @CreateDateColumn({select:false})
+  @CreateDateColumn()
   create_time: Timestamp;
 
-  @UpdateDateColumn({select:false})
+  @UpdateDateColumn()
   update_time: Timestamp;
 
   @Column({ type: 'varchar', name: 'create_by',select:false })
