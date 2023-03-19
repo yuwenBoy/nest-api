@@ -38,4 +38,6 @@ export class DeptEntity extends ZJBaseEntity {
 
     hasChildren: Boolean; 
     typeName: string;
+
+    children:[]
 }

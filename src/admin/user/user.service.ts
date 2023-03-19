@@ -115,10 +115,10 @@ export class UserService {
           return '用户账号已存在';
         }
         parameter.create_by = user.username;
-        parameter.password = 'jxxqz123';
       }else{
         parameter.update_by = user.username;
       }
+      parameter.password = 'jxxqz123';
       // 必须用save 更新时间才生效
       let res = await this.userRepository.save(parameter);
       if (res.id > 0) {

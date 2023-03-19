@@ -12,6 +12,18 @@ export class DeptService {
     private readonly deptRepository: Repository<DeptEntity>,
   ) {}
 
+  arrayToTree(arr, pid) {
+    return arr.reduce((res, current) => {
+      if (current['parent_id'] == pid) {
+        current['children'] = this.arrayToTree(arr, current['id']);
+        if (arr.filter((t) => t.parent_id == current['id']).length == 0) {
+          current['children'] = undefined;
+        }
+        return res.concat(current);
+      }
+      return res;
+    }, []);
+  }
   /**
    * 查询机构列表
    * @param parameter 查询条件
@@ -22,34 +34,20 @@ export class DeptService {
       console.log(
         'service层查询机构列表接受参数：' + JSON.stringify(parameter),
       );
+      let queryBuilder = await this.deptRepository.createQueryBuilder('dept');
+      if (parameter.DepartmentName) {
+        queryBuilder.where(
+          'dept.department_name LIKE "%' + parameter.DepartmentName + '%"',
+        );
+      }
+      queryBuilder.orderBy(`dept.${parameter.sort}`, 'ASC');
+      let data = await queryBuilder.getMany();
       let result = {
         content: [],
       };
-      let findSql = {
-        where: [],
-        
-        order:{}
-      };
-      parameter.pid = parameter.pid ? parameter.pid : 0;
-      findSql.where.push({ parent_id: parameter.pid });
-      if(parameter.DepartmentName){
-        findSql.where.push({ department_name:Like(`%${parameter.DepartmentName}%`) })
-      }
-      if (parameter.sort) findSql.order[parameter.sort] = 'ASC';
-      let data = await this.deptRepository.find(findSql);
-      let list = [];
-      for (let i = 0; i < data.length; i++) {
-        let isChild = await this.deptRepository
-          .createQueryBuilder('dept')
-          .where('dept.parent_id = :pid', { pid: data[i].id })
-          // .orderBy(`dept.${parameter.sort}`,'DESC')
-          .getMany();
-        data[i].hasChildren = isChild.length > 0 ? true : false;
-        data[i].typeName = data[i].department_type == 1? '机构':'部门'
-        list.push(data[i]);
-      }
-
-      result.content = list;
+      result.content = parameter.DepartmentName
+        ? data
+        : this.arrayToTree(data, 0);
       return result;
     } catch (error) {
       Logger.error(`机构列表请求失败,原因：${JSON.stringify(error)}`);
@@ -77,14 +75,12 @@ export class DeptService {
     }
   }
 
-  
-  
   /**
    * 新增|编辑 组织
    * @param parameter 参数
    * @returns 布尔类型
    */
-  async save(parameter: any,user:any): Promise<any> {
+  async save(parameter: any, user: any): Promise<any> {
     Logger.log(`请求参数：${JSON.stringify(parameter)}`);
     try {
       if (!parameter.id) {
@@ -96,7 +92,7 @@ export class DeptService {
           return '组织已存在';
         }
         parameter.create_by = user.username;
-      }else{
+      } else {
         parameter.update_by = user.username;
       }
       // 必须用save 更新时间才生效
@@ -119,13 +115,12 @@ export class DeptService {
   async delete(ids: any): Promise<any> {
     Logger.log(`【批量删除角色】请求参数：${JSON.stringify(ids)}`);
     try {
-    
       // // 查询角色是否有关联的模块
       // let roleModuleEntity = await this.deptRepository.query(`select m.name,rm.* from t_role_module rm inner join t_module m on rm.t_module_id = m.id where rm.t_role_id IN (${ids})`);
 
       // if(roleModuleEntity.length > 0) {
       //    return `当前角色已有关联的资源，删除失败。`;
-      // }  
+      // }
 
       // // 查询当前角色是否关联用户
       // let userRoleModal = await this.userRoleService.getUserByRoleIds(ids);

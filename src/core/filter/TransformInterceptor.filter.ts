@@ -14,11 +14,11 @@ export class TransformInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((data:any) => {
         return {
-          success:typeof data === 'string' ? false: true,
+          success:typeof data === 'string' || data == false ? false: true,
           result: classToPlain(data),
           // result,
-          code: typeof data === 'string' ? -1 : 0,
-          message: typeof data === 'string' ? data: '请求成功',
+          code: typeof data === 'string' || data == false  ? -1 : 0,
+          message: typeof data === 'string' ? data: (data == false?'请求失败':'请求成功'),
         };
       }),
     );
