@@ -12,10 +12,13 @@ export class DeptService {
     private readonly deptRepository: Repository<DeptEntity>,
   ) {}
 
-  arrayToTree(arr, pid) {
+  /***
+   * 组织列表转换成树形table展示
+   */
+  toTableTree(arr, pid) {
     return arr.reduce((res, current) => {
       if (current['parent_id'] == pid) {
-        current['children'] = this.arrayToTree(arr, current['id']);
+        current['children'] = this.toTableTree(arr, current['id']);
         if (arr.filter((t) => t.parent_id == current['id']).length == 0) {
           current['children'] = undefined;
         }
@@ -24,6 +27,31 @@ export class DeptService {
       return res;
     }, []);
   }
+
+  /**
+   * 转换成组织树形结构
+   * @param arr
+   * @param pid 父级id
+   * @returns 组织树形结构
+   */
+  toDeptTree(arr, pid) {
+    return arr.reduce((res, current) => {
+      if (current['parent_id'] == pid) {
+        let obj = { name: '', label: '', id: '', pid: '', children: [] };
+        obj.name = current['label'];
+        obj.label = current['label'];
+        obj.id = current['id'];
+        obj.pid = current['parent_id'];
+        obj.children = this.toDeptTree(arr, current['id']);
+        if (arr.filter((t) => t.parent_id == current['id']).length == 0) {
+          obj.children = undefined;
+        }
+        return res.concat(obj);
+      }
+      return res;
+    }, []);
+  }
+
   /**
    * 查询机构列表
    * @param parameter 查询条件
@@ -47,7 +75,7 @@ export class DeptService {
       };
       result.content = parameter.DepartmentName
         ? data
-        : this.arrayToTree(data, 0);
+        : this.toTableTree(data, 0);
       return result;
     } catch (error) {
       Logger.error(`机构列表请求失败,原因：${JSON.stringify(error)}`);
@@ -56,11 +84,11 @@ export class DeptService {
   }
 
   /**
-   * 查询全部机构
+   * 查询全部机构转换成树形结构
    */
   async getDeptTree(): Promise<any> {
     try {
-      return await this.deptRepository
+      let list = await this.deptRepository
         .createQueryBuilder('dept')
         .select([
           'id',
@@ -70,6 +98,8 @@ export class DeptService {
         ])
         .where('1=1')
         .getRawMany();
+      let result = this.toDeptTree(list, 0);
+      return result;
     } catch (error) {
       Logger.error('查询机构失败，原因：' + error);
     }
@@ -84,13 +114,13 @@ export class DeptService {
     Logger.log(`请求参数：${JSON.stringify(parameter)}`);
     try {
       if (!parameter.id) {
-        const { department_name } = parameter;
-        const existUser = await this.deptRepository.exist({
-          where: { department_name },
-        });
-        if (existUser) {
-          return '组织已存在';
-        }
+        // const { department_name } = parameter;
+        // const existUser = await this.deptRepository.exist({
+        //   where: { department_name },
+        // });
+        // if (existUser) {
+        //   return '组织已存在';
+        // }
         parameter.create_by = user.username;
       } else {
         parameter.update_by = user.username;
