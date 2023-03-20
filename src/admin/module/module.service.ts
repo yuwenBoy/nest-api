@@ -117,14 +117,12 @@ export class ModuleService {
    * 查询系统全部资源
    * @returns 返回全部资源【菜单模块表】
    */
-  async getModuleTreeAll(): Promise<any> {
-    let list = await this.moduleRepository
-      .createQueryBuilder('module')
-      .select(['id', 'name AS label', 'parent_id'])
-      .where('1=1')
-      .getRawMany();
-    let result = this.toModuleTree(list, 0);
-    return result;
+  async getModuleList(): Promise<any> {
+    return await this.moduleRepository
+    .createQueryBuilder('module')
+    .select(['id', 'name AS label', 'parent_id'])
+    .where('1=1')
+    .getRawMany();
   }
 
   /**

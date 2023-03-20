@@ -16,12 +16,20 @@ import { DeptService } from './dept.service';
 export class DeptController {
   constructor(private readonly deptService: DeptService) {}
 
-  @ApiOperation({ summary: '查询所有机构' })
+  @ApiOperation({ summary: '查询所有机构树结构' })
   @ApiBearerAuth() // swagger文档设置token
   @UseGuards(AuthGuard('jwt'))
   @Get('/getDeptTree')
   getDeptTree():Promise<any> {
     return  this.deptService.getDeptTree();
+  }
+
+  @ApiOperation({ summary: '查询所有机构' })
+  @ApiBearerAuth() // swagger文档设置token
+  @UseGuards(AuthGuard('jwt'))
+  @Get('/getDeptAll')
+  getDeptAll():Promise<any> {
+    return  this.deptService.getDeptAll();
   }
 
   @ApiOperation({ summary: '查询机构列表' })

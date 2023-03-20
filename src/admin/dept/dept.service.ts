@@ -105,6 +105,27 @@ export class DeptService {
     }
   }
 
+  
+  /**
+   * 查询全部机构转换成树形结构
+   */
+   async getDeptAll(): Promise<any> {
+    try {
+      return await this.deptRepository
+      .createQueryBuilder('dept')
+      .select([
+        'id',
+        'department_name AS label',
+        'parent_id',
+        'department_type AS type',
+      ])
+      .where('1=1')
+      .getRawMany();;
+    } catch (error) {
+      Logger.error('查询机构失败，原因：' + error);
+    }
+  }
+
   /**
    * 新增|编辑 组织
    * @param parameter 参数

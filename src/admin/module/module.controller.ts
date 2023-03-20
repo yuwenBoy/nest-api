@@ -48,9 +48,9 @@ export class ModuleController {
   @ApiOperation({ summary: '获取系统全部资源' })
   @ApiBearerAuth() // swagger文档设置token
   @UseGuards(AuthGuard('jwt'))
-  @Get('/getModuleTreeAll')
-  async getModuleTreeAll(@Request() req) {
-     return await this.moduleService.getModuleTreeAll();
+  @Get('/getModuleList')
+  async getModuleList(@Request() req) {
+     return await this.moduleService.getModuleList();
   }
 
   
