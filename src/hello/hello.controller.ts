@@ -12,7 +12,7 @@ import {
 import { GetDataDto, PostDataDto } from './dto/hello.dto';
 import { HelloService } from './hello.service';
 
-import { UserEntity } from '../entities/t_user.entity';
+import { UserEntity } from 'src/entities/admin/t_user.entity';
 import { get } from 'http';
 
 @Controller('/hello')

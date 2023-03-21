@@ -3,7 +3,8 @@ import { PostDataDto } from './dto/hello.dto';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../entities/t_user.entity';
+
+import { UserEntity } from 'src/entities/admin/t_user.entity';
 
 
 @Injectable()
