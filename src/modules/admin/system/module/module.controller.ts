@@ -63,6 +63,14 @@ export class ModuleController {
      return await this.moduleService.findByRoleId(query.roleId);
   }
 
+
+  @ApiOperation({ summary: '查询所有机构' })
+  @ApiBearerAuth() // swagger文档设置token
+  @UseGuards(AuthGuard('jwt'))
+  @Get('/getModuleTreeAll')
+  getModuleTreeAll():Promise<any> {
+    return  this.moduleService.getModuleTreeAll();
+  }
   
   @ApiOperation({ summary: '查询资源列表' })
   @ApiBearerAuth() // swagger文档设置token

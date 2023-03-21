@@ -20,7 +20,7 @@ export class TransformInterceptor implements NestInterceptor {
           code: typeof data === 'string' || data === false  ? -1 : 0,
           message: typeof data === 'string' ? data: (data === false?'请求失败':'请求成功'),
         };
-      }),
+      }), 
     );
   }
 }

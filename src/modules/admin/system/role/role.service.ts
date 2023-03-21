@@ -36,7 +36,7 @@ export class RoleService {
         order: {},
         skip: (parameter.page - 1) * Number(parameter.size), // 分页，跳过几项
         take: parameter.size, // 分页，取几项
-        cache: true,
+        cache: false,
       };
       if (parameter.name) {
         find_object.where.push(

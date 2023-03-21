@@ -125,6 +125,28 @@ export class ModuleService {
     .getRawMany();
   }
 
+  
+  /**
+   * 查询全部机构转换成树形结构
+   */
+  async getModuleTreeAll(): Promise<any> {
+    try {
+      let list = await this.moduleRepository
+        .createQueryBuilder('md')
+        .select([
+          'id',
+          'name AS label',
+          'parent_id',
+        ])
+        .where('1=1')
+        .getRawMany();
+      let result = this.toModuleTree(list, 0);
+      return result;
+    } catch (error) {
+      Logger.error('查询机构失败，原因：' + error);
+    }
+  }
+
   /**
    * 根据资源id查询资源
    * @param roleId 资源id
