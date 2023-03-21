@@ -1,7 +1,7 @@
 // import { Connection, EntitySubscriberInterface, EventSubscriber, getConnection, InsertEvent, RemoveEvent, UpdateEvent } from 'typeorm';
 // import { Inject, Injectable } from '@nestjs/common';
 // import { OperationLogService } from '../../security/operation.service';
-// import { UserEntity } from 'src/entities/t_user.entity';
+// import { UserEntity } from 'src/entities/admin/t_user.entity';
 
 // @Injectable()
 // export class ChannelSubscriber implements EntitySubscriberInterface<UserEntity> {
