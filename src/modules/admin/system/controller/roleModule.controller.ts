@@ -3,7 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 
-import { RoleModuleService } from './roleModule.service';
+import { RoleModuleService } from '../service/roleModule.service';
 
 /***
  * author：zhao.jian
@@ -13,9 +13,6 @@ import { RoleModuleService } from './roleModule.service';
 @Controller('authority')
 export class RoleModuleController {
   constructor(private readonly roleModuleService: RoleModuleService) {}
-
-
-  
   
   @ApiOperation({ summary: '保存操作权限' })
   @ApiBearerAuth() // swagger文档设置token

@@ -3,8 +3,9 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorator/current.user';
 import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
+import { PageListVo } from 'src/modules/common/page/pageList';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
-import { UserService } from './user.service';
+import { UserService } from 'src/modules/admin/system/service/user.service';
 
 /***
  * author：zhao.jian
@@ -22,7 +23,7 @@ export class UserController {
 
   @ApiOperation({ summary: '查询用户列表' })
   @Post('/getByCondition')
-  list(@Body() query):Promise<{}> {
+  list(@Body() query):Promise<PageListVo> {
     Logger.log(`分页查询接受参数：${JSON.stringify(query)}`);
     return this.UserService.pageQuery(query);
   }

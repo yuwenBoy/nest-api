@@ -1,9 +1,9 @@
 import { Controller, Post, Get, UseGuards, Request } from '@nestjs/common';
 import { Req, Res, Session } from '@nestjs/common/decorators';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AuthService } from './auth.service';
-import { JwtAuthGuard } from './jwt.auth.guard';
-import { LocalAuthGuard } from './local.auth.guard';
+import { AuthService } from '../service/auth.service';
+import { JwtAuthGuard } from '../auth/jwt.auth.guard';
+import { LocalAuthGuard } from '../auth/local.auth.guard';
 // import { ToolsService } from './utils/tools/ToolsService';
 
 @ApiTags('用户身份认证即jwt鉴权')

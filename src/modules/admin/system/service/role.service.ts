@@ -1,11 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-// import { PostDataDto } from './dto/hello.dto';
-
 import { InjectRepository } from '@nestjs/typeorm';
 import { Any, Brackets, Like, Repository } from 'typeorm';
 import { RoleEntity } from 'src/entities/admin/t_role.entity';
-import { UserRoleService } from '../userRole/userRole.service';
+import { UserRoleService } from './userRole.service';
 import { PageEnum } from 'src/enum/page.enum';
+import { PageListVo } from 'src/modules/common/page/pageList';
 
 @Injectable()
 export class RoleService {
@@ -21,21 +20,14 @@ export class RoleService {
    * @param parameter 查询条件
    * @returns list
    */
-  async pageQuery(parameter: any): Promise<any> {
+  async pageQuery(parameter: any): Promise<PageListVo> {
     try {
-      let result = {
-        page: PageEnum.PAGE_NUMBER,
-        size: PageEnum.PAGE_SIZE,
-        totalPage: 0,
-        totalElements: 0,
-        content: [],
-      };
-
+      const [pageIndex,pageSize] = [PageEnum.PAGE_NUMBER,PageEnum.PAGE_SIZE];
       let find_object = {
         where: [],
         order: {},
-        skip: (parameter.page - 1) * Number(parameter.size), // 分页，跳过几项
-        take: parameter.size, // 分页，取几项
+        skip: (pageIndex - 1) * Number(pageSize), // 分页，跳过几项
+        take: pageSize, // 分页，取几项
         cache: false,
       };
       if (parameter.name) {
@@ -49,23 +41,22 @@ export class RoleService {
 
       if (parameter.sort) find_object.order[parameter.sort] = 'DESC';
 
-      result.content = await this.roleRepository.find(find_object);
+      const data = {content:await this.roleRepository.find(find_object)}
 
       // 总条数
-      result.totalElements = await this.roleRepository.count({
+      const count  = await this.roleRepository.count({
         where: find_object.where,
       });
 
-      // 总页数
-      result.totalPage = Math.ceil(
-        (await this.roleRepository.count({ where: find_object.where })) /
-          parameter.size,
-      );
-
-      return result;
+      return {
+        ...data,
+        page: pageIndex,
+        size: pageSize,
+        totalPage:Math.ceil(count / pageSize),
+        totalElements: count,
+      }
     } catch (error) {
-      Logger.log(`请求失败：${JSON.stringify(error)}`);
-      return false;
+      Logger.log(`查询【角色分页列表】请求失败：${JSON.stringify(error)}`);
     }
   }
 

@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert } from 'typeorm';
-import { ZJBaseEntity } from './base.entity';
+import { ZJBaseEntity } from '../common/base.entity';
 
 /**
  * description:角色模块表

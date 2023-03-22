@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PositionEntity } from 'src/entities/admin/position.entity';
 import { PageEnum } from 'src/enum/page.enum';
+import { PageListVo } from 'src/modules/common/page/pageList';
 import { Like, Repository } from 'typeorm';
 
 @Injectable()
@@ -31,55 +32,44 @@ export class PositionService {
    * @param parameter 查询条件
    * @returns list
    */
-  async pageQuery(parameter: any): Promise<any> {
+  async pageQuery(parameter: any): Promise<PageListVo> {
     try {
-      let result = {
-        page: PageEnum.PAGE_NUMBER,
-        size: PageEnum.PAGE_SIZE,
-        totalPage: 0,
-        totalElements: 0,
-        content: [],
-      };
+      const [pageIndex, pageSize] = [PageEnum.PAGE_NUMBER, PageEnum.PAGE_SIZE];
 
       let find_object = {
         where: [],
         order: {},
-        skip: (parameter.page - 1) * Number(parameter.size), // 分页，跳过几项
-        take: parameter.size, // 分页，取几项
+        skip: (pageIndex - 1) * Number(pageSize), // 分页，跳过几项
+        take: pageSize, // 分页，取几项
         cache: false,
       };
       // 搜索条件
       if (parameter.name) {
         find_object.where.push({ name: Like(`%${parameter.name}%`) });
-      } 
+      }
       if (parameter.deptId > 0) {
         find_object.where.push({ deptId: parameter.deptId });
       }
-      if(!parameter.name && !parameter.deptId){
+      if (!parameter.name && !parameter.deptId) {
         delete find_object.where;
       }
 
       // 排序
       if (parameter.sort) find_object.order[parameter.sort] = 'DESC';
 
-      console.log('00000000000000000000开始000000000000000000000000000')
-      // 查询结果
-      result.content = await this.positionRepository.find(find_object);
-      console.log('00000000000000000000结束000000000000000000000000000')
-      // 查询总数
-      result.totalElements = await this.positionRepository.count({
+      const data = { content: await this.positionRepository.find(find_object) };
+      const count: number = await this.positionRepository.count({
         where: find_object.where,
       });
-
-      // 总页数
-      result.totalPage = Math.ceil(
-        (await this.positionRepository.count({ where: find_object.where })) /
-          parameter.size,
-      );
-      return result;
+      return {
+        ...data,
+        page: pageIndex,
+        size: pageSize,
+        totalPage: Math.ceil(count / pageSize),
+        totalElements: count,
+      };
     } catch (error) {
       Logger.log(`请求失败：${JSON.stringify(error)}`);
-      return false;
     }
   }
 

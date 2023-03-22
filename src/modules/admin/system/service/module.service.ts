@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
 import { ModuleEntity } from 'src/entities/admin/t_module.entity';
-import { RoleModuleService } from '../roleModule/roleModule.service';
-import { menuDto, menuList, menuMeta } from './dto/menu.dto';
+import { RoleModuleService } from './roleModule.service';
+import { menuDto, menuList, menuMeta } from '../dto/menu.dto';
 
 @Injectable()
 export class ModuleService {
@@ -119,13 +119,12 @@ export class ModuleService {
    */
   async getModuleList(): Promise<any> {
     return await this.moduleRepository
-    .createQueryBuilder('module')
-    .select(['id', 'name AS label', 'parent_id'])
-    .where('1=1')
-    .getRawMany();
+      .createQueryBuilder('module')
+      .select(['id', 'name AS label', 'parent_id'])
+      .where('1=1')
+      .getRawMany();
   }
 
-  
   /**
    * 查询全部机构转换成树形结构
    */
@@ -133,11 +132,7 @@ export class ModuleService {
     try {
       let list = await this.moduleRepository
         .createQueryBuilder('md')
-        .select([
-          'id',
-          'name AS label',
-          'parent_id',
-        ])
+        .select(['id', 'name AS label', 'parent_id'])
         .where('1=1')
         .getRawMany();
       let result = this.toModuleTree(list, 0);
@@ -197,13 +192,11 @@ export class ModuleService {
       queryBuilder.orderBy(`m.${parameter.sort}`, 'ASC');
       let data = await queryBuilder.getMany();
       let result = {
-        content: [],
+        content: parameter.name ? data : this.toTableTree(data, 0),
       };
-      result.content = parameter.name ? data : this.toTableTree(data, 0);
       return result;
     } catch (error) {
       Logger.error(`资源列表请求失败,原因：${JSON.stringify(error)}`);
-      return false;
     }
   }
 

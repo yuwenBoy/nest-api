@@ -5,10 +5,10 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorator/current.user';
 import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
-import { RoleModuleService } from '../roleModule/roleModule.service';
-import { UserRoleService } from '../userRole/userRole.service';
+import { RoleModuleService } from '../service/roleModule.service';
+import { UserRoleService } from '../service/userRole.service';
 
-import { ModuleService } from './module.service';
+import { ModuleService } from '../service/module.service';
 
 /***
  * author：zhao.jian
@@ -71,7 +71,7 @@ export class ModuleController {
   
   @ApiOperation({ summary: '查询资源列表' })
   @Post('/getByCondition')
-  list(@Body() query):Promise<{}> {
+  list(@Body() query):Promise<any> {
     Logger.log(`分页查询接受参数：${JSON.stringify(query)}`);
     return this.moduleService.pageQuery(query);
   }
@@ -106,5 +106,4 @@ export class ModuleController {
      Logger.log(`删除资源接收参数：${JSON.stringify(deleteUserDto)}`);
      return this.moduleService.delete(deleteUserDto);
    }
-
 }

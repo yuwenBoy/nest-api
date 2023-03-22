@@ -2,14 +2,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
-import { ModuleService } from '../module/module.service';
-import { RoleModuleService } from '../roleModule/roleModule.service';
+import { ModuleService } from './module.service';
+import { RoleModuleService } from './roleModule.service';
 
-import { UserService } from '../user/user.service';
-import { UserRoleService } from '../userRole/userRole.service';
+import { UserRoleService } from './userRole.service';
 import { compareSync, hashSync } from 'bcryptjs';
 import adminConfig from 'src/config/admin.config';
 import { jwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
+import { UserService } from './user.service';
 @Injectable()
 export class AuthService {
   constructor(

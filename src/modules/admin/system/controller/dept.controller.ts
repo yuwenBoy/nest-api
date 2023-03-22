@@ -1,12 +1,10 @@
 import { Controller, Get, Post, Body, UseGuards, Req, Logger, Request, Query } from '@nestjs/common';
-import { Param } from '@nestjs/common/decorators';
-import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorator/current.user';
 import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 
-import { DeptService } from './dept.service';
+import { DeptService } from '../service/dept.service';
 
 /***
  * author：zhao.jian
@@ -35,7 +33,7 @@ export class DeptController {
 
   @ApiOperation({ summary: '查询机构列表' })
   @Post('/getByCondition')
-  list(@Body() query):Promise<{}> {
+  list(@Body() query):Promise<any> {
     Logger.log(`分页查询接受参数：${JSON.stringify(query)}`);
     return this.deptService.pageQuery(query);
   }
