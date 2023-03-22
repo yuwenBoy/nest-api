@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './core/filter/HttpException.filter';
 
-import { TransformInterceptor  } from './core/filter/TransformInterceptor.filter';
+import { TransformInterceptor } from './core/filter/TransformInterceptor.filter';
 
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AuthGuard } from './common/guard/auth.guard';
@@ -12,11 +12,15 @@ import { XMLMiddleware } from './common/middleware/xml.middleware';
 import adminConfig from './config/admin.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  // const logger:Logger = new Logger('main.ts');
+  const app = await NestFactory.create(AppModule, {
+    logger: ['log', 'debug', 'error', 'warn'],
+    cors: true,
+  });
 
   const prefix = adminConfig.Prefix;
   const prot = adminConfig.PROT;
-  
+
   // 全局注册xml支持中间件（这里必须调用.use才能够注册）
   app.use(new XMLMiddleware().use);
 
@@ -26,7 +30,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
 
   // 全局路由前缀
-  app.setGlobalPrefix('/'+prefix+'/'); 
+  app.setGlobalPrefix('/' + prefix + '/');
 
   // 全局注册通用异常过滤器httpExceptionFilter
   app.useGlobalFilters(new HttpExceptionFilter(new Logger()));
@@ -39,7 +43,7 @@ async function bootstrap() {
 
   // 设置swagger文档
   const config = new DocumentBuilder()
-    .setTitle('jxxqz后台管理系统文档')   
+    .setTitle('jxxqz后台管理系统文档')
     .setDescription('jxxqz后台管理系统接口文档')
     .addBearerAuth()
     .setVersion('1.0')
@@ -49,7 +53,7 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
 
   await app.listen(prot, () => {
-    Logger.log(`服务已经启动,接口请访问 http://localhost:${prefix}/${prot}`)
+    Logger.log(`服务已经启动,接口请访问 http://localhost:${prefix}/${prot}`);
   });
 }
 bootstrap();

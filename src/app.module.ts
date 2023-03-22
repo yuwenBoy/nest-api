@@ -5,6 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import * as path from 'path';
 import { AdminModule } from './modules/admin/admin.module';
 import { ConfigModule, ConfigService } from 'nestjs-config';
+import { LoggingInterceptor } from './interceptors/logging.interceptors';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({ 
   imports: [
@@ -44,7 +46,9 @@ import { ConfigModule, ConfigService } from 'nestjs-config';
     AdminModule
   ],
   controllers: [], 
-  providers: [],
+  providers: [
+    {provide:APP_INTERCEPTOR,useClass:LoggingInterceptor}
+  ],
 })
 export class AppModule {
   // configure(consumer:MiddlewareConsumer){
