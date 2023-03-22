@@ -1,17 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { Logger } from '@nestjs/common/services';
-// import { PostDataDto } from './dto/hello.dto';
-
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { RoleModule } from 'src/entities/admin/t_role_module.entity';
+import { RoleModuleEntity } from 'src/entities/admin/t_role_module.entity';
 
 @Injectable()
 export class RoleModuleService {
   // 使用InjectRespository装饰器并引入Repository这样就可以使用typeorm的操作了
   constructor(
-    @InjectRepository(RoleModule)
-    private readonly roleModuleRepository: Repository<RoleModule>,
+    @InjectRepository(RoleModuleEntity)
+    private readonly roleModuleRepository: Repository<RoleModuleEntity>,
   ) {}
 
   /**
@@ -98,7 +96,7 @@ export class RoleModuleService {
       let a = await this.roleModuleRepository
         .createQueryBuilder()
         .delete()
-        .from(RoleModule)
+        .from(RoleModuleEntity)
         .where('t_role_id = :roleId', { roleId: params.roleId })
         .execute();
       Logger.log(`删除返回数据：${JSON.stringify(a)}`);

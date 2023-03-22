@@ -8,11 +8,11 @@ import { AuthService } from './auth.service';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
-import { jwtContants } from './jwt.contants';
 import { UserRoleModule } from '../userRole/userRole.module';
 import { RoleModuleModule } from '../roleModule/roleModule.module';
 import { ModuleNESTModule } from '../module/module.module';
 import { AuthController } from './auth.controller';
+import { jwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
 // 导入验证码模块
 // import { ToolsService } from 'src/utils/tools/ToolsService';
 
@@ -23,7 +23,7 @@ import { AuthController } from './auth.controller';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: jwtContants.secret,
-      signOptions: { expiresIn: '1d' }, // d天后过期 s秒后过期
+      signOptions: { expiresIn: jwtContants.expiresIn }, // d天后过期 s秒后过期
     }),RoleModuleModule,UserRoleModule,ModuleNESTModule
   ], 
   exports: [JwtModule], // 输出jwt

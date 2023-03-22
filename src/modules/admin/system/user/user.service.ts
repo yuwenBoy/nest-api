@@ -7,6 +7,7 @@ import { UserRoleService } from '../userRole/userRole.service';
 import { compareSync, hashSync } from 'bcryptjs';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
 import { PageEnum } from 'src/enum/page.enum';
+import adminConfig from 'src/config/admin.config';
 
 @Injectable()
 export class UserService {
@@ -105,7 +106,7 @@ export class UserService {
    * @param parameter 参数
    * @returns 布尔类型
    */
-  async save(parameter: any,user:any): Promise<any> {
+  async save(parameter: any,userName:string): Promise<any> {
     Logger.log(`请求参数：${JSON.stringify(parameter)}`);
     try {
       if (!parameter.id) {
@@ -116,11 +117,11 @@ export class UserService {
         if (existUser) {
           return '用户账号已存在';
         }
-        parameter.create_by = user.username;
+        parameter.create_by =userName;
       }else{
-        parameter.update_by = user.username;
+        parameter.update_by =userName;
       }
-      const password = 'jxxqz123'
+      const password = adminConfig.DefaultPassWord;
       const transformPass = hashSync(password,11);
       parameter.password = transformPass;
       // 必须用save 更新时间才生效

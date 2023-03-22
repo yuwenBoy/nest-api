@@ -131,20 +131,13 @@ export class DeptService {
    * @param parameter 参数
    * @returns 布尔类型
    */
-  async save(parameter: any, user: any): Promise<any> {
+  async save(parameter: any, userName: string): Promise<any> {
     Logger.log(`请求参数：${JSON.stringify(parameter)}`);
     try {
       if (!parameter.id) {
-        // const { department_name } = parameter;
-        // const existUser = await this.deptRepository.exist({
-        //   where: { department_name },
-        // });
-        // if (existUser) {
-        //   return '组织已存在';
-        // }
-        parameter.create_by = user.username;
+        parameter.create_by = userName;
       } else {
-        parameter.update_by = user.username;
+        parameter.update_by = userName;
       }
       // 必须用save 更新时间才生效
       let res = await this.deptRepository.save(parameter);

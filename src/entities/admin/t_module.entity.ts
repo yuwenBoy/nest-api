@@ -7,7 +7,7 @@ import { ZJBaseEntity } from './base.entity';
  * @Author:zhao.jian
  */
 @Entity("t_module")
-export class ModuleNEST extends ZJBaseEntity { 
+export class ModuleEntity extends ZJBaseEntity { 
     @Column({type:'varchar', name: 'name'})
     name: string;
 

@@ -7,7 +7,7 @@ import { ZJBaseEntity } from './base.entity';
  * @Author:zhao.jian
  */
 @Entity("t_role_module")
-export class RoleModule extends ZJBaseEntity { 
+export class RoleModuleEntity extends ZJBaseEntity { 
     @Column({type:'int', name: 't_module_id'})
     moduleId: Number;
 

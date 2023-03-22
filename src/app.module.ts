@@ -2,7 +2,6 @@ import { Module, RequestMethod,MiddlewareConsumer } from '@nestjs/common';
 // npm install --save @nestjs/typeorm typeorm mysql
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { join } from 'path';
 import * as path from 'path';
 import { AdminModule } from './modules/admin/admin.module';
 import { ConfigModule, ConfigService } from 'nestjs-config';
@@ -25,6 +24,7 @@ import { ConfigModule, ConfigService } from 'nestjs-config';
         password: config.get('database.password'),
         database: config.get('database.database'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        logging:true,
         // logging: config.get('database.logging'),
         // synchronize: true, // 同步数据库
         timezone: '+08:00', // 东八区

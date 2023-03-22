@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
-import { ModuleNEST } from 'src/entities/admin/t_module.entity';
+import { ModuleEntity } from 'src/entities/admin/t_module.entity';
 import { RoleModuleService } from '../roleModule/roleModule.service';
 import { menuDto, menuList, menuMeta } from './dto/menu.dto';
 
@@ -9,8 +9,8 @@ import { menuDto, menuList, menuMeta } from './dto/menu.dto';
 export class ModuleService {
   // 使用InjectRespository装饰器并引入Repository这样就可以使用typeorm的操作了
   constructor(
-    @InjectRepository(ModuleNEST)
-    private readonly moduleRepository: Repository<ModuleNEST>,
+    @InjectRepository(ModuleEntity)
+    private readonly moduleRepository: Repository<ModuleEntity>,
     protected readonly roleModuleService: RoleModuleService,
   ) {}
 
@@ -212,20 +212,13 @@ export class ModuleService {
    * @param parameter 参数
    * @returns 布尔类型
    */
-  async save(parameter: any, user: any): Promise<any> {
+  async save(parameter: any, userName: string): Promise<any> {
     Logger.log(`请求参数：${JSON.stringify(parameter)}`);
     try {
       if (!parameter.id) {
-        // const { name } = parameter;
-        // const existUser = await this.moduleRepository.exist({
-        //   where: { name },
-        // });
-        // if (existUser) {
-        //   return '资源已存在';
-        // }
-        parameter.create_by = user.username;
+        parameter.create_by = userName;
       } else {
-        parameter.update_by = user.username;
+        parameter.update_by = userName;
       }
       // 必须用save 更新时间才生效
       let res = await this.moduleRepository.save(parameter);

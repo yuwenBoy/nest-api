@@ -1,16 +1,13 @@
 import { Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
-import { JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DeptEntity } from 'src/entities/admin/dept.entity';
 import { PositionEntity } from 'src/entities/admin/position.entity';
-import { ModuleNEST } from 'src/entities/admin/t_module.entity';
-import { Role } from 'src/entities/admin/t_role.entity';
-import { RoleModule } from 'src/entities/admin/t_role_module.entity';
+import { ModuleEntity } from 'src/entities/admin/t_module.entity';
+import { RoleEntity } from 'src/entities/admin/t_role.entity';
+import { RoleModuleEntity } from 'src/entities/admin/t_role_module.entity';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
-import { UserRole } from 'src/entities/admin/t_user_role.entity';
-import { AuthController } from './auth/auth.controller';
-import { AuthService } from './auth/auth.service';
+import { UserRoleEntity } from 'src/entities/admin/t_user_role.entity';
 import { DeptController } from './dept/dept.controller';
 import { DeptService } from './dept/dept.service';
 import { ModuleService } from './module/module.service';
@@ -29,16 +26,15 @@ import { UserRoleService } from './userRole/userRole.service';
     RouterModule.register([{ path: '', module: SystemModule }]),
     TypeOrmModule.forFeature([
       UserEntity,
-      UserRole,
-      Role,
-      RoleModule,
-      ModuleNEST,
+      UserRoleEntity,
+      RoleEntity,
+      RoleModuleEntity,
+      ModuleEntity,
       PositionEntity,
       DeptEntity,
     ]),
   ],
   controllers: [
-    // AuthController,
     UserController,
     RoleController,
     UserRoleController,
@@ -48,8 +44,6 @@ import { UserRoleService } from './userRole/userRole.service';
     RoleModuleController,
   ],
   providers: [
-    // JwtService,
-    // AuthService,
     UserService,
     RoleService,
     UserRoleService,

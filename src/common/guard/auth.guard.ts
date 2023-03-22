@@ -1,6 +1,7 @@
 // common/guard/auth.guard.ts
 
-import {Injectable,CanActivate,HttpException,HttpStatus,ExecutionContext,} from '@nestjs/common';
+import {Injectable,CanActivate,HttpException,HttpStatus,ExecutionContext, Logger,} from '@nestjs/common';
+import adminConfig from 'src/config/admin.config';
 @Injectable()
 export class AuthGuard implements CanActivate {
   // context 请求的(Response/Request)的引用
@@ -11,11 +12,10 @@ export class AuthGuard implements CanActivate {
     // 获取请求头中的token字段
     const token = context.switchToRpc().getData().headers.authorization;
     // 如果白名单内的路由就不拦截直接通过
-    console.log('14'+request.url)
     if (this.hasUrl(this.urlList, request.url)) {
       return true;
     }
-    console.log(token);
+    console.log(`当前的token：${token}`,`AuthGuard`);
     // 验证token的合理性以及根据token做出相应的操作
     if (token) {
       try {
@@ -35,11 +35,7 @@ export class AuthGuard implements CanActivate {
     }
   };
   // 白名单数组
-  private urlList: string[] = [
-    '/basic-api/auth/login',
-    '/basic-api/auth/logout',
-    '/basic-api/auth/authcode'
-  ];
+  private urlList: string[] = adminConfig.WhiteRouterList;
 
   // 验证该次请求是否为白名单内的路由
   private hasUrl(urlList: string[], url: string): boolean {
@@ -47,7 +43,6 @@ export class AuthGuard implements CanActivate {
     if (urlList.indexOf(url) >= 0) {
       flag = true;
     }
-    console.log(flag)
     return flag;
   }
 };

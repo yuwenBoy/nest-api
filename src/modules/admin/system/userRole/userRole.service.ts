@@ -2,14 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserRole } from 'src/entities/admin/t_user_role.entity';
+import { UserRoleEntity } from 'src/entities/admin/t_user_role.entity';
 
 @Injectable()
 export class UserRoleService {
   // 使用InjectRespository装饰器并引入Repository这样就可以使用typeorm的操作了
   constructor(
-    @InjectRepository(UserRole)
-    private readonly userRoleRepository: Repository<UserRole>,
+    @InjectRepository(UserRoleEntity)
+    private readonly userRoleRepository: Repository<UserRoleEntity>,
   ) {}
 
   /**
@@ -53,7 +53,7 @@ export class UserRoleService {
     try {
       let a = await this.userRoleRepository.createQueryBuilder()
       .delete()
-      .from(UserRole)
+      .from(UserRoleEntity)
       .where("user_id = :userId", { userId: params.userId })
       .execute();
       Logger.log(`删除返回数据：${JSON.stringify(a)}`);
@@ -75,7 +75,7 @@ export class UserRoleService {
       let res = await this.userRoleRepository
         .createQueryBuilder()
         .insert()
-        .into(UserRole)
+        .into(UserRoleEntity)
         .values([parameter])
         .execute();
 

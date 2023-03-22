@@ -1,6 +1,9 @@
 import { Body, Controller, Get, Logger, Post, Query, UseGuards,Request} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { userInfo } from 'os';
+import { CurrentUser } from 'src/common/decorator/current.user';
+import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 
 import { PositionService } from './position.service';
@@ -10,14 +13,15 @@ import { PositionService } from './position.service';
  * createTime：2023-3-8 21:39:18
  * description：职位控制器模块
  */
+@ApiTags('职位管理')
+@ApiBearerAuth()
+@PermissionModule('职位管理')
+@UseGuards(JwtAuthGuard)
 @Controller('position')
 export class PositionController {
   constructor(private readonly positionService: PositionService) {}
 
-
   @ApiOperation({ summary: '查询机构下的职位' })
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
   @Get('/getPositionByDeptId')
   getPositionByDeptId(@Query() query):Promise<any> {
     console.log('接受query参数'+query.pid)
@@ -25,14 +29,11 @@ export class PositionController {
   }
 
   @ApiOperation({ summary: '职位管理：查询分页列表' })
-  @ApiBearerAuth() // swagger文档设置token
-  @UseGuards(AuthGuard('jwt'))
   @Post('/getByCondition')
   list(@Body() query):Promise<{}> {
     Logger.log(`【职位管理：查询分页列表】分页查询接受参数：${JSON.stringify(query)}`);
     return this.positionService.pageQuery(query);
   }
-
   
    /**
    * 职位管理-新增职位
@@ -41,9 +42,9 @@ export class PositionController {
    @ApiBearerAuth() // swagger文档设置token
    @UseGuards(JwtAuthGuard) // 需要jwt鉴权认证
    @Post('/add')
-   addUser(@Body() addUserDto: [],@Request() req): Promise<boolean> {
+   addUser(@Body() addUserDto: [],@CurrentUser() userInfo): Promise<boolean> {
      Logger.log(`新增职位接收参数：${JSON.stringify(addUserDto)}`);
-     return this.positionService.save(addUserDto,req.user);
+     return this.positionService.save(addUserDto,userInfo.username);
    }
  
    /**
@@ -53,9 +54,9 @@ export class PositionController {
    @ApiBearerAuth() // swagger文档设置token
    @UseGuards(JwtAuthGuard) // 需要jwt鉴权认证
    @Post('/edit')
-   updateUser(@Body() updateUserDto: [],@Request() req): Promise<boolean> {
+   updateUser(@Body() updateUserDto: [],@CurrentUser() userInfo): Promise<boolean> {
      Logger.log(`编辑职位接收参数：${JSON.stringify(updateUserDto)}`);
-     return this.positionService.save(updateUserDto,req.user);
+     return this.positionService.save(updateUserDto,userInfo.username);
    }
  
    /**

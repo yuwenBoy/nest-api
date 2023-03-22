@@ -2,17 +2,17 @@ import { Injectable, Logger } from '@nestjs/common';
 // import { PostDataDto } from './dto/hello.dto';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserRole } from 'src/entities/admin/t_user_role.entity';
 import { Any, Brackets, Like, Repository } from 'typeorm';
-import { Role } from 'src/entities/admin/t_role.entity';
+import { RoleEntity } from 'src/entities/admin/t_role.entity';
 import { UserRoleService } from '../userRole/userRole.service';
+import { PageEnum } from 'src/enum/page.enum';
 
 @Injectable()
 export class RoleService {
   // 使用InjectRespository装饰器并引入Repository这样就可以使用typeorm的操作了
   constructor(
-    @InjectRepository(Role)
-    private readonly roleRepository: Repository<Role>,
+    @InjectRepository(RoleEntity)
+    private readonly roleRepository: Repository<RoleEntity>,
     private readonly userRoleService: UserRoleService,
   ) {}
 
@@ -24,8 +24,8 @@ export class RoleService {
   async pageQuery(parameter: any): Promise<any> {
     try {
       let result = {
-        page: Number(parameter.page),
-        size: Number(parameter.size),
+        page: PageEnum.PAGE_NUMBER,
+        size: PageEnum.PAGE_SIZE,
         totalPage: 0,
         totalElements: 0,
         content: [],
@@ -123,7 +123,7 @@ export class RoleService {
    * @param parameter 参数
    * @returns 布尔类型
    */
-  async save(parameter: any,user:any): Promise<any> {
+  async save(parameter: any,userName:string): Promise<any> {
     Logger.log(`请求参数：${JSON.stringify(parameter)}`);
     try {
       if (!parameter.id) {
@@ -134,9 +134,9 @@ export class RoleService {
         if (existUser) {
           return '角色已存在';
         }
-        parameter.create_by = user.username;
+        parameter.create_by = userName;
       }else{
-        parameter.update_by = user.username;
+        parameter.update_by = userName;
       }
       // 必须用save 更新时间才生效
       let res = await this.roleRepository.save(parameter);

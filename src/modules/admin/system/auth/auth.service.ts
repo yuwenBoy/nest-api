@@ -7,8 +7,9 @@ import { RoleModuleService } from '../roleModule/roleModule.service';
 
 import { UserService } from '../user/user.service';
 import { UserRoleService } from '../userRole/userRole.service';
-import { jwtContants } from './jwt.contants';
 import { compareSync, hashSync } from 'bcryptjs';
+import adminConfig from 'src/config/admin.config';
+import { jwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
 @Injectable()
 export class AuthService {
   constructor(
@@ -22,17 +23,13 @@ export class AuthService {
   // 2.验证账号密码是否正确，正确返回user 错误返回null
   async validateUser(account: string, pass: string): Promise<any> {
     const user = await this.userService.getUserAccout(account);
-    if (user && compareSync('jxxqz123',pass)) {
+    const defaultPass = adminConfig.DefaultPassWord;
+    if (user && compareSync(defaultPass,pass)) {
       const { password, ...result } = user;
       return result;
     }
     return null;
   }
-
-  // // 生成token
-  // createToken(user: Partial<UserEntity>) {
-  //   return this.jwtService.sign(user);
-  // }
 
   /**
    * 验证通过，生成token返回给客户端
@@ -43,7 +40,7 @@ export class AuthService {
     console.log('user============================='+user)
     const payload = { username: user.username, id: user.id };
     let res_success_token = {
-      token: this.jwtService.sign(payload, jwtContants),
+      token: this.jwtService.sign(payload, jwtContants), // 生成token
       ...(await this.userInfo(user.id)),
     };
     return res_success_token;

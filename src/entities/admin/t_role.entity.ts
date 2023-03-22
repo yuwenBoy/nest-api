@@ -7,7 +7,7 @@ import { ZJBaseEntity } from './base.entity';
  * @Author:zhao.jian
  */
 @Entity("t_role")
-export class Role extends ZJBaseEntity { 
+export class RoleEntity extends ZJBaseEntity { 
     @Column({type:'varchar',comment:'名称'})
     name: string;
 

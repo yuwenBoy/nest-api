@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { jwtContants } from './jwt.contants';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { jwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -11,9 +11,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration:false,
       secretOrKey: jwtContants.secret,
-      
     })
-    
   }  
   async validate(payload: any) {
     console.log('payload', payload);
