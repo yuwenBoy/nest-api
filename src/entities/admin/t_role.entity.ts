@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert } from 'typeorm';
-import { ZJBaseEntity } from './base.entity';
+import { ZJBaseEntity } from '../common/base.entity';
 
 /**
  * description:角色表
@@ -7,7 +7,7 @@ import { ZJBaseEntity } from './base.entity';
  * @Author:zhao.jian
  */
 @Entity("t_role")
-export class Role extends ZJBaseEntity { 
+export class RoleEntity extends ZJBaseEntity { 
     @Column({type:'varchar',comment:'名称'})
     name: string;
 

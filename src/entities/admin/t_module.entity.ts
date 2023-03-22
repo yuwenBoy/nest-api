@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert } from 'typeorm';
-import { ZJBaseEntity } from './base.entity';
+import { ZJBaseEntity } from '../common/base.entity';
 
 /**
  * description:菜单表
@@ -7,7 +7,7 @@ import { ZJBaseEntity } from './base.entity';
  * @Author:zhao.jian
  */
 @Entity("t_module")
-export class ModuleNEST extends ZJBaseEntity { 
+export class ModuleEntity extends ZJBaseEntity { 
     @Column({type:'varchar', name: 'name'})
     name: string;
 

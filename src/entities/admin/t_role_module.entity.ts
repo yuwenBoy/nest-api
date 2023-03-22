@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert } from 'typeorm';
-import { ZJBaseEntity } from './base.entity';
+import { ZJBaseEntity } from '../common/base.entity';
 
 /**
  * description:角色模块表
@@ -7,7 +7,7 @@ import { ZJBaseEntity } from './base.entity';
  * @Author:zhao.jian
  */
 @Entity("t_role_module")
-export class RoleModule extends ZJBaseEntity { 
+export class RoleModuleEntity extends ZJBaseEntity { 
     @Column({type:'int', name: 't_module_id'})
     moduleId: Number;
 
