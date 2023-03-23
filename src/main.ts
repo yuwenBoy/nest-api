@@ -46,10 +46,11 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup(`docs/${prefix}`, app, document);
 
   await app.listen(prot, () => {
-    Logger.log(`服务已经启动,接口请访问 http://localhost:${prefix}/${prot}`)
+    Logger.log(`服务已经启动,接口请访问http://localhost:${prefix}/${prot}`);
+    Logger.log(`服务已经启动,接口接口请访问http://localhost:${prot}/docs/${prefix}`)
   });
 }
 bootstrap();

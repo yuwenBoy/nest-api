@@ -8,6 +8,7 @@ import { compareSync, hashSync } from 'bcryptjs';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
 import { PageEnum } from 'src/enum/page.enum';
 import adminConfig from 'src/config/admin.config';
+import { PageListVo } from 'src/modules/common/page/pageList';
 
 @Injectable()
 export class UserService {
@@ -23,16 +24,9 @@ export class UserService {
    * @param parameter 查询条件
    * @returns list
    */
-  async pageQuery(parameter: any): Promise<any> {
+  async pageQuery(parameter: any): Promise<PageListVo> {
     try {
-      let result = {
-        page: PageEnum.PAGE_NUMBER,
-        size: PageEnum.PAGE_SIZE,
-        totalPage: 0,
-        totalElements: 0,
-        content: [],
-      };
-
+      const [pageIndex,pageSize] = [PageEnum.PAGE_NUMBER,PageEnum.PAGE_SIZE];
       let qb = await this.userRepository
         .createQueryBuilder('user')
         .innerJoinAndMapOne(
@@ -86,20 +80,23 @@ export class UserService {
           }),
         )
         .orderBy(`user.${parameter.sort}`, 'DESC')
-        .skip((parameter.page - 1) * Number(parameter.size))
-        .take(parameter.size);
+        .skip((pageIndex - 1) * Number(pageSize))
+        .take(pageSize);
 
-      result.content = await qb.getMany();
-      result.totalElements = await qb.getCount(); // 按条件查询的数量
+      const [data, count] =await qb.getManyAndCount();
 
-      // 总页数
-      result.totalPage = Math.ceil(result.totalElements / parameter.size);
-      return result;
+      return {
+        ...{content:data},
+        page:pageIndex,
+        size:pageSize,
+        totalElements:count,
+        totalPage:Math.ceil(count / pageSize),
+      }
     } catch (error) {
       Logger.error(`查询用户分页列表失败，原因：${JSON.stringify(error)}`);
-      return false;
     }
   }
+
 
   /**
    * 新增|编辑 用户

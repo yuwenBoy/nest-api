@@ -71,15 +71,13 @@ export class DeptService {
       queryBuilder.orderBy(`dept.${parameter.sort}`, 'ASC');
       let data = await queryBuilder.getMany();
       let result = {
-        content: [],
+        content: parameter.DepartmentName ? data : this.toTableTree(data, 0),
       };
-      result.content = parameter.DepartmentName
-        ? data
-        : this.toTableTree(data, 0);
-      return result;
+      return {
+        ...result,
+      };
     } catch (error) {
       Logger.error(`机构列表请求失败,原因：${JSON.stringify(error)}`);
-      return false;
     }
   }
 
@@ -105,22 +103,21 @@ export class DeptService {
     }
   }
 
-  
   /**
    * 查询全部机构转换成树形结构
    */
-   async getDeptAll(): Promise<any> {
+  async getDeptAll(): Promise<any> {
     try {
       return await this.deptRepository
-      .createQueryBuilder('dept')
-      .select([
-        'id',
-        'department_name AS label',
-        'parent_id',
-        'department_type AS type',
-      ])
-      .where('1=1')
-      .getRawMany();;
+        .createQueryBuilder('dept')
+        .select([
+          'id',
+          'department_name AS label',
+          'parent_id',
+          'department_type AS type',
+        ])
+        .where('1=1')
+        .getRawMany();
     } catch (error) {
       Logger.error('查询机构失败，原因：' + error);
     }

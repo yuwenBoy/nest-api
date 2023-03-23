@@ -4,6 +4,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { userInfo } from 'os';
 import { CurrentUser } from 'src/common/decorator/current.user';
 import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
+import { PageListVo } from 'src/modules/common/page/pageList';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 
 import { PositionService } from './position.service';
@@ -30,7 +31,7 @@ export class PositionController {
 
   @ApiOperation({ summary: '职位管理：查询分页列表' })
   @Post('/getByCondition')
-  list(@Body() query):Promise<{}> {
+  list(@Body() query):Promise<PageListVo> {
     Logger.log(`【职位管理：查询分页列表】分页查询接受参数：${JSON.stringify(query)}`);
     return this.positionService.pageQuery(query);
   }

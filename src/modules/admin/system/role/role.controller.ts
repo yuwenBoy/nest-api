@@ -13,6 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorator/current.user';
 import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
+import { PageListVo } from 'src/modules/common/page/pageList';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 // import { Transaction, TransactionManager, EntityManager } from 'typeorm';// 开启事务  
 import { RoleService } from './role.service';
@@ -32,7 +33,7 @@ export class RoleController {
 
   @ApiOperation({ summary: '角色管理：查询分页列表' })
   @Post('/getByCondition')
-  list(@Body() query):Promise<{}> {
+  list(@Body() query):Promise<PageListVo> {
     Logger.log(`【角色管理：查询分页列表】分页查询接受参数：${JSON.stringify(query)}`);
     return this.roleService.pageQuery(query);
   }

@@ -13,9 +13,6 @@ import { RoleModuleService } from './roleModule.service';
 @Controller('authority')
 export class RoleModuleController {
   constructor(private readonly roleModuleService: RoleModuleService) {}
-
-
-  
   
   @ApiOperation({ summary: '保存操作权限' })
   @ApiBearerAuth() // swagger文档设置token

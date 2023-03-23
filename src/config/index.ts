@@ -1,0 +1,1 @@
+import adminConfig from "./admin.config";

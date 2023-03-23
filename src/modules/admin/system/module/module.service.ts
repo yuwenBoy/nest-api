@@ -197,9 +197,8 @@ export class ModuleService {
       queryBuilder.orderBy(`m.${parameter.sort}`, 'ASC');
       let data = await queryBuilder.getMany();
       let result = {
-        content: [],
+        content: parameter.name ? data : this.toTableTree(data, 0),
       };
-      result.content = parameter.name ? data : this.toTableTree(data, 0);
       return result;
     } catch (error) {
       Logger.error(`资源列表请求失败,原因：${JSON.stringify(error)}`);
