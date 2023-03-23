@@ -15,7 +15,7 @@ import {
   import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
   import { PageListVo } from 'src/modules/common/page/pageList';
   import { JwtAuthGuard } from '../auth/jwt.auth.guard';
-import { RoleService } from '../service/role.service';
+  import { RoleService } from '../service/role.service';
   // import { Transaction, TransactionManager, EntityManager } from 'typeorm';// 开启事务  
   
   /***

@@ -10,9 +10,11 @@ import { AuthGuard } from './common/guard/auth.guard';
 import { ValidationPipe } from './common/pipe/validate.pipe';
 import { XMLMiddleware } from './common/middleware/xml.middleware';
 import adminConfig from './config/admin.config';
-
+/**
+ * 程序入口文件main.ts
+ */
 async function bootstrap() {
-  // const logger:Logger = new Logger('main.ts');
+  const logger:Logger = new Logger('main.ts');
   const app = await NestFactory.create(AppModule, {
     logger: ['log', 'debug', 'error', 'warn'],
     cors: true,
@@ -20,6 +22,8 @@ async function bootstrap() {
 
   const prefix = adminConfig.Prefix;
   const prot = adminConfig.PROT;
+
+  logger.log('初始化读取adminConfig配置文件'+JSON.stringify(adminConfig));
 
   // 全局注册xml支持中间件（这里必须调用.use才能够注册）
   app.use(new XMLMiddleware().use);
@@ -53,8 +57,8 @@ async function bootstrap() {
   SwaggerModule.setup(`docs/${prefix}`, app, document);
 
   await app.listen(prot, () => {
-    Logger.log(`服务已经启动,接口请访3333问http://localhost:${prefix}/${prot}`);
-    Logger.log(`服务已经启动,接口接口请444444访问http://localhost:${prot}/docs/${prefix}`)
+    Logger.log(`服务已经启动,接口请访问http://localhost:${prot}/${prefix}`);
+    Logger.log(`服务已经启动,接口接口请访问http://localhost:${prot}/docs/${prefix}`)
   });
 }
 bootstrap();

@@ -17,7 +17,7 @@ import { ModuleService } from '../service/module.service';
  */
 @ApiTags('菜单管理')
 @ApiBearerAuth() // swagger文档设置token
-@PermissionModule('组织机构管理')
+@PermissionModule('菜单管理')
 @UseGuards(JwtAuthGuard)
 @Controller('module')
 export class ModuleController {
@@ -61,7 +61,6 @@ export class ModuleController {
     Logger.log('【菜单模块---->【查询权限资源】-------->findByRoleId接口----> 请求参数】'+query.roleId)
      return await this.moduleService.findByRoleId(query.roleId);
   }
-
 
   @ApiOperation({ summary: '查询所有机构' })
   @Get('/getModuleTreeAll')

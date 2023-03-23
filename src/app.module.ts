@@ -7,7 +7,6 @@ import { AdminModule } from './modules/admin/admin.module';
 import { ConfigModule, ConfigService } from 'nestjs-config';
 import { LoggingInterceptor } from './interceptors/logging.interceptors';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-
 @Module({ 
   imports: [
      // 配置加载配置文件
@@ -43,7 +42,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
       }),
       inject: [ConfigService],
     }),
-    AdminModule
+    AdminModule,
   ],
   controllers: [], 
   providers: [
@@ -51,9 +50,4 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
   ],
 })
 export class AppModule {
-  // configure(consumer:MiddlewareConsumer){
-  //   consumer.apply(LoggerMiddleware) // 应用中间件
-  //   .exclude({path:'/basic-api/admin/auth',method:RequestMethod.POST}) // 排除auth的post方法
-  //   .forRoutes(AuthController); // 监听路由 参数：路径名或*，*是匹配所有的路由
-  // }
 }

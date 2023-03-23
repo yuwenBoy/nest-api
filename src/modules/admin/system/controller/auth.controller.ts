@@ -6,7 +6,7 @@ import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 import { LocalAuthGuard } from '../auth/local.auth.guard';
 // import { ToolsService } from './utils/tools/ToolsService';
 
-@ApiTags('用户身份认证即jwt鉴权')
+@ApiTags('用户身份认证登录(jwt鉴权)')
 @Controller('auth')
 export class AuthController {
   constructor(
