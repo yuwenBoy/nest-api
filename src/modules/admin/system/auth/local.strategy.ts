@@ -1,7 +1,7 @@
 // local.strategy.ts
 import { PassportStrategy } from '@nestjs/passport';
 import { IStrategyOptions, Strategy } from 'passport-local';
-import { AuthService } from './auth.service';
+import { AuthService } from '../service/auth.service';
 
 import {
   HttpException,

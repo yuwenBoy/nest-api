@@ -17,5 +17,4 @@ export class PaginationVo {
      * 总页数
      */
     totalPage: number;
-  }
-  
+}

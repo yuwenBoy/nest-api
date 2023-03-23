@@ -1,5 +1,5 @@
 import { Column, Entity, BeforeInsert, JoinColumn, OneToOne } from 'typeorm';
-import { ZJBaseEntity } from './base.entity';
+import { ZJBaseEntity } from '../common/base.entity';
 import { DeptEntity } from './dept.entity';
 import { PositionEntity } from './position.entity';
 import { UserStatusEnum } from 'src/enum/user_status.enum';
