@@ -23,7 +23,7 @@ export class RoleService {
    */
   async pageQuery(parameter: any): Promise<PageListVo> {
     try {
-      const [pageIndex,pageSize] = [PageEnum.PAGE_NUMBER,PageEnum.PAGE_SIZE];
+      const [pageIndex,pageSize] = [parameter.page,parameter.size];
       let find_object = {
         where: [],
         order: {},
