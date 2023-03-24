@@ -28,7 +28,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
         logging:false,
         // logging: config.get('database.logging'),
         // synchronize: true, // 同步数据库
-        timezone: '+08:00', // 东八区
+        // timezone: '+08:00', // 东八区
         cache: {
           duration: 60000, // 1分钟的缓存
         },

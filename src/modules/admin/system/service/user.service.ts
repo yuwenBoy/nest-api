@@ -80,6 +80,7 @@ export class UserService {
           }),
         )
         .orderBy(`user.${parameter.sort}`, 'DESC')
+        .addOrderBy('user.create_time','DESC')
         .skip((pageIndex - 1) * Number(pageSize))
         .take(pageSize);
 
