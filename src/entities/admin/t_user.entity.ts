@@ -14,7 +14,7 @@ export class UserEntity extends ZJBaseEntity {
   @Column({type:'varchar', name: 'username',comment:'账号',length:20})
   username: string;
 
-  @Column({type:'varchar', name: 'password',select:false,length:100})
+  @Column({type:'varchar', name: 'password',length:100})
   password: string;
 
   @Column({type:'varchar', name: 'cname',length:10,comment:'姓名'})

@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Logger } from '@nestjs/common/services';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { RoleModuleEntity } from 'src/entities/admin/t_role_module.entity';
+import { RoleModuleDto } from '../dto/roleModule.dto';
+import { UserInfoDto } from '../dto/user/userInfo.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class RoleModuleService {
@@ -10,6 +13,12 @@ export class RoleModuleService {
   constructor(
     @InjectRepository(RoleModuleEntity)
     private readonly roleModuleRepository: Repository<RoleModuleEntity>,
+
+    /**
+     * 注册事物管理器
+     */
+    @InjectEntityManager()
+    private readonly roleModuleManager: EntityManager,
   ) {}
 
   /**
@@ -46,92 +55,57 @@ export class RoleModuleService {
 
   /**
    * 保存角色模块关系权限
-   * @param parameter 角色id 模块ids
+   * @param parameter roleId moduleId
    * @param user 用户信息
-   * @returns 对象
+   * @returns 返回是否成功与失败
    */
 
-  async saveOptionAuthority(parameter: any, user: any): Promise<boolean> {
-    await this.delete(parameter);
-    parameter.moduleId.forEach(async (item) => {
-      await this.save(
-        {
-          id: null,
-          roleId: parameter.roleId,
-          moduleId: item,
+  async saveOptionAuthority(
+    dto: RoleModuleDto,
+    currentUser: UserInfoDto,
+  ): Promise<any> {
+    try {
+      Logger.log('角色模块服务层获取参数：' + dto);
+      const roleModuleList = plainToInstance(
+        RoleModuleEntity,
+        dto.moduleId.map((moduleId) => {
+          return {
+            moduleId,
+            roleId: dto.roleId,
+            create_by: currentUser.username,
+          };
+        }),
+      );
+      const res = await this.roleModuleManager.transaction(
+        async (transactionalEntityManager) => {
+          // 先删除旧数据
+          await transactionalEntityManager.delete(RoleModuleEntity, {
+            roleId: dto.roleId,
+          });
+          // 保存新数据
+          const result =
+            await transactionalEntityManager.save<RoleModuleEntity>(
+              roleModuleList,
+            );
+          return result;
         },
-        user,
       );
-    });
-    return true;
+      if (!res) return '授权资源失败';
+      return true;
+    } catch (error) {
+      Logger.error('角色模块服务层saveOptionAuthority方法异常，原因：' + error);
+    }
+ 
   }
 
   /**
-   * 保存角色模块表
-   * @param parameter 参数
-   * @returns 布尔类型
+   * 根据模块id获取角色id 多个
+   * @param moduleIds ids 
+   * @returns 
    */
-  async save(parameter: any, user: any): Promise<any> {
-    Logger.log(`请求参数：${JSON.stringify(parameter)}`);
-    try {
-      if (!parameter.id) {
-        parameter.create_by = user.username;
-      }
-      // 必须用save 更新时间才生效
-      let res = await this.roleModuleRepository.save(parameter);
-      if (res.id > 0) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch (error) {
-      Logger.error(`【新增|编辑】用户请求失败：${JSON.stringify(error)}`);
-    }
-  }
-
-  // 删除
-  async delete(params: any): Promise<boolean> {
-    Logger.log(`请求删除参数：${JSON.stringify(params)}`);
-    try {
-      let a = await this.roleModuleRepository
-        .createQueryBuilder()
-        .delete()
-        .from(RoleModuleEntity)
-        .where('t_role_id = :roleId', { roleId: params.roleId })
-        .execute();
-      Logger.log(`删除返回数据：${JSON.stringify(a)}`);
-      if (a.affected == 0) {
-        return false;
-      } else {
-        return true;
-      }
-    } catch (error) {
-      Logger.log(`请求失败：${JSON.stringify(error)}`);
-      return false;
-    }
-  }
-
-  /**
-   * 删除关系表（角色模块表）
-   * @param params 模块ids
-   * @returns
-   */
-  async deleteByModuleIds(params: any): Promise<boolean> {
-    Logger.log(`请求删除参数：${JSON.stringify(params)}`);
-    try {
-      let entityList = await this.roleModuleRepository.query(
-        `select * from t_role_module where t_module_id IN (${params.toString()})`,
+  async getRoleIdByModuleIds(moduleIds: string[]): Promise<any> {
+    return  await this.roleModuleRepository.query(
+        `select t_role_id from t_role_module where t_module_id IN (${moduleIds.toString()})`,
       );
-      let a = await this.roleModuleRepository.remove(entityList);
-      Logger.log(`删除返回数据：${JSON.stringify(a)}`);
-      if (a.length == 0) {
-        return false;
-      } else {
-        return true;
-      }
-    } catch (error) {
-      Logger.log(`请求失败：${JSON.stringify(error)}`);
-      return false;
-    }
   }
 }

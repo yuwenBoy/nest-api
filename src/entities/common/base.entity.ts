@@ -21,13 +21,14 @@ import { formatTime } from 'src/utils/date';
  * @create_time：2023-1-9 11:59:11
  */
 export abstract class ZJBaseEntity extends BaseEntity {
+
   @PrimaryGeneratedColumn({comment:'主键ID'})
   id: number;
 
   @Column({comment:'更新人', type: 'varchar', name: 'update_by', select: false })
   update_by: string;
 
-  @CreateDateColumn({comment:'创建时间',nullable:true,update:false})
+  @CreateDateColumn({comment:'创建时间',nullable:true,update:true})
   @Transform((row: TransformFnParams) => {
     let timestamp: any = new Date(row.value);
     return formatTime(timestamp / 1000);

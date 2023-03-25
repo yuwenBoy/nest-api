@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
 import { ModuleEntity } from 'src/entities/admin/t_module.entity';
 import { RoleModuleService } from './roleModule.service';
 import { menuDto, menuList, menuMeta } from '../dto/menu.dto';
+import { EntityManager } from 'typeorm/entity-manager/EntityManager';
 
 @Injectable()
 export class ModuleService {
@@ -12,6 +13,11 @@ export class ModuleService {
     @InjectRepository(ModuleEntity)
     private readonly moduleRepository: Repository<ModuleEntity>,
     protected readonly roleModuleService: RoleModuleService,
+    /**
+     * 注入模块事物
+     */
+    @InjectEntityManager()
+    protected readonly moduleManager: EntityManager,
   ) {}
 
   /**
@@ -238,19 +244,17 @@ export class ModuleService {
    * @returns
    */
   async delete(ids: any): Promise<any> {
-    Logger.log(`【批量删除资源】请求参数：${JSON.stringify(ids)}`);
     try {
-      let a = await this.moduleRepository.delete(ids);
-      await this.roleModuleService.deleteByModuleIds(ids);
-      Logger.log(`【批量删除资源】删除返回数据：${JSON.stringify(a)}`);
-      if (a.affected == 0) {
-        return false;
-      } else {
-        return true;
+      const roleIds = await this.roleModuleService.getRoleIdByModuleIds(ids);
+      if (roleIds.length > 0) {
+        return '删除失败，该模块下已有授权的资源，不能删除。';
       }
+      let a = await this.moduleRepository.delete(ids);
+      if (a.affected == 0) return '删除失败';
+      return true;
     } catch (error) {
-      Logger.log(`【批量删除资源】请求失败：${JSON.stringify(error)}`);
-      return false;
+      Logger.error('模块服务层批量删除方法异常，原因：' + error);
+      return '删除失败';
     }
   }
 }

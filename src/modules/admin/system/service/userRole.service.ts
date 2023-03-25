@@ -45,48 +45,4 @@ export class UserRoleService {
         let result = await this.userRoleRepository.query('select r.name,ur.* from t_user_role ur inner join t_role r on ur.role_id = r.id where ur.role_id  IN ('+ roleId.toString()+')')
         return result;
       }
-  
-
-  // 删除
-  async delete(params: any): Promise<boolean> {
-    Logger.log(`请求删除参数：${JSON.stringify(params)}`);
-    try {
-      let a = await this.userRoleRepository.createQueryBuilder()
-      .delete()
-      .from(UserRoleEntity)
-      .where("user_id = :userId", { userId: params.userId })
-      .execute();
-      Logger.log(`删除返回数据：${JSON.stringify(a)}`);
-      if (a.affected == 0) {
-        return false;
-      } else {
-        return true;
-      }
-    } catch (error) {
-      Logger.log(`请求失败：${JSON.stringify(error)}`);
-      return false;
-    }
-  }
-
-  // 增加/更新
-  async save(parameter: any): Promise<boolean> {
-    Logger.log(`请求参数：${JSON.stringify(parameter)}`);
-    try {
-      let res = await this.userRoleRepository
-        .createQueryBuilder()
-        .insert()
-        .into(UserRoleEntity)
-        .values([parameter])
-        .execute();
-
-      if (res.raw) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch (error) {
-      Logger.log(`请求失败：${JSON.stringify(error)}`);
-      return false;
-    }
-  }
 }

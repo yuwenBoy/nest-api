@@ -7,7 +7,6 @@ import { RoleModuleService } from './roleModule.service';
 
 import { UserRoleService } from './userRole.service';
 import { compareSync, hashSync } from 'bcryptjs';
-import adminConfig from 'src/config/admin.config';
 import { jwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
 import { UserService } from './user.service';
 @Injectable()
@@ -23,8 +22,8 @@ export class AuthService {
   // 2.验证账号密码是否正确，正确返回user 错误返回null
   async validateUser(account: string, pass: string): Promise<any> {
     const user = await this.userService.getUserAccout(account);
-    const defaultPass = adminConfig.DefaultPassWord;
-    if (user && compareSync(defaultPass,pass)) {
+    // const defaultPass = adminConfig.DefaultPassWord;
+    if (user && compareSync(pass,user.password)) {
       const { password, ...result } = user;
       return result;
     }

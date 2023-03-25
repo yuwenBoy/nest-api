@@ -1,11 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { Any, Brackets, Like, Repository } from 'typeorm';
 import { RoleEntity } from 'src/entities/admin/t_role.entity';
 
 import { UserRoleService } from './userRole.service';
 import { PageEnum } from 'src/enum/page.enum';
 import { PageListVo } from 'src/modules/common/page/pageList';
+import { EntityManager } from 'typeorm/entity-manager/EntityManager';
+import { plainToInstance } from 'class-transformer';
+import { UserRoleEntity } from 'src/entities/admin/t_user_role.entity';
+import { UserRoleDto } from '../dto/userRole.dto';
+import { UserInfoDto } from '../dto/user/userInfo.dto';
 
 @Injectable()
 export class RoleService {
@@ -14,6 +19,8 @@ export class RoleService {
     @InjectRepository(RoleEntity)
     private readonly roleRepository: Repository<RoleEntity>,
     private readonly userRoleService: UserRoleService,
+    @InjectEntityManager()
+    private readonly roleManager: EntityManager,
   ) {}
 
   /**
@@ -23,7 +30,7 @@ export class RoleService {
    */
   async pageQuery(parameter: any): Promise<PageListVo> {
     try {
-      const [pageIndex,pageSize] = [parameter.page,parameter.size];
+      const [pageIndex, pageSize] = [parameter.page, parameter.size];
       let find_object = {
         where: [],
         order: {},
@@ -33,8 +40,8 @@ export class RoleService {
       };
       if (parameter.name) {
         find_object.where.push(
-          { name:Like(`%${parameter.name}%`) },
-          { code:Like(`%${parameter.name}%`) },
+          { name: Like(`%${parameter.name}%`) },
+          { code: Like(`%${parameter.name}%`) },
         );
       } else {
         delete find_object.where;
@@ -42,10 +49,10 @@ export class RoleService {
 
       if (parameter.sort) find_object.order[parameter.sort] = 'DESC';
 
-      const data = {content:await this.roleRepository.find(find_object)}
+      const data = { content: await this.roleRepository.find(find_object) };
 
       // 总条数
-      const count  = await this.roleRepository.count({
+      const count = await this.roleRepository.count({
         where: find_object.where,
       });
 
@@ -53,9 +60,9 @@ export class RoleService {
         ...data,
         page: pageIndex,
         size: pageSize,
-        totalPage:Math.ceil(count / pageSize),
+        totalPage: Math.ceil(count / pageSize),
         totalElements: count,
-      }
+      };
     } catch (error) {
       Logger.log(`查询【角色分页列表】请求失败：${JSON.stringify(error)}`);
     }
@@ -95,27 +102,47 @@ export class RoleService {
     }
   }
 
-  // 设置角色
-  async setRoles(parameter: any): Promise<boolean> {
-    await this.userRoleService.delete(parameter);
-    parameter.roles.forEach(async (item) => {
-      let request = {
-        id: null,
-        userId: parameter.userId,
-        roleId: item,
-      };
-      await this.userRoleService.save(request);
-    });
+  /**
+   * 保存用户角色
+   * @param parameter userId roles
+   * @returns 返回成功与失败
+   */
+  async saveUserRole(
+    parameter: UserRoleDto,
+    userInfo: UserInfoDto,
+  ): Promise<any> {
+    const useRoleList = plainToInstance(
+      UserRoleEntity,
+      parameter.roles.map((roleId) => {
+        return {
+          roleId,
+          userId: parameter.userId,
+          create_by: userInfo.username,
+        };
+      }),
+    );
+
+    const res = await this.roleManager.transaction(
+      async (transactionalEntityManager) => {
+        await transactionalEntityManager.delete(UserRoleEntity, {
+          userId: parameter.userId,
+        });
+        const result = await transactionalEntityManager.save<UserRoleEntity>(
+          useRoleList,
+        );
+        return result;
+      },
+    );
+    if (!res) return '设置角色失败';
     return true;
   }
 
-  
   /**
    * 新增|编辑 角色
    * @param parameter 参数
    * @returns 布尔类型
    */
-  async save(parameter: any,userName:string): Promise<any> {
+  async save(parameter: any, userName: string): Promise<any> {
     Logger.log(`请求参数：${JSON.stringify(parameter)}`);
     try {
       if (!parameter.id) {
@@ -127,7 +154,7 @@ export class RoleService {
           return '角色已存在';
         }
         parameter.create_by = userName;
-      }else{
+      } else {
         parameter.update_by = userName;
       }
       // 必须用save 更新时间才生效
@@ -150,17 +177,22 @@ export class RoleService {
   async delete(ids: any): Promise<any> {
     Logger.log(`【批量删除角色】请求参数：${JSON.stringify(ids)}`);
     try {
-    
       // 查询角色是否有关联的模块
-      let roleModuleEntity = await this.roleRepository.query(`select m.name,rm.* from t_role_module rm inner join t_module m on rm.t_module_id = m.id where rm.t_role_id IN (${ids})`);
+      let roleModuleEntity = await this.roleRepository.query(
+        `select m.name,rm.* from t_role_module rm inner join t_module m on rm.t_module_id = m.id where rm.t_role_id IN (${ids})`,
+      );
 
-      if(roleModuleEntity.length > 0) {
-         return `当前角色已有关联的资源，删除失败。`;
+      if (roleModuleEntity.length > 0) {
+        return `当前角色已有关联的资源，删除失败。`;
       }
 
       // 查询当前角色是否关联用户
       let userRoleModal = await this.userRoleService.getUserByRoleIds(ids);
-      let name = userRoleModal.map((r=>{return r.name})).toString();
+      let name = userRoleModal
+        .map((r) => {
+          return r.name;
+        })
+        .toString();
       if (userRoleModal.length > 0) {
         return `角色【${name}】已关联账号，删除失败。`;
       }
