@@ -5,8 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import * as path from 'path';
 import { AdminModule } from './modules/admin/admin.module';
 import { ConfigModule, ConfigService } from 'nestjs-config';
-import { LoggingInterceptor } from './interceptors/logging.interceptors';
-import { APP_INTERCEPTOR } from '@nestjs/core';
 @Module({ 
   imports: [
      // 配置加载配置文件
