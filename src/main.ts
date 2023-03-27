@@ -9,21 +9,26 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AuthGuard } from './common/guard/auth.guard';
 import { ValidationPipe } from './common/pipe/validate.pipe';
 import { XMLMiddleware } from './common/middleware/xml.middleware';
-import adminConfig from './config/admin.config';
+import { ConfigService } from '@nestjs/config';
 /**
  * 程序入口文件main.ts
  */
 async function bootstrap() {
-  const logger:Logger = new Logger('main.ts');
+  const logger: Logger = new Logger('main.ts');
   const app = await NestFactory.create(AppModule, {
-    logger: ['log', 'debug', 'error', 'warn'],
+    // logger: ['log', 'debug', 'error', 'warn'],
     cors: true,
   });
 
-  const prefix = adminConfig.Prefix;
-  const prot = adminConfig.PROT;
+  // 设置访问频率
+  //   app.use(rateLimit)
 
-  logger.log('初始化读取adminConfig配置文件'+JSON.stringify(adminConfig));
+  logger.log('当前服务运行环境：'+process.env.NODE_ENV);
+
+  let config = app.get(ConfigService);
+
+  const prefix = config.get<string>('admin.prefix') || 8080;
+  const port = config.get<string>('admin.port') || 8080;
 
   // 全局注册xml支持中间件（这里必须调用.use才能够注册）
   app.use(new XMLMiddleware().use);
@@ -34,31 +39,31 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
 
   // 全局路由前缀
-  app.setGlobalPrefix('/' + prefix + '/');
+  app.setGlobalPrefix(prefix + '/');
 
   // 全局注册通用异常过滤器httpExceptionFilter
   app.useGlobalFilters(new HttpExceptionFilter(new Logger()));
 
   // 全局注册权限验证守卫
-  app.useGlobalGuards(new AuthGuard());
+  app.useGlobalGuards(new AuthGuard(config));
 
   // 全局使用拦截器
   app.useGlobalInterceptors(new TransformInterceptor());
 
   // 设置swagger文档
-  const config = new DocumentBuilder()
+  const swagger = new DocumentBuilder()
     .setTitle('jxxqz后台管理系统文档')
     .setDescription('jxxqz后台管理系统接口文档')
     .addBearerAuth()
     .setVersion('1.0')
     .addBearerAuth()
     .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup(`docs/${prefix}`, app, document);
+  const document = SwaggerModule.createDocument(app, swagger);
+  SwaggerModule.setup(`docs${prefix}`, app, document);
 
-  await app.listen(prot, () => {
-    Logger.log(`服务已经启动,接口请访问http://localhost:${prot}/${prefix}`);
-    Logger.log(`服务已经启动,接口接口请访问http://localhost:${prot}/docs/${prefix}`)
+  await app.listen(port, () => {
+    Logger.log(`服务已经启动,接口请访问http://localhost:${port}${prefix}`);
+    Logger.log(`服务已经启动,接口接口请访问http://localhost:${port}/docs${prefix}`);
   });
 }
 bootstrap();

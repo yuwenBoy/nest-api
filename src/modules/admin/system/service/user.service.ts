@@ -6,11 +6,10 @@ import { Brackets, getConnection, Repository } from 'typeorm';
 import { UserRoleService } from './userRole.service';
 import { compareSync, hashSync } from 'bcryptjs';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
-import { PageEnum } from 'src/enum/page.enum';
-import adminConfig from 'src/config/admin.config';
 import { PageListVo } from 'src/modules/common/page/pageList';
 import { DisabledDto } from '../dto/user/disabled.dto';
 import { UpdateUserPwdDto } from '../dto/user/updateUserPwd.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
@@ -19,6 +18,7 @@ export class UserService {
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     private readonly userRoleService: UserRoleService,
+    private readonly config: ConfigService,
   ) {}
 
   /**
@@ -206,7 +206,7 @@ export class UserService {
       } else {
         parameter.update_by = userName;
       }
-      const password = adminConfig.DefaultPassWord;
+      const password = this.config.get<string>('user.initialPassword');
       const transformPass = hashSync(password, 11);
       parameter.password = transformPass;
       // 必须用save 更新时间才生效
