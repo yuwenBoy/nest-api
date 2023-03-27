@@ -10,6 +10,7 @@ import { AuthGuard } from './common/guard/auth.guard';
 import { ValidationPipe } from './common/pipe/validate.pipe';
 import { XMLMiddleware } from './common/middleware/xml.middleware';
 import { ConfigService } from '@nestjs/config';
+import rateLimit from 'express-rate-limit';
 /**
  * 程序入口文件main.ts
  */
@@ -21,9 +22,14 @@ async function bootstrap() {
   });
 
   // 设置访问频率
-  //   app.use(rateLimit)
+  app.use(
+    rateLimit({
+      windowMs: 15 * 60 * 1000, // 15分钟
+      max: 1000, // 限制15分钟内最多只能访问1000次
+    }),
+  );
 
-  logger.log('当前服务运行环境：'+process.env.NODE_ENV);
+  logger.log('当前服务运行环境：' + process.env.NODE_ENV);
 
   let config = app.get(ConfigService);
 
@@ -59,11 +65,16 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swagger);
-  SwaggerModule.setup(`docs${prefix}`, app, document);
+  SwaggerModule.setup(`${prefix}/docs`, app, document,{
+    swaggerOptions:{
+        persisAuthorization:true
+    },
+    customSiteTitle:'nest-api API Docs'
+  });
 
   await app.listen(port, () => {
     Logger.log(`服务已经启动,接口请访问http://localhost:${port}${prefix}`);
-    Logger.log(`服务已经启动,接口接口请访问http://localhost:${port}/docs${prefix}`);
+    Logger.log(`服务已经启动,接口接口请访问http://localhost:${port}${prefix}/docs`);
   });
 }
 bootstrap();
