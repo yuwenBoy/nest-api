@@ -28,6 +28,7 @@ import { LocalStorage } from './auth/local.strategy';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { jwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     RouterModule.register([{ path: '', module: SystemModule }]),
