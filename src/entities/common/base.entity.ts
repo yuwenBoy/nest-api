@@ -33,14 +33,14 @@ export abstract class ZJBaseEntity extends BaseEntity {
     let timestamp: any = new Date(row.value);
     return formatTime(timestamp / 1000);
   })
-  create_time: Timestamp;
+  create_time: Date;
 
-  @UpdateDateColumn({comment:'更新时间'})
   @Transform((row: TransformFnParams) => {
     let timestamp: any = new Date(row.value);
     return formatTime(timestamp / 1000);
   })
-  update_time: Timestamp;
+  @UpdateDateColumn({comment:'更新时间'})
+  update_time: Date;
 
   @Column({comment:'创建人', type: 'varchar', name: 'create_by', select: false,update:false })
   create_by: string;
