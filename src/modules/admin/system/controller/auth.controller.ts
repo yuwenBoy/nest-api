@@ -1,10 +1,11 @@
 import { Controller, Post, Get, UseGuards, Request } from '@nestjs/common';
-import { Req, Res, Session } from '@nestjs/common/decorators';
+import { Body, Req, Res, Session } from '@nestjs/common/decorators';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../service/auth.service';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 import { LocalAuthGuard } from '../auth/local.auth.guard';
 import { Captcha } from 'src/modules/common/services/tools/Captcha';
+import { UserInfoDto } from '../dto/user/userInfo.dto';
 
 @ApiTags('用户身份认证登录(jwt鉴权)')
 @Controller('auth')
@@ -33,6 +34,14 @@ export class AuthController {
     res.send(svgCaptcha.data); // 给页面返回一张图片
   }
 
+  @Post('/updateToken')
+  @ApiOperation({ summary: '刷新token'})
+  @ApiBearerAuth()
+  async updateToken (@Body() user: UserInfoDto): Promise<any> {
+    console.log('req.user刷新token参数user'+JSON.stringify(user))
+    return await this.authService.updateToken(user)
+  }
+
   /**
    * 系统退出登录
    * @param req token
@@ -41,7 +50,7 @@ export class AuthController {
   @ApiOperation({ summary: '系统退出登录' })
   @Get('/logout')
   async logout() {
-    return;
+    return await this.authService.logout();
   }
 
   /**

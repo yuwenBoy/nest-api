@@ -9,6 +9,8 @@ import { UserRoleService } from './userRole.service';
 import { compareSync, hashSync } from 'bcryptjs';
 import { jwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
 import { UserService } from './user.service';
+import { UserInfo } from 'os';
+import { UserInfoDto } from '../dto/user/userInfo.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -37,18 +39,34 @@ export class AuthService {
   async login(user: Partial<UserEntity>) {
     console.log('user=============================' + user);
     const payload = { username: user.username, id: user.id };
-    let res_success_token = {
-      token: this.genToken(payload), // 生成token
+    return {
       ...(await this.userInfo(user.id)),
+      ...this.genToken(payload),
     };
-    return res_success_token;
   }
+
+  async updateToken(user: UserInfoDto): Promise<any> {
+    return this.genToken(user);
+  }
+
+  async logout(): Promise<void> {
+    return null;
+  }
+
   /**
    * 生成 刷新 token
    * @returns 返回token
    */
-  genToken(payload: { username: string; id: number }): string {
-    return `Bearer ${this.jwtService.sign(payload, jwtContants)}`;
+  genToken(payload: UserInfoDto): CreateTokenDto {
+    const accessToken = `Bearer ${this.jwtService.sign(payload, jwtContants)}`;
+    const refreshToken = `Bearer ${this.jwtService.sign(payload, {
+        secret: 'json_web_token_secret_key',
+        expiresIn: '120s',
+      })}`;
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 
   /** 校验 token */
