@@ -59,10 +59,10 @@ export class AuthService {
    */
   genToken(payload: UserInfoDto): CreateTokenDto {
     const accessToken = `Bearer ${this.jwtService.sign(payload, jwtContants)}`;
-    const refreshToken = `Bearer ${this.jwtService.sign(payload, {
-        secret: 'json_web_token_secret_key',
-        expiresIn: '120s',
-      })}`;
+    const refreshToken = this.jwtService.sign(payload, {
+        secret: jwtContants.secret,
+        expiresIn: '2h', // 刷新token2小时之内，超过两小时token过期  
+      });
     return {
       accessToken,
       refreshToken,
