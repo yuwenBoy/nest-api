@@ -69,6 +69,7 @@ export class DeptService {
         );
       }
       queryBuilder.orderBy(`dept.${parameter.sort}`, 'ASC');
+      queryBuilder.addOrderBy('dept.create_time','DESC');
       let data = await queryBuilder.getMany();
       let result = {
         content: parameter.DepartmentName ? data : this.toTableTree(data, 0),

@@ -1,7 +1,9 @@
 import { Module } from "@nestjs/common";
-// import { AuthModule } from "./system/auth/auth.module";
 import { SystemModule } from "./system/system.module";
-
+/**
+ * 整个系统模块----------
+ * --------SystemModule-------权限管理模块
+ */
 @Module({
     imports:[SystemModule,
         // AuthModule

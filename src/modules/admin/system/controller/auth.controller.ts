@@ -1,16 +1,17 @@
 import { Controller, Post, Get, UseGuards, Request } from '@nestjs/common';
-import { Req, Res, Session } from '@nestjs/common/decorators';
+import { Body, Req, Res, Session } from '@nestjs/common/decorators';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../service/auth.service';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 import { LocalAuthGuard } from '../auth/local.auth.guard';
-// import { ToolsService } from './utils/tools/ToolsService';
+import { Captcha } from 'src/modules/common/services/tools/Captcha';
+import { UserInfoDto } from '../dto/user/userInfo.dto';
 
-@ApiTags('用户身份认证即jwt鉴权')
+@ApiTags('用户身份认证登录(jwt鉴权)')
 @Controller('auth')
 export class AuthController {
   constructor(
-    private readonly authService: AuthService,
+    private readonly authService: AuthService
   ) {}
 
   // 1.先进行登录验证，执行local.strategy.ts 文件中的calidate方法
@@ -25,14 +26,20 @@ export class AuthController {
 
   // @UseGuards(LocalAuthGuard) // 无需token验证
   @Get('/authcode')
-  async getCode(@Req() req, @Res() res, @Session() session) {
+  async getCode(@Res() res) {
     console.log('调试');
-    // const svgCaptcha = await this.toolsService.captche(); // 创建验证码
-    // console.log(svgCaptcha.text);
-    // // session.code = svgCaptcha.text;
-    // // console.log(session.code);
-    // res.type('image/svg+xml'); // 指定返回的类型
-    // res.send(svgCaptcha.data); // 给页面返回一张图片
+    const svgCaptcha = Captcha(4); // 创建验证码
+    console.log(svgCaptcha.text);
+    res.type('image/svg+xml'); // 指定返回的类型
+    res.send(svgCaptcha.data); // 给页面返回一张图片
+  }
+
+  @Post('/updateToken')
+  @ApiOperation({ summary: '刷新token'})
+  @ApiBearerAuth()
+  async updateToken (@Body() user: UserInfoDto): Promise<any> {
+    console.log('req.user刷新token参数user'+JSON.stringify(user))
+    return await this.authService.updateToken(user)
   }
 
   /**
@@ -43,7 +50,7 @@ export class AuthController {
   @ApiOperation({ summary: '系统退出登录' })
   @Get('/logout')
   async logout() {
-    return;
+    return await this.authService.logout();
   }
 
   /**

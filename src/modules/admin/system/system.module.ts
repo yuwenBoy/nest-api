@@ -20,19 +20,19 @@ import { RoleModuleService } from './service/roleModule.service';
 import { RoleService } from './service/role.service';
 import { UserService } from './service/user.service';
 import { UserRoleService } from './service/userRole.service';
-import { PassportModule } from '@nestjs/passport';
-import { JwtModule } from '@nestjs/jwt';
-import { jwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { AuthController } from './controller/auth.controller';
+import { ModuleController } from './controller/module.controller';
 import { AuthService } from './service/auth.service';
+import { LocalStorage } from './auth/local.strategy';
+import { JwtStrategy } from './auth/jwt.strategy';
+import { PassportModule } from '@nestjs/passport';
+import { jwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
+import { OssController } from './controller/oss.controller';
+import { OssService } from './service/oss.service';
 @Module({
   imports: [
     RouterModule.register([{ path: '', module: SystemModule }]),
-    PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({
-      secret: jwtContants.secret,
-      signOptions: { expiresIn: jwtContants.expiresIn }, // d天后过期 s秒后过期
-    }),
     TypeOrmModule.forFeature([
       UserEntity,
       UserRoleEntity,
@@ -42,17 +42,30 @@ import { AuthService } from './service/auth.service';
       PositionEntity,
       DeptEntity,
     ]),
+    /**jwt鉴权 key和过期时间 */
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.register({
+      secret: jwtContants.secret,
+      signOptions: { expiresIn: jwtContants.expiresIn }, // d天后过期 s秒后过期
+    }),
   ],
   controllers: [
-    AuthController,
+    AuthController, // 登录jwt鉴权控制器
     UserController,
     RoleController,
     PositionController,
     DeptController,
     RoleModuleController,
+    ModuleController,
+    OssController,
   ],
   providers: [
+    // jwt鉴权登录服务==============begin=============
     AuthService,
+    JwtService,
+    LocalStorage,
+    JwtStrategy,
+    // jwt鉴权登录服务===============end==============
     UserService,
     RoleService,
     UserRoleService,
@@ -60,7 +73,8 @@ import { AuthService } from './service/auth.service';
     PositionService,
     DeptService,
     ModuleService,
+    OssService,
   ],
-  exports: [JwtModule], // 输出jwt
+  exports: [JwtModule], // 必须输出jwt模块否则登录会有问题
 })
 export class SystemModule {}

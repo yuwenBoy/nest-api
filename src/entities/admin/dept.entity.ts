@@ -1,3 +1,4 @@
+import { Transform, TransformFnParams } from 'class-transformer';
 import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert, OneToOne } from 'typeorm';
 import { ZJBaseEntity } from '../common/base.entity';
 import { UserEntity } from './t_user.entity';
@@ -27,17 +28,10 @@ export class DeptEntity extends ZJBaseEntity {
     @OneToOne(type => UserEntity, user => user.dept_id)
     user: UserEntity;
 
-    
-    pid: Number; 
-    
-    label: string; 
-
-    name: string; 
-
-    leaf: Boolean; 
-
-    hasChildren: Boolean; 
-    typeName: string;
-
-    children:[]
+    /**
+     * 分类名称返回供前端直接使用
+     */
+    @OneToOne(type => DeptEntity,dept =>dept.id)
+    @Transform((row: TransformFnParams) => + row.obj.department_type == 1 ? '机构':'部门')
+    typeName:string;
 }

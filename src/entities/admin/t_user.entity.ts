@@ -11,16 +11,16 @@ import { UserStatusEnum } from 'src/enum/user_status.enum';
  */
 @Entity("t_user")
 export class UserEntity extends ZJBaseEntity {
-  @Column({type:'varchar', name: 'username',comment:'账号'})
+  @Column({type:'varchar', name: 'username',comment:'账号',length:20})
   username: string;
 
-  @Column({type:'varchar', name: 'password',select:false})
+  @Column({type:'varchar', name: 'password',length:100})
   password: string;
 
   @Column({type:'varchar', name: 'cname',length:10,comment:'姓名'})
   cname: string;
 
-  @Column({type:'varchar', name: 'email'})
+  @Column({type:'varchar', name: 'email',length:50})
   email: string;
 
   @Column({type:'varchar', name: 'address'})
@@ -29,10 +29,10 @@ export class UserEntity extends ZJBaseEntity {
   @Column({type:'varchar', name: 'avatar'})
   avatar: string;
 
-  @Column({type:'enum',default:"1",enum:UserStatusEnum, name: 'disabled',comment:'状态'})
+  @Column({type:'enum',default:UserStatusEnum.DISABLED,enum:UserStatusEnum, name: 'disabled',comment:'状态'})
   disabled: UserStatusEnum;
 
-  @Column({type:'varchar', name: 'phone'})
+  @Column({type:'varchar', name: 'phone',length:11})
   phone: string;
 
   @Column({type:'int', name: 'dept_id'})

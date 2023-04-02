@@ -21,7 +21,7 @@ export class LocalStorage extends PassportStrategy(Strategy) {
     console.log(user);
     if(user){
       if(user.disabled == 2){
-        throw new HttpException('账号被禁用，请联系管理员！',HttpStatus.OK);
+        throw new HttpException('账号被锁定，请联系管理员！',HttpStatus.OK);
       }
     }
     if (!user) {

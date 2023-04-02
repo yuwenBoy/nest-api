@@ -7,9 +7,10 @@ import { RoleModuleService } from './roleModule.service';
 
 import { UserRoleService } from './userRole.service';
 import { compareSync, hashSync } from 'bcryptjs';
-import adminConfig from 'src/config/admin.config';
 import { jwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
 import { UserService } from './user.service';
+import { UserInfo } from 'os';
+import { UserInfoDto } from '../dto/user/userInfo.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -23,8 +24,7 @@ export class AuthService {
   // 2.验证账号密码是否正确，正确返回user 错误返回null
   async validateUser(account: string, pass: string): Promise<any> {
     const user = await this.userService.getUserAccout(account);
-    const defaultPass = adminConfig.DefaultPassWord;
-    if (user && compareSync(defaultPass,pass)) {
+    if (user && compareSync(pass, user.password)) {
       const { password, ...result } = user;
       return result;
     }
@@ -37,13 +37,50 @@ export class AuthService {
    * @returns 返回token和用户信息
    */
   async login(user: Partial<UserEntity>) {
-    console.log('user============================='+user)
+    console.log('user=============================' + user);
     const payload = { username: user.username, id: user.id };
-    let res_success_token = {
-      token: this.jwtService.sign(payload, jwtContants), // 生成token
+    return {
       ...(await this.userInfo(user.id)),
+      ...this.genToken(payload),
     };
-    return res_success_token;
+  }
+
+  async updateToken(user: UserInfoDto): Promise<any> {
+    return this.genToken(user);
+  }
+
+  async logout(): Promise<void> {
+    return null;
+  }
+
+  /**
+   * 生成 刷新 token
+   * @returns 返回token
+   */
+  genToken(payload: UserInfoDto): CreateTokenDto {
+    const accessToken = `Bearer ${this.jwtService.sign(payload, jwtContants)}`;
+    const refreshToken = this.jwtService.sign(payload, {
+        secret: jwtContants.secret,
+        expiresIn: '2h', // 刷新token2小时之内，超过两小时token过期  
+      });
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  /** 校验 token */
+  verifyToken(token: string): string {
+    try {
+      if (!token) return null;
+      const user = this.jwtService.verify(
+        token.replace('Bearer ', ''),
+        jwtContants,
+      );
+      return user;
+    } catch (error) {
+      return null;
+    }
   }
 
   /**

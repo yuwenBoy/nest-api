@@ -2,13 +2,14 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeptEntity } from 'src/entities/admin/dept.entity';
 import { PositionEntity } from 'src/entities/admin/position.entity';
-import { Brackets, Repository } from 'typeorm';
+import { Brackets, getConnection, Repository } from 'typeorm';
 import { UserRoleService } from './userRole.service';
 import { compareSync, hashSync } from 'bcryptjs';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
-import { PageEnum } from 'src/enum/page.enum';
-import adminConfig from 'src/config/admin.config';
 import { PageListVo } from 'src/modules/common/page/pageList';
+import { DisabledDto } from '../dto/user/disabled.dto';
+import { UpdateUserPwdDto } from '../dto/user/updateUserPwd.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
@@ -17,6 +18,7 @@ export class UserService {
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     private readonly userRoleService: UserRoleService,
+    private readonly config: ConfigService,
   ) {}
 
   /**
@@ -26,7 +28,7 @@ export class UserService {
    */
   async pageQuery(parameter: any): Promise<PageListVo> {
     try {
-      const [pageIndex,pageSize] = [PageEnum.PAGE_NUMBER,PageEnum.PAGE_SIZE];
+      const [pageIndex, pageSize] = [parameter.page, parameter.size];
       let qb = await this.userRepository
         .createQueryBuilder('user')
         .innerJoinAndMapOne(
@@ -80,20 +82,105 @@ export class UserService {
           }),
         )
         .orderBy(`user.${parameter.sort}`, 'DESC')
+        .addOrderBy('user.create_time', 'DESC')
         .skip((pageIndex - 1) * Number(pageSize))
         .take(pageSize);
 
-      const [data, count] =await qb.getManyAndCount();
+      const [data, count] = await qb.getManyAndCount();
 
       return {
-        ...{content:data},
-        page:pageIndex,
-        size:pageSize,
-        totalElements:count,
-        totalPage:Math.ceil(count / pageSize),
-      }
+        ...{ content: data },
+        page: pageIndex,
+        size: pageSize,
+        totalElements: count,
+        totalPage: Math.ceil(count / pageSize),
+      };
     } catch (error) {
       Logger.error(`查询用户分页列表失败，原因：${JSON.stringify(error)}`);
+    }
+  }
+
+  /**
+   * 设置用户状态
+   * @param parameter id、disabled
+   * @param updateBy 更新人
+   * @returns 设置成功与失败
+   */
+  async updateDisabledById(
+    parameter: DisabledDto,
+    updateBy: string,
+  ): Promise<any> {
+    Logger.log(
+      `用户管理服务层【updateDisabledById】方法接受参数：${JSON.stringify(
+        parameter,
+      )}`,
+    );
+    try {
+      if (parameter.id <= 0) {
+        return '参数错误，请检查。';
+      } else {
+        if (parameter.disabled > 0) {
+          let result = await this.userRepository
+            .createQueryBuilder()
+            .update(UserEntity)
+            .set({ disabled: parameter.disabled, update_by: updateBy })
+            .where('id = :id', { id: parameter.id })
+            .execute();
+          return result.affected == 1 ? true : false;
+        } else {
+          return '参数错误，请检查。';
+        }
+      }
+    } catch (error) {
+      Logger.error(`用户状态设置失败，原因：${JSON.stringify(error)}`);
+      return '用户状态设置失败，原因' + error;
+    }
+  }
+
+  /**
+   * 修改密码
+   * @param parameter oldPassword new Password
+   * @param 当前用户
+   * @returns 修改成功与失败
+   */
+  async updateUserPwd(
+    parameter: UpdateUserPwdDto,
+    userInfo: any,
+  ): Promise<any> {
+    Logger.log(
+      `用户管理服务层【updateUserPwd】方法接受参数：${JSON.stringify(
+        parameter,
+      )}`,
+    );
+    try {
+      if (userInfo.id > 0) {
+        let user = await this.userRepository.findOne({where:{id:userInfo.id}});
+        if (user) {
+          if (compareSync(parameter.oldPassword, user.password)) {
+            let transformPass = hashSync(parameter.newPassword, 11)
+            let result = await this.userRepository
+              .createQueryBuilder()
+              .update(UserEntity)
+              .set({
+                password: transformPass,
+                update_by: user.username,
+              })
+              .where('id = :id', { id: user.id })
+              .execute();
+            return result.affected ? true : false;
+          } else {
+            return '旧密码错误，请重新输入。';
+          }
+          // 1.验证旧密码是否正确
+          // 2.修改密码
+        } else {
+          // 用户不存在；
+          return '当前用户不存在，修改密码失败。';
+        }
+      }
+    } catch (error) {
+      Logger.error(`修改密码失败，原因：${JSON.stringify(error)}`);
+      return '修改密码失败，原因' + error;
     }
   }
 
@@ -103,7 +190,9 @@ export class UserService {
    * @returns 布尔类型
    */
   async save(parameter: any, userName: string): Promise<any> {
-    Logger.log(`请求参数：${JSON.stringify(parameter)}`);
+    Logger.log(
+      `用户管理服务层【save】方法接受参数:${JSON.stringify(parameter)}`,
+    );
     try {
       if (!parameter.id) {
         const { username } = parameter;
@@ -117,7 +206,7 @@ export class UserService {
       } else {
         parameter.update_by = userName;
       }
-      const password = adminConfig.DefaultPassWord;
+      const password = this.config.get<string>('user.initialPassword');
       const transformPass = hashSync(password, 11);
       parameter.password = transformPass;
       // 必须用save 更新时间才生效
@@ -125,10 +214,11 @@ export class UserService {
       if (res.id > 0) {
         return true;
       } else {
-        return false;
+        return `${parameter.id > 0 ? '修改' : '新增'}用户失败，原因：`;
       }
     } catch (error) {
       Logger.error(`【新增|编辑】用户请求失败：${JSON.stringify(error)}`);
+      return `${parameter.id > 0 ? '修改' : '新增'}用户失败，原因：` + error;
     }
   }
 
@@ -170,7 +260,6 @@ export class UserService {
   async getUserAccout(account: string): Promise<UserEntity> {
     return await this.userRepository
       .createQueryBuilder('user')
-      // .addSelect('user.password')
       .where('user.username=:username', { username: account })
       .getOne();
   }
