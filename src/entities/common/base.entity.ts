@@ -2,16 +2,10 @@ import {
   BaseEntity,
   Column,
   CreateDateColumn,
-  Entity,
   PrimaryGeneratedColumn,
-  Timestamp,
   UpdateDateColumn,
-  BeforeInsert,
-  BeforeUpdate,
-  AfterLoad,
 } from 'typeorm';
 
-import { Request } from '@nestjs/common';
 import { Transform, TransformFnParams } from 'class-transformer';
 import { formatTime } from 'src/utils/date';
 

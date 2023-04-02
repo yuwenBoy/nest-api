@@ -28,7 +28,8 @@ import { LocalStorage } from './auth/local.strategy';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { jwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { OssController } from './controller/oss.controller';
+import { OssService } from './service/oss.service';
 @Module({
   imports: [
     RouterModule.register([{ path: '', module: SystemModule }]),
@@ -56,6 +57,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     DeptController,
     RoleModuleController,
     ModuleController,
+    OssController,
   ],
   providers: [
     // jwt鉴权登录服务==============begin=============
@@ -71,6 +73,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     PositionService,
     DeptService,
     ModuleService,
+    OssService,
   ],
   exports: [JwtModule], // 必须输出jwt模块否则登录会有问题
 })
