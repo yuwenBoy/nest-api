@@ -6,10 +6,10 @@ import { RedisModule } from './common/libs/redis/redis.module';
 import configuration from './config/index';
 import { AdminModule } from './modules/admin/admin.module';
 @Module({
-  imports: [
-    // 动态加载配置文件
+  imports: [  
+    // 动态加载配置文件  
     ConfigModule.forRoot({
-      cache: true,
+      cache: true,   
       load: [configuration],
       isGlobal: true,
     }),

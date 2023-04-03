@@ -11,14 +11,15 @@ import { ValidationPipe } from './common/pipe/validate.pipe';
 import { XMLMiddleware } from './common/middleware/xml.middleware';
 import { ConfigService } from '@nestjs/config';
 import rateLimit from 'express-rate-limit';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 /**
  * 程序入口文件main.ts
  */
 async function bootstrap() {
   const logger: Logger = new Logger('main.ts');
-  const app = await NestFactory.create(AppModule, {
-    // logger: ['log', 'debug', 'error', 'warn'],
-    cors: true,
+  const app = await NestFactory.create<NestExpressApplication>(AppModule,{
+    cors:true
   });
 
   // 设置访问频率
@@ -56,6 +57,11 @@ async function bootstrap() {
   // 全局使用拦截器
   app.useGlobalInterceptors(new TransformInterceptor());
 
+  // 配置静态资源文件访问
+  app.useStaticAssets(join(__dirname, '..', config.get<string>('admin.file.location')), {
+    prefix: config.get<string>('admin.file.serveRoot'), //设置虚拟路径
+  });
+
   // 设置swagger文档
   const swagger = new DocumentBuilder()
     .setTitle('jxxqz后台管理系统文档')
@@ -65,16 +71,18 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swagger);
-  SwaggerModule.setup(`${prefix}/docs`, app, document,{
-    swaggerOptions:{
-        persisAuthorization:true
+  SwaggerModule.setup(`${prefix}/docs`, app, document, {
+    swaggerOptions: {
+      persisAuthorization: true,
     },
-    customSiteTitle:'nest-api API Docs'
+    customSiteTitle: 'nest-api API Docs',
   });
 
   await app.listen(port, () => {
     Logger.log(`服务已经启动,接口请访问http://localhost:${port}${prefix}`);
-    Logger.log(`服务已经启动,接口接口请访问http://localhost:${port}${prefix}/docs`);
+    Logger.log(
+      `服务已经启动,接口接口请访问http://localhost:${port}${prefix}/docs`,
+    );
   });
 }
 bootstrap();

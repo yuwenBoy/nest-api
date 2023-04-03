@@ -26,7 +26,7 @@ export class AuthController {
 
   // @UseGuards(LocalAuthGuard) // 无需token验证
   @Get('/authcode')
-  async getCode(@Req() req, @Res() res, @Session() session) {
+  async getCode(@Res() res) {
     console.log('调试');
     const svgCaptcha = Captcha(4); // 创建验证码
     console.log(svgCaptcha.text);
