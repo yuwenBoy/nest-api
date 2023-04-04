@@ -39,9 +39,6 @@ import { AdminModule } from './modules/admin/admin.module';
         }
     }),
     AdminModule,
-  ],
-  providers: [
-    // {provide:APP_INTERCEPTOR,useClass:LoggingInterceptor}
-  ],
+  ]
 })
 export class AppModule {}

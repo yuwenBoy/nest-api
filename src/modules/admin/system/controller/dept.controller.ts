@@ -1,10 +1,11 @@
 import { Controller, Get, Post, Body, UseGuards, Req, Logger, Request, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from 'src/common/decorator/current.user';
+import { CurrentUser } from 'src/modules/common/collections-permission/decorators/current.user';
 import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
-import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 
 import { DeptService } from '../service/dept.service';
+import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
 
 /***
  * author：zhao.jian
@@ -14,7 +15,8 @@ import { DeptService } from '../service/dept.service';
 @ApiTags('组织机构管理')
 @ApiBearerAuth() // swagger文档设置token
 @PermissionModule('组织机构管理')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard)
+@ApiAuth()
 @Controller('dept')
 export class DeptController {
   constructor(private readonly deptService: DeptService) {}
