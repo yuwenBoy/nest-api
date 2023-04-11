@@ -1,14 +1,14 @@
 import { Controller, Get, UseGuards, Request, Logger } from '@nestjs/common';
 import { Body, Post, Query } from '@nestjs/common/decorators';
-import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from 'src/common/decorator/current.user';
+import { CurrentUser } from 'src/modules/common/collections-permission/decorators/current.user';
 import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
-import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 import { RoleModuleService } from '../service/roleModule.service';
 import { UserRoleService } from '../service/userRole.service';
 
 import { ModuleService } from '../service/module.service';
+import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
 
 /***
  * author：zhao.jian
@@ -18,7 +18,8 @@ import { ModuleService } from '../service/module.service';
 @ApiTags('菜单管理')
 @ApiBearerAuth() // swagger文档设置token
 @PermissionModule('菜单管理')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard)
+@ApiAuth()
 @Controller('module')
 export class ModuleController {
   constructor(

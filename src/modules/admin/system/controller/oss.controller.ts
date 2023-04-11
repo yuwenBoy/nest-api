@@ -1,13 +1,15 @@
 import { Body, Controller, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from "@nestjs/platform-express"
-import { CurrentUser } from 'src/common/decorator/current.user';
+import { CurrentUser } from 'src/modules/common/collections-permission/decorators/current.user';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
 import { OssService } from '../service/oss.service';
-import { JwtAuthGuard } from '../auth/jwt.auth.guard';
+import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
 
 @ApiTags('文件存储')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard)
+@ApiAuth()
 @Controller('oss')
 export class OssController {
   constructor(private readonly ossService: OssService) {}

@@ -8,16 +8,19 @@ import {
   Logger,
   Request,
   UseInterceptors,
+  HttpStatus,
+  HttpCode,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from 'src/common/decorator/current.user';
-import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { CurrentUser } from 'src/modules/common/collections-permission/decorators/current.user';
+import { ApiAuth, PermissionModule } from 'src/modules/common/collections-permission/decorators';
 import { PageListVo } from 'src/modules/common/page/pageList';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 import { UserService } from 'src/modules/admin/system/service/user.service';
 import { DisabledDto } from '../dto/user/disabled.dto';
 import { UpdateUserPwdDto } from '../dto/user/updateUserPwd.dto';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
+import { AuthGuard } from 'src/modules/common/auth/auth.guard';
 
 /***
  * author：zhao.jian
@@ -27,12 +30,16 @@ import { UserInfoDto } from '../dto/user/userInfo.dto';
 @ApiTags('用户管理')
 @ApiBearerAuth()
 @PermissionModule('用户管理')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard)
+// @UseGuards(JwtAuthGuard)
+@ApiAuth()
 @Controller('user')
 export class UserController {
   constructor(private readonly UserService: UserService) {}
 
-  @ApiOperation({ summary: '查询用户列表' })
+  @ApiOperation({ summary: '查询用户列表',description:'分页查询用户列表' })
+  @ApiOkResponse({type:PageListVo,description:'分页查询用户返回值'})
+  @HttpCode(HttpStatus.OK)
   @Post('/getByCondition')
   list(@Body() query): Promise<PageListVo> {
     Logger.log(`分页查询接受参数：${JSON.stringify(query)}`);

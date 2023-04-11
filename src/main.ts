@@ -6,7 +6,7 @@ import { HttpExceptionFilter } from './core/filter/HttpException.filter';
 import { TransformInterceptor } from './core/filter/TransformInterceptor.filter';
 
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { AuthGuard } from './common/guard/auth.guard';
+import { AuthGuard } from './modules/common/auth/auth.guard';
 import { ValidationPipe } from './common/pipe/validate.pipe';
 import { XMLMiddleware } from './common/middleware/xml.middleware';
 import { ConfigService } from '@nestjs/config';
@@ -52,7 +52,7 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter(new Logger()));
 
   // 全局注册权限验证守卫
-  app.useGlobalGuards(new AuthGuard(config));
+//   app.useGlobalGuards(new AuthGuard(config));
 
   // 全局使用拦截器
   app.useGlobalInterceptors(new TransformInterceptor());

@@ -1,5 +1,5 @@
 //auth.service.ts
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
 import { ModuleService } from './module.service';
@@ -7,7 +7,7 @@ import { RoleModuleService } from './roleModule.service';
 
 import { UserRoleService } from './userRole.service';
 import { compareSync, hashSync } from 'bcryptjs';
-import { jwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
+import { jwtContants, refreshExpiresIn } from 'src/modules/common/collections-permission/constants/jwtContants';
 import { UserService } from './user.service';
 import { UserInfo } from 'os';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
@@ -31,6 +31,42 @@ export class AuthService {
     return null;
   }
 
+  /**
+   * 判断用户是否具有操作权限
+   * @param user 
+   * @param method 
+   * @param url 
+   * @returns 
+   */
+  public async apiAuth(user:UserInfoDto,method:string,url:string):Promise<boolean>{
+    const  {id } = user;
+    const authRoleIdList:number[] = await this.userRoleService.getRoleIds(id);
+    if(!authRoleIdList.length){
+        throw new HttpException( `当前账号没有操作:${method} - ${url}的权限`,HttpStatus.OK)
+    }
+    const moduleList = await this.roleModuleService.getModuleIds(authRoleIdList.toString());
+    const formatUrl = this.formatUrl(method,url);
+    // 模块表新增url接口 如果请求和数据库相同有权限，否则没有权限
+    const isExist = true;
+    if(isExist){
+        return true;
+    }
+  }
+
+  private formatUrl(method: string, url: string): string {
+    switch (method) {
+      case 'GET':
+        // 去除问号后面的
+        return url.substring(0, url.indexOf('?'));
+      case 'DELETE':
+      case 'PATCH':
+      case 'PUT':
+        // url最后一个改为*通配符
+        return url.replace(/(.*?\/)\d+$/, '$1*');
+      default:
+        return url;
+    }
+  }
   /**
    * 验证通过，生成token返回给客户端
    * @param user 用户信息
@@ -57,11 +93,11 @@ export class AuthService {
    * 生成 刷新 token
    * @returns 返回token
    */
-  genToken(payload: UserInfoDto): CreateTokenDto {
+  genToken(payload: any): CreateTokenDto {
     const accessToken = `Bearer ${this.jwtService.sign(payload, jwtContants)}`;
     const refreshToken = this.jwtService.sign(payload, {
         secret: jwtContants.secret,
-        expiresIn: '2h', // 刷新token2小时之内，超过两小时token过期  
+        expiresIn: refreshExpiresIn, // 刷新token2小时之内，超过两小时token过期  
       });
     return {
       accessToken,
