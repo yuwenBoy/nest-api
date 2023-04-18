@@ -8,7 +8,7 @@ admin:
   # 文件相关
   file:
     # location 文件上传后存储目录，相对路径（相对本项目根目录）或绝对路径
-    location: './upload'
+    location: 'F:\Tools\img'
     # 文件服务器地址，开发环境
     domain: 'http://localhost:9000'
     # 文件虚拟路径, 必须以 / 开头， 如 http://localhost:9000/static/****.jpg  , 如果不需要则 设置 ''

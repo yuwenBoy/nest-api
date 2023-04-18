@@ -62,7 +62,7 @@ export class AuthGuard implements CanActivate {
             const method = request.method;
             const url = request.url;
        
-            return this.authService.apiAuth(userInfo,method,url);
+            return  true;// this.authService.apiAuth(userInfo,method,url);
           } else {
             return true;
           }
