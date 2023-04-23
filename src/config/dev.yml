@@ -18,7 +18,7 @@ db:
   mysql:
     host: 'localhost'
     username: 'root'
-    password: 'root123456'
+    password: '123456'
     database: 'zj_db_system'
     port: 3306
     charset: 'utf8mb4'

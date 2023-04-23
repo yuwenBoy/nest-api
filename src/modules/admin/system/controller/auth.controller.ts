@@ -6,7 +6,6 @@ import { LocalAuthGuard } from '../auth/local.auth.guard';
 import { Captcha } from 'src/modules/common/services/tools/Captcha';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
 import { AuthGuard } from 'src/modules/common/auth/auth.guard';
-import { ApiAuth } from 'src/modules/common/collections-permission/decorators';
 
 @ApiTags('用户身份认证登录(jwt鉴权)')
 @Controller('auth')
@@ -61,7 +60,6 @@ export class AuthController {
   @ApiOperation({ summary: '获取用户信息' })
   @ApiBearerAuth() // swagger文档设置token
   @UseGuards(AuthGuard) // 需要jwt鉴权认证
-  @ApiAuth()
   @Get('/getUserInfo')
   async getUserInfo(@Request() req) {
     try {

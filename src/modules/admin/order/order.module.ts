@@ -2,20 +2,20 @@ import { Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CategoryEntity } from 'src/entities/shop/category.entity';
-import { CategoryController } from './controller/category.controller';
-import { CategoryService } from './service/category.service';
+import { userOrderController } from './controller/userOrder.controller';
+import { UserOrderService } from './service/userOrder.service';
 @Module({
   imports: [
-    RouterModule.register([{ path: '', module: GoodsModule }]),
+    RouterModule.register([{ path: '', module: OrderModule }]),
     TypeOrmModule.forFeature([
-        CategoryEntity,
+        // CategoryEntity,
     ]),
   ],
   controllers: [
-    CategoryController, 
+    userOrderController, 
   ],
   providers: [
-    CategoryService,
+    UserOrderService,
   ],
 })
-export class GoodsModule {}
+export class OrderModule {}

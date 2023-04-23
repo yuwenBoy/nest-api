@@ -23,10 +23,4 @@ export class CategoryEntity extends ZJBaseEntity {
 
     @Column({type:'varchar', name: 'pic',comment:'分类图片'})
     pic: String;
-
-    @Column({type:'int', name: 'uid',comment:'创建人ID'})
-    uid: Number;
-
-    @Column({type:'int', name: 'update_id',comment:'更新人ID'})
-    update_id: Number;
 }
