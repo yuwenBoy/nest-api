@@ -9,15 +9,15 @@ import {
   Logger,
   Request,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from 'src/common/decorator/current.user';
+import { CurrentUser } from 'src/modules/common/collections-permission/decorators/current.user';
 import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
 import { PageListVo } from 'src/modules/common/page/pageList';
-import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
 import { UserRoleDto } from '../dto/userRole.dto';
 import { RoleService } from '../service/role.service';
+import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
 // import { Transaction, TransactionManager, EntityManager } from 'typeorm';// 开启事务
 
 /***
@@ -28,7 +28,8 @@ import { RoleService } from '../service/role.service';
 @ApiTags('角色管理')
 @ApiBearerAuth() // swagger文档设置token
 @PermissionModule('用户管理')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard)
+@ApiAuth()
 @Controller('role')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}

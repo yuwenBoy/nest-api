@@ -1,13 +1,13 @@
 import { Body, Controller, Get, Logger, Post, Query, UseGuards,Request} from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { userInfo } from 'os';
-import { CurrentUser } from 'src/common/decorator/current.user';
+import { CurrentUser } from 'src/modules/common/collections-permission/decorators/current.user';
 import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
 import { PageListVo } from 'src/modules/common/page/pageList';
-import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 
 import { PositionService } from '../service/position.service';
+import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
+import { AuthGuard } from 'src/modules/common/auth/auth.guard';
 
 /***
  * author：zhao.jian
@@ -17,7 +17,8 @@ import { PositionService } from '../service/position.service';
 @ApiTags('职位管理')
 @ApiBearerAuth()
 @PermissionModule('职位管理')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard)
+@ApiAuth()
 @Controller('position')
 export class PositionController {
   constructor(private readonly positionService: PositionService) {}
@@ -41,7 +42,6 @@ export class PositionController {
    */
    @ApiOperation({ summary: '新增职位' })
    @ApiBearerAuth() // swagger文档设置token
-   @UseGuards(JwtAuthGuard) // 需要jwt鉴权认证
    @Post('/add')
    addUser(@Body() addUserDto: [],@CurrentUser() userInfo): Promise<boolean> {
      Logger.log(`新增职位接收参数：${JSON.stringify(addUserDto)}`);
@@ -53,7 +53,6 @@ export class PositionController {
     */
    @ApiOperation({ summary: '编辑职位' })
    @ApiBearerAuth() // swagger文档设置token
-   @UseGuards(JwtAuthGuard) // 需要jwt鉴权认证
    @Post('/edit')
    updateUser(@Body() updateUserDto: [],@CurrentUser() userInfo): Promise<boolean> {
      Logger.log(`编辑职位接收参数：${JSON.stringify(updateUserDto)}`);

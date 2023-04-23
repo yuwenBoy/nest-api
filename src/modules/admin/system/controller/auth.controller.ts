@@ -2,10 +2,11 @@ import { Controller, Post, Get, UseGuards, Request } from '@nestjs/common';
 import { Body, Req, Res, Session } from '@nestjs/common/decorators';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../service/auth.service';
-import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 import { LocalAuthGuard } from '../auth/local.auth.guard';
 import { Captcha } from 'src/modules/common/services/tools/Captcha';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
+import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { ApiAuth } from 'src/modules/common/collections-permission/decorators';
 
 @ApiTags('用户身份认证登录(jwt鉴权)')
 @Controller('auth')
@@ -24,7 +25,6 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
-  // @UseGuards(LocalAuthGuard) // 无需token验证
   @Get('/authcode')
   async getCode(@Res() res) {
     console.log('调试');
@@ -60,7 +60,8 @@ export class AuthController {
    */
   @ApiOperation({ summary: '获取用户信息' })
   @ApiBearerAuth() // swagger文档设置token
-  @UseGuards(JwtAuthGuard) // 需要jwt鉴权认证
+  @UseGuards(AuthGuard) // 需要jwt鉴权认证
+  @ApiAuth()
   @Get('/getUserInfo')
   async getUserInfo(@Request() req) {
     try {
