@@ -5,6 +5,7 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { RedisModule } from './common/libs/redis/redis.module';
 import configuration from './config/index';
 import { AdminModule } from './modules/admin/admin.module';
+import { AuthModule } from './modules/admin/system/auth/auth.module';
 @Module({
   imports: [  
     // 动态加载配置文件  
@@ -38,6 +39,7 @@ import { AdminModule } from './modules/admin/admin.module';
             }
         }
     }),
+    // AuthModule,
     AdminModule,
   ]
 })

@@ -46,6 +46,25 @@ export class CategoryService {
     }
   }
 
+    /**
+   * 查询全部品类转换成树形结构
+   */
+    async getCategoryAll(): Promise<any> {
+        try {
+          return await this.categoryRepository
+            .createQueryBuilder('dept')
+            .select([
+              'id',
+              'name AS label',
+              'parent_id',
+            ])
+            .where('1=1')
+            .getRawMany();
+        } catch (error) {
+          Logger.error('查询品类失败，原因：' + error);
+        }
+      }
+
   
   /**
    * 新增|编辑 品类
@@ -54,6 +73,7 @@ export class CategoryService {
    */
   async save(parameter: any, userName: string): Promise<any> {
     Logger.log(`请求参数：${JSON.stringify(parameter)}`);
+    Logger.log(`userName:${userName}`);
     try {
       if (!parameter.id) {
         parameter.create_by = userName;

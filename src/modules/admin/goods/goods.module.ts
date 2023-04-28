@@ -4,9 +4,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CategoryEntity } from 'src/entities/shop/category.entity';
 import { CategoryController } from './controller/category.controller';
 import { CategoryService } from './service/category.service';
+import { AuthModule } from '../system/auth/auth.module';
+
+/**
+ * 商品管理模块
+ */
 @Module({
   imports: [
-    RouterModule.register([{ path: '', module: GoodsModule }]),
+    AuthModule,
+    RouterModule.register([{ path: '', module: GoodsModule, }]),
     TypeOrmModule.forFeature([
         CategoryEntity,
     ]),

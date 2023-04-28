@@ -8,7 +8,7 @@ import { CategoryService } from "../service/category.service";
 @ApiTags('品类管理')
 @ApiBearerAuth() // swagger文档设置token
 @PermissionModule('品类管理')
-// @UseGuards(AuthGuard)
+@UseGuards(AuthGuard)
 @ApiAuth()
 @Controller('category')
 export class CategoryController {
@@ -56,4 +56,10 @@ export class CategoryController {
      Logger.log(`删除品类接收参数：${JSON.stringify(deleteUserDto)}`);
      return this.categoryService.delete(deleteUserDto);
    }
+
+  @ApiOperation({ summary: '查询所有品类' })
+  @Get('/getCategoryAll')
+  getCategoryAll():Promise<any> {
+    return  this.categoryService.getCategoryAll();
+  }
 }

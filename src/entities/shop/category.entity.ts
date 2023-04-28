@@ -18,8 +18,8 @@ export class CategoryEntity extends ZJBaseEntity {
     @Column({type:'int', name: 'parent_id',comment:'父级id'})
     parent_id: Number;
 
-    @Column({type:'int', name: 'is_parent_id',comment:'是否父级'})
-    is_parent_id: Number;
+    @Column({type:'char', name: 'is_parent',comment:'是否父级'})
+    is_parent: Number;
 
     @Column({type:'varchar', name: 'pic',comment:'分类图片'})
     pic: String;
