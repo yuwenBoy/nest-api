@@ -44,9 +44,9 @@ export class ModuleService {
         const _menuListModal = new menuList();
         const _meta = new menuMeta();
         _menuListModal.component = item.menu_path;
-        _menuListModal.name = item.menu_path.split('/')[0];
+        _menuListModal.name = item.menu_path.split('/')[1];
         _menuListModal.path = item.menu_path;
-        _menuListModal.hidden = false;
+        _menuListModal.hidden = item.hidden == 1 ? true:false;
         _meta.title = item.name;
         _meta.noCache = true;
         _meta.icon = item.icon;
