@@ -5,6 +5,8 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { RedisModule } from './common/libs/redis/redis.module';
 import configuration from './config/index';
 import { AdminModule } from './modules/admin/admin.module';
+import { WebSocketModule } from './modules/chat/websocket.module';
+// import { WsstartGateway } from './modules/chat/EventsGateway';
 @Module({
   imports: [  
     // 动态加载配置文件  
@@ -39,6 +41,8 @@ import { AdminModule } from './modules/admin/admin.module';
         }
     }),
     AdminModule,
-  ]
+    WebSocketModule
+  ],
+//   providers:[WsstartGateway]
 })
 export class AppModule {}

@@ -1,19 +1,19 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './core/filter/HttpException.filter';
+import { AppModule } from '../app.module';
+import { HttpExceptionFilter } from '../core/filter/HttpException.filter';
 
-import { TransformInterceptor } from './core/filter/TransformInterceptor.filter';
+import { TransformInterceptor } from '../core/filter/TransformInterceptor.filter';
 
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { AuthGuard } from './modules/common/auth/auth.guard';
-import { ValidationPipe } from './common/pipe/validate.pipe';
-import { XMLMiddleware } from './common/middleware/xml.middleware';
+import { AuthGuard } from '../modules/common/auth/auth.guard';
+import { ValidationPipe } from '../common/pipe/validate.pipe';
+import { XMLMiddleware } from '../common/middleware/xml.middleware';
 import { ConfigService } from '@nestjs/config';
 import rateLimit from 'express-rate-limit';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-import { WsAdapter } from './modules/chat/ws.adapter';
+import { WsAdapter } from '../modules/chat/ws.adapter';
 /**
  * 程序入口文件main.ts
  */
@@ -63,6 +63,8 @@ async function bootstrap() {
     prefix: config.get<string>('admin.file.serveRoot'), //设置虚拟路径
   });
 
+  app.useWebSocketAdapter(new WsAdapter(app));
+
   // 设置swagger文档
   const swagger = new DocumentBuilder()
     .setTitle('jxxqz后台管理系统文档')
@@ -79,8 +81,6 @@ async function bootstrap() {
     customSiteTitle: 'nest-api API Docs',
   });
 
-  // 使用ws适配器
-  app.useWebSocketAdapter(new WsAdapter(app));
   await app.listen(port, () => {
     Logger.log(`服务已经启动,接口请访问http://localhost:${port}${prefix}`);
     Logger.log(
