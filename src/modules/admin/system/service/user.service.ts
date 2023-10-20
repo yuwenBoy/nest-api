@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { DeptEntity } from 'src/entities/admin/dept.entity';
 import { PositionEntity } from 'src/entities/admin/position.entity';
-import { Brackets, getConnection, Repository } from 'typeorm';
+import { Brackets, EntityManager, In, Repository } from 'typeorm';
 import { UserRoleService } from './userRole.service';
 import { compareSync, hashSync } from 'bcryptjs';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
@@ -11,12 +11,18 @@ import { DisabledDto } from '../dto/user/disabled.dto';
 import { UpdateUserPwdDto } from '../dto/user/updateUserPwd.dto';
 import { ConfigService } from '@nestjs/config';
 
+import xlsx from 'node-xlsx';
+import { async } from 'rxjs';
+import { plainToInstance } from 'class-transformer';
+
 @Injectable()
 export class UserService {
   // 使用InjectRespository装饰器并引入Repository这样就可以使用typeorm的操作了
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectEntityManager()
+    private readonly userManager: EntityManager,
     private readonly userRoleService: UserRoleService,
     private readonly config: ConfigService,
   ) {}
@@ -154,10 +160,12 @@ export class UserService {
     );
     try {
       if (userInfo.id > 0) {
-        let user = await this.userRepository.findOne({where:{id:userInfo.id}});
+        let user = await this.userRepository.findOne({
+          where: { id: userInfo.id },
+        });
         if (user) {
           if (compareSync(parameter.oldPassword, user.password)) {
-            let transformPass = hashSync(parameter.newPassword, 11)
+            let transformPass = hashSync(parameter.newPassword, 11);
             let result = await this.userRepository
               .createQueryBuilder()
               .update(UserEntity)
@@ -286,5 +294,87 @@ export class UserService {
       .where('user.id = :userId')
       .setParameter('userId', userId)
       .getOne();
+  }
+
+  /**
+   * 导入用户
+   */
+  async import(file: Express.Multer.File): Promise<any> {
+    const acceptFileType =
+      'application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    if (!acceptFileType.indexOf(file.mimetype))
+      return '文件类型错误，请上传.xls 或.xlsx 文件';
+    if (file.size > 5 * 1024 * 1024) return '文件大小超过，最大支持 5M';
+    const workSheet = xlsx.parse(file.buffer);
+
+    // 需要处理Excel 内账号 手机号 邮箱是否有重复的情况
+    if (workSheet[0].data.length === 0) return '导入用户数据不能为空！';
+
+    const userArr = [];
+    const usernameMap = new Map();
+
+    Logger.log('exlce====='+workSheet[0].data.length)
+
+    // 从 1 开始是去掉Excel账号等文字提示
+    for (let i = 1, len = workSheet[0].data.length; i < len; i++) {
+      const dataArr = workSheet[0].data[i] as Array<any>;
+      Logger.log('dataArr========='+dataArr)
+      if (dataArr.length === 0) break;
+      const [username,cname,dept_id,position_id] = dataArr;
+      userArr.push({ username,cname,dept_id,position_id });
+      if (username && !usernameMap.has(username)) {
+        usernameMap.set(username, []);
+      } else if (username) {
+        usernameMap.get(username).push(i + 1);
+      } else {
+        return 'Excel文件中有空数据，请检查后再导入';
+      }
+    }
+
+    const usernameErrArr = [];
+    for (let [key, val] of usernameMap) {
+      if (val.length > 0) {
+        usernameErrArr.push({ key, val });
+      }
+    }
+
+    if (usernameErrArr.length > 0) {
+      return '导入 Excel 内容有数据重复或数据有误，请修改调整后重新导入';
+    }
+
+    // 若Excel内部无重复，则需要判断 excel中数据是否与数据库的数据重复
+    const existingusername = await this.userRepository.find({
+      select: ['username'],
+      where: { username: In(userArr.map((v) => v.username)) },
+    });
+    if (existingusername.length > 0) {
+      existingusername.forEach((v) => {
+        usernameErrArr.push({
+          key: v.username,
+          val: [userArr.findIndex((m) => m.username === v.username) + 2],
+        });
+      });
+    }
+
+    // excel 与数据库无重复，准备入库
+    const password = this.config.get<string>('user.initialPassword');
+
+    userArr.forEach((v) => {
+      v['password'] = hashSync(password, 11);
+    });
+
+    Logger.log('userArr======'+JSON.stringify(userArr))
+
+    const result = await this.userManager.transaction(
+      async (transactionalEntityManager) => {
+        return await transactionalEntityManager.save<UserEntity>(
+          plainToInstance(UserEntity, userArr, { ignoreDecorators: true }),
+        );
+      },
+    );
+
+    Logger.log(result);
+
+    return result;
   }
 }

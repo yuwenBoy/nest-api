@@ -48,6 +48,7 @@
     "multer": "*",
     "mysql2": "^2.3.3",
     "nestjs-config": "^1.4.10",
+    "node-xlsx": "^0.23.0",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",

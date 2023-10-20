@@ -3,6 +3,13 @@ import { Socket } from 'socket.io'
 
 @WebSocketGateway(3002)
 export class WsStartGateway {
+
+
+    @SubscribeMessage('message')
+    handleMeaage(client,data){
+        console.log('接收客户端的消息：',data);
+        client.emit('response',123);
+    }
      
     @SubscribeMessage('hello')
     hello(@MessageBody() data:any):any{

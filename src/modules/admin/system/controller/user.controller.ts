@@ -10,8 +10,9 @@ import {
   UseInterceptors,
   HttpStatus,
   HttpCode,
+  UploadedFile,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/modules/common/collections-permission/decorators/current.user';
 import { ApiAuth, PermissionModule } from 'src/modules/common/collections-permission/decorators';
 import { PageListVo } from 'src/modules/common/page/pageList';
@@ -21,6 +22,7 @@ import { DisabledDto } from '../dto/user/disabled.dto';
 import { UpdateUserPwdDto } from '../dto/user/updateUserPwd.dto';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
 import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 /***
  * author：zhao.jian
@@ -103,5 +105,13 @@ export class UserController {
   ): Promise<boolean> {
     Logger.log(`修改密码接收参数：${JSON.stringify(updateUserPwdDto)}`);
     return this.UserService.updateUserPwd(updateUserPwdDto,userInfo);
+  }
+
+  @Post('/import')
+  @ApiOperation({ summary: '导入用户' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file'))
+  async importData(@UploadedFile() file:Express.Multer.File):Promise<any>{
+     return await this.UserService.import(file);
   }
 }
