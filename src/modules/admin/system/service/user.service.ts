@@ -299,9 +299,8 @@ export class UserService {
   /**
    * 导入用户
    */
-  async import(file: Express.Multer.File): Promise<any> {
-    const acceptFileType =
-      'application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  async import(file: Express.Multer.File,username:string): Promise<any> {
+    const acceptFileType = 'application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     if (!acceptFileType.indexOf(file.mimetype))
       return '文件类型错误，请上传.xls 或.xlsx 文件';
     if (file.size > 5 * 1024 * 1024) return '文件大小超过，最大支持 5M';
@@ -313,18 +312,21 @@ export class UserService {
     const userArr = [];
     const usernameMap = new Map();
 
-    Logger.log('exlce====='+workSheet[0].data.length)
-
     // 从 1 开始是去掉Excel账号等文字提示
     for (let i = 1, len = workSheet[0].data.length; i < len; i++) {
       const dataArr = workSheet[0].data[i] as Array<any>;
-      Logger.log('dataArr========='+dataArr)
       if (dataArr.length === 0) break;
-      const [username,cname,dept_id,position_id] = dataArr;
-      userArr.push({ username,cname,dept_id,position_id });
-      if (username && !usernameMap.has(username)) {
+
+      // 定义excel表格的列需一致
+      const [username,cname,phone,sex,dept_id,position_id] = dataArr;
+
+      // excel列数据对应实体字段
+      userArr.push({ username,cname,phone,sex,dept_id,position_id });
+
+      // 验证excel表数据非空
+      if (username && !usernameMap.has(username) && cname && dept_id && position_id) {
         usernameMap.set(username, []);
-      } else if (username) {
+      } else if (username && cname && dept_id && position_id) {
         usernameMap.get(username).push(i + 1);
       } else {
         return 'Excel文件中有空数据，请检查后再导入';
@@ -339,7 +341,7 @@ export class UserService {
     }
 
     if (usernameErrArr.length > 0) {
-      return '导入 Excel 内容有数据重复或数据有误，请修改调整后重新导入';
+      return '导入 Excel数据中有重复的用户名，请修改调整后重新导入';
     }
 
     // 若Excel内部无重复，则需要判断 excel中数据是否与数据库的数据重复
@@ -356,14 +358,17 @@ export class UserService {
       });
     }
 
+    if (usernameErrArr.length > 0) {
+        return '导入 Excel数据在系统中已存在相同的用户名，请修改调整后重新导入';
+    }
+
     // excel 与数据库无重复，准备入库
     const password = this.config.get<string>('user.initialPassword');
 
     userArr.forEach((v) => {
       v['password'] = hashSync(password, 11);
+      v['create_by'] = username;
     });
-
-    Logger.log('userArr======'+JSON.stringify(userArr))
 
     const result = await this.userManager.transaction(
       async (transactionalEntityManager) => {
@@ -372,9 +377,6 @@ export class UserService {
         );
       },
     );
-
-    Logger.log(result);
-
     return result;
   }
 }

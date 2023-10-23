@@ -24,6 +24,7 @@ import { ModuleController } from './controller/module.controller';
 import { OssController } from './controller/oss.controller';
 import { OssService } from './service/oss.service';
 import { AuthModule } from './auth/auth.module';
+import { ExcelService } from 'src/modules/common/services/xlsx/excel.service';
 
 /**
  * 系统管理模块
@@ -60,6 +61,7 @@ import { AuthModule } from './auth/auth.module';
     DeptService,
     ModuleService,
     OssService,
+    ExcelService
   ]
 })
 export class SystemModule {}
