@@ -4,15 +4,14 @@ import {
   Post,
   Body,
   UseGuards,
-  Req,
+  Res,
   Logger,
-  Request,
   UseInterceptors,
   HttpStatus,
   HttpCode,
   UploadedFile,
+
 } from '@nestjs/common';
-import { Res } from '@nestjs/common/decorators';
 import {
   ApiBearerAuth,
   ApiConsumes,
@@ -21,13 +20,13 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { Response } from 'express';
 import { CurrentUser } from 'src/modules/common/collections-permission/decorators/current.user';
 import {
   ApiAuth,
   PermissionModule,
 } from 'src/modules/common/collections-permission/decorators';
 import { PageListVo } from 'src/modules/common/page/pageList';
-import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 import { UserService } from 'src/modules/admin/system/service/user.service';
 import { DisabledDto } from '../dto/user/disabled.dto';
 import { UpdateUserPwdDto } from '../dto/user/updateUserPwd.dto';
@@ -35,7 +34,7 @@ import { UserInfoDto } from '../dto/user/userInfo.dto';
 import { AuthGuard } from 'src/modules/common/auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { join } from 'path';
-import { ExcelService } from 'src/modules/common/services/xlsx/excel.service';
+import * as xlsx  from 'xlsx';
 
 /***
  * author：zhao.jian
@@ -51,8 +50,7 @@ import { ExcelService } from 'src/modules/common/services/xlsx/excel.service';
 @Controller('user')
 export class UserController {
   constructor(
-    private readonly UserService: UserService,
-    private readonly excelService: ExcelService,
+    private readonly UserService: UserService
   ) {}
 
   /***
@@ -142,25 +140,56 @@ export class UserController {
 
   @Post('/importTemplate')
   @ApiOperation({ summary: '导入用户模板下载' })
-  importTemplate() {
-    const url = join(__dirname, '');
+  importTemplate(@Res() res:Response) {
+     // 创建一个工作簿
+     const workbook = xlsx.utils.book_new();
+ 
+     // 创建一个工作表
+     const worksheet = xlsx.utils.aoa_to_sheet([
+       ['用户名', '姓名','手机号','性别','部门id','职位id'],
+       ['super', '赵先生','15120079153','男',3,17],
+     ]);
+ 
+     // 将工作表添加到工作簿中
+     xlsx.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+ 
+     // 将工作簿保存为 Excel 文件
+     const excelBuffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+ 
+     // 设置响应头，告诉浏览器返回的是一个 Excel 文件
+     let filename = `attachment; filename=user_template${new Date().getTime()}.xlsx`
+     res.setHeader('Content-Disposition', filename);
+     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+ 
+     // 将 Excel 文件发送给客户端
+     res.status(200).send(excelBuffer);
   }
 
   @Post('/export')
   @ApiOperation({ summary: '导出用户' })
-  async exportData(@Res() res): Promise<void> {
-    const data = [
-      { name: 'John', age: 25, gender: 'Male' },
-      { name: 'Alice', age: 32, gender: 'Female' },
-      { name: 'Bob', age: 21, gender: 'Male' },
-    ];
-    const fileName = 'users.xlsx';
-    const buffer = await this.excelService.exportExcel(data, fileName);
-    res.set({
-      'Content-Disposition': `attachment; filename=${fileName}`,
-      'Content-Type':
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-    res.send(Buffer.from(buffer));
+  async exportData(@Res() res:Response,@Body() query): Promise<void> {
+    this.UserService.pageQuery(query).then(data=>{
+        let arr2Data = data.content.map(obj=>[obj.id,obj.username,obj.cname]);
+         const workbook = xlsx.utils.book_new();
+         // let userHeader =['用户id','账号','用户姓名']
+         // arr2Data[0].unshift(userHeader)
+         console.log('excelData====='+JSON.stringify(arr2Data))
+          // 创建一个工作表
+         const worksheet = xlsx.utils.aoa_to_sheet(arr2Data);
+   
+       // 将工作表添加到工作簿中
+       xlsx.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+   
+       // 将工作簿保存为 Excel 文件
+       const excelBuffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+   
+       // 设置响应头，告诉浏览器返回的是一个 Excel 文件
+       res.setHeader('Content-Disposition', 'attachment; filename=export.xlsx');
+       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+   
+       // 将 Excel 文件发送给客户端
+       res.status(200).send(excelBuffer);
+         // return excelData;
+     });
   }
 }
