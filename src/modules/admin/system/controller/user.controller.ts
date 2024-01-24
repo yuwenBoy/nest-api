@@ -35,6 +35,7 @@ import { AuthGuard } from 'src/modules/common/auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { join } from 'path';
 import * as xlsx  from 'xlsx';
+import { UserEntity } from 'src/entities/admin/t_user.entity';
 
 /***
  * author：zhao.jian
@@ -169,27 +170,30 @@ export class UserController {
   @ApiOperation({ summary: '导出用户' })
   async exportData(@Res() res:Response,@Body() query): Promise<void> {
     this.UserService.pageQuery(query).then(data=>{
-        let arr2Data = data.content.map(obj=>[obj.id,obj.username,obj.cname]);
-         const workbook = xlsx.utils.book_new();
-         // let userHeader =['用户id','账号','用户姓名']
-         // arr2Data[0].unshift(userHeader)
-         console.log('excelData====='+JSON.stringify(arr2Data))
-          // 创建一个工作表
-         const worksheet = xlsx.utils.aoa_to_sheet(arr2Data);
+       let userData = data.content; 
+       let arr2Data = userData.map(obj=>[obj.id,obj.username,obj.password,obj.cname,obj.sxe,obj.nick_name,obj.email,obj.phone,obj.address,obj.avatar,obj.dept_id.id,obj.position_id.id,obj.birthday,obj.create_time,obj.update_time,obj.create_by,obj.update_by]);
+       const workbook = xlsx.utils.book_new();
+       let userHeader =['用户id','账号','密码','用户姓名','性别','昵称','邮箱','手机号','地址','头像','部门id','职位id','出生日期','创建时间','更新时间','创建人','更新人']
+       arr2Data.unshift(userHeader)
+       // 创建一个工作表
+       const worksheet = xlsx.utils.aoa_to_sheet(arr2Data);
    
        // 将工作表添加到工作簿中
        xlsx.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
    
        // 将工作簿保存为 Excel 文件
        const excelBuffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+       const date = new Date();
+       const createTime = date.getFullYear()  + '-'+ (date.getMonth()+1) +'-' + date.getDate() 
    
+       let filename = `attachment; filename=user${createTime}.xlsx`;
+
        // 设置响应头，告诉浏览器返回的是一个 Excel 文件
-       res.setHeader('Content-Disposition', 'attachment; filename=export.xlsx');
+       res.setHeader('Content-Disposition',filename);
        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-   
        // 将 Excel 文件发送给客户端
        res.status(200).send(excelBuffer);
-         // return excelData;
      });
   }
 }
