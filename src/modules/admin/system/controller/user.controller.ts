@@ -33,9 +33,7 @@ import { UpdateUserPwdDto } from '../dto/user/updateUserPwd.dto';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
 import { AuthGuard } from 'src/modules/common/auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { join } from 'path';
 import * as xlsx  from 'xlsx';
-import { UserEntity } from 'src/entities/admin/t_user.entity';
 
 /***
  * author：zhao.jian

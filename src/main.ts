@@ -6,7 +6,6 @@ import { HttpExceptionFilter } from './core/filter/HttpException.filter';
 import { TransformInterceptor } from './core/filter/TransformInterceptor.filter';
 
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { AuthGuard } from './modules/common/auth/auth.guard';
 import { ValidationPipe } from './common/pipe/validate.pipe';
 import { XMLMiddleware } from './common/middleware/xml.middleware';
 import { ConfigService } from '@nestjs/config';

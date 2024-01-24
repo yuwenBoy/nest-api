@@ -33,6 +33,11 @@ export class AuthController {
     res.send(svgCaptcha.data); // 给页面返回一张图片
   }
 
+  @Post('/test')
+  async test(){
+    return '123';
+  }
+
   @Post('/updateToken')
   @ApiOperation({ summary: '刷新token'})
   @ApiBearerAuth()
