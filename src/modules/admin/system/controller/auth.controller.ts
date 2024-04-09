@@ -34,8 +34,8 @@ export class AuthController {
   }
 
   @Post('/test')
-  async test(){
-    return '123';
+  async test(@Body() request):Promise<any>{
+    return {data:'接口'+request.id}
   }
 
   @Post('/updateToken')

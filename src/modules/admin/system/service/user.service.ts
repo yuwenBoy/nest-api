@@ -198,18 +198,12 @@ export class UserService {
    * @returns 布尔类型
    */
   async save(parameter: any, userName: string): Promise<any> {
-    Logger.log(
-      `用户管理服务层【save】方法接受参数:${JSON.stringify(parameter)}`,
-    );
+    Logger.log(`用户管理服务层【save】方法接受参数:${JSON.stringify(parameter)}`);
     try {
       if (!parameter.id) {
         const { username } = parameter;
-        const existUser = await this.userRepository.exist({
-          where: { username },
-        });
-        if (existUser) {
-          return '用户账号已存在';
-        }
+        const existUser = await this.userRepository.exist({ where: { username } });
+        if (existUser) { return '用户账号已存在'; }
         parameter.create_by = userName;
       } else {
         parameter.update_by = userName;

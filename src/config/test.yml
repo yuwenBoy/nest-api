@@ -40,7 +40,7 @@ redis:
 # 权限 白名单配置
 perm:
   router:
-    whitelist: [{ path: '/basic-api/auth/login', method: 'POST'  }, { path: '/basic-api/auth/logout', method: 'GET' }, { path: '/basic-api/auth/authcode', method: 'GET' }]
+    whitelist: [{ path: '/basic-api/auth/login', method: 'POST'  }, { path: '/basic-api/auth/logout', method: 'GET' }, { path: '/basic-api/auth/authcode', method: 'GET' }, { path: '/basic-api/auth/test', method: 'POST' }]
 
 # 用户相关
 # 初始密码， 重置密码
