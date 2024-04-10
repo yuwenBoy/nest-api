@@ -5,6 +5,7 @@ import { ModuleEntity } from 'src/entities/admin/t_module.entity';
 import { RoleModuleService } from './roleModule.service';
 import { menuDto, menuList, menuMeta } from '../dto/menu.dto';
 import { EntityManager } from 'typeorm/entity-manager/EntityManager';
+import { toTableTree } from 'src/utils';
 
 @Injectable()
 export class ModuleService {
@@ -43,9 +44,9 @@ export class ModuleService {
         const _menuListModal = new menuList();
         const _meta = new menuMeta();
         _menuListModal.component = item.menu_path;
-        _menuListModal.name = item.menu_path.split('/')[0];
+        _menuListModal.name = item.menu_path.split('/')[item.menu_path.split('/').length-1];
         _menuListModal.path = item.menu_path;
-        _menuListModal.hidden = false;
+        _menuListModal.hidden = item.hidden == 1 ? true:false;
         _meta.title = item.name;
         _meta.noCache = true;
         _meta.icon = item.icon;
@@ -166,21 +167,6 @@ export class ModuleService {
     }
   }
 
-  /***
-   * 资源列表转换成树形table展示
-   */
-  toTableTree(arr, pid) {
-    return arr.reduce((res, current) => {
-      if (current['parent_id'] == pid) {
-        current['children'] = this.toTableTree(arr, current['id']);
-        if (arr.filter((t) => t.parent_id == current['id']).length == 0) {
-          current['children'] = undefined;
-        }
-        return res.concat(current);
-      }
-      return res;
-    }, []);
-  }
   /**
    * 查询资源列表
    * @param parameter 查询条件
@@ -198,7 +184,7 @@ export class ModuleService {
       queryBuilder.orderBy(`m.${parameter.sort}`, 'ASC');
       let data = await queryBuilder.getMany();
       let result = {
-        content: parameter.name ? data : this.toTableTree(data, 0),
+        content: parameter.name ? data : toTableTree(data, 0),
       };
       return result;
     } catch (error) {

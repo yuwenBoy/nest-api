@@ -19,7 +19,6 @@ import { ApiAuth } from 'src/modules/common/collections-permission/decorators/ap
 @ApiBearerAuth() // swagger文档设置token
 @PermissionModule('菜单管理')
 @UseGuards(AuthGuard)
-@ApiAuth()
 @Controller('module')
 export class ModuleController {
   constructor(
@@ -50,6 +49,7 @@ export class ModuleController {
   }
 
   @ApiOperation({ summary: '获取系统全部资源' })
+  @ApiAuth()
   @Get('/getModuleList')
   async getModuleList(@Request() req) {
      return await this.moduleService.getModuleList();
@@ -57,6 +57,7 @@ export class ModuleController {
 
   
   @ApiOperation({ summary: '查询权限资源' })
+  @ApiAuth()
   @Get('/findByRoleId')
   async findByRoleId(@Query() query) {
     Logger.log('【菜单模块---->【查询权限资源】-------->findByRoleId接口----> 请求参数】'+query.roleId)
@@ -64,12 +65,14 @@ export class ModuleController {
   }
 
   @ApiOperation({ summary: '查询所有机构' })
+  @ApiAuth()
   @Get('/getModuleTreeAll')
   getModuleTreeAll():Promise<any> {
     return  this.moduleService.getModuleTreeAll();
   }
   
   @ApiOperation({ summary: '查询资源列表' })
+  @ApiAuth()
   @Post('/getByCondition')
   list(@Body() query):Promise<any> {
     Logger.log(`分页查询接受参数：${JSON.stringify(query)}`);
@@ -81,6 +84,7 @@ export class ModuleController {
    * 资源管理-新增资源
    */
    @ApiOperation({ summary: '新增资源' })
+   @ApiAuth()
    @Post('/add')
    addUser(@Body() addUserDto: [],@CurrentUser() userInfo): Promise<boolean> {
      Logger.log(`新增资源接收参数：${JSON.stringify(addUserDto)}`);
@@ -91,6 +95,7 @@ export class ModuleController {
     * 资源管理-编辑资源
     */
    @ApiOperation({ summary: '编辑资源' })
+   @ApiAuth()
    @Post('/edit')
    updateUser(@Body() updateUserDto: [],@CurrentUser() userInfo): Promise<boolean> {
      Logger.log(`编辑资源接收参数：${JSON.stringify(updateUserDto)}`);
@@ -101,6 +106,7 @@ export class ModuleController {
     * 资源管理-删除资源
     */
    @ApiOperation({ summary: '删除资源' })
+   @ApiAuth()
    @Post('/delete')
    deleteUser(@Body() deleteUserDto: []): Promise<boolean> {
      Logger.log(`删除资源接收参数：${JSON.stringify(deleteUserDto)}`);

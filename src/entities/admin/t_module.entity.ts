@@ -1,5 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert } from 'typeorm';
 import { ZJBaseEntity } from '../common/base.entity';
+import { MenuHiddenEnum } from 'src/enum/admin_status.enum';
 
 /**
  * description:菜单表
@@ -35,5 +36,9 @@ export class ModuleEntity extends ZJBaseEntity {
     @Column({type:'varchar', name: 'permission'})
     permission: string;
 
-    hasChildren:boolean;
+    /***
+     * 是否可见
+     */
+    @Column({type:'enum',default:MenuHiddenEnum.SEE,enum:MenuHiddenEnum, name: 'hidden',comment:'菜单是否可见'})
+    hidden:Number;
 }

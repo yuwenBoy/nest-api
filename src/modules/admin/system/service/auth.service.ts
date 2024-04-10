@@ -9,7 +9,6 @@ import { UserRoleService } from './userRole.service';
 import { compareSync, hashSync } from 'bcryptjs';
 import { jwtContants, refreshExpiresIn } from 'src/modules/common/collections-permission/constants/jwtContants';
 import { UserService } from './user.service';
-import { UserInfo } from 'os';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
 @Injectable()
 export class AuthService {
@@ -40,11 +39,18 @@ export class AuthService {
    */
   public async apiAuth(user:UserInfoDto,method:string,url:string):Promise<boolean>{
     const  {id } = user;
-    const authRoleIdList:number[] = await this.userRoleService.getRoleIds(id);
+    const authRoleIdList:any = await this.userRoleService.getRoleIds(id);
     if(!authRoleIdList.length){
         throw new HttpException( `当前账号没有操作:${method} - ${url}的权限`,HttpStatus.OK)
     }
-    const moduleList = await this.roleModuleService.getModuleIds(authRoleIdList.toString());
+    let roleIds = authRoleIdList.map((item)=> item.role_id)
+    const moduleList = await this.roleModuleService.getModuleIds(roleIds.toString());
+    // console.log('moduleList'+JSON.stringify(moduleList));
+
+    // const moduleIds = moduleList.map((item)=> item.t_module_id);
+
+    // const 
+
     const formatUrl = this.formatUrl(method,url);
     // 模块表新增url接口 如果请求和数据库相同有权限，否则没有权限
     const isExist = true;

@@ -55,4 +55,27 @@ export class OssService {
         }
         return ossList
     }
+
+    /***
+     * 上传图片
+     * 
+     */
+    async pictures(files:Express.Multer.File[]):Promise<any> {
+        const ossList = files.map(file => {   
+            const newFileName = `${uuid.v4().replace(/-/g,'')}.${mime.extension(file.mimetype)}`;
+            const fileLocation = path.normalize(this.isAbsPath ? `${this.config.get('admin.file.location')}/${newFileName}` : path.join(this.productLocation,`${this.config.get('admin.file.location')}`,newFileName));
+            const writeFile = fs.createWriteStream(fileLocation);
+
+            writeFile.write(file.buffer);
+            writeFile.close();
+            const ossFile = {
+                url: `${this.config.get('admin.file.domain')}${this.config.get('admin.file.serveRoot') || ''}/${newFileName}`,
+                size: file.size,
+                type: file.mimetype,  
+                location: fileLocation,
+            }
+            return ossFile
+        });
+        return ossList
+    }
 }

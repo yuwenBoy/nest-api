@@ -19,4 +19,14 @@ export class OssController {
   async uploadFile(@UploadedFile() avatar:Express.Multer.File,@Body() params:{business:string},@CurrentUser() user:UserInfoDto):Promise<any> {
     return await this.ossService.updateAvatar([avatar],user);
   }
+
+
+  /***
+   * 图片上传统一方法
+   */
+  @Post('/pictures')
+  @UseInterceptors(FileInterceptor('file'))
+  async pictures(@UploadedFile() file:Express.Multer.File,@Body() params:{business:string},@CurrentUser() user:UserInfoDto):Promise<any> {
+    return await this.ossService.pictures([file]);
+  }
 }

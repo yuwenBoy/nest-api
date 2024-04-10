@@ -20,18 +20,17 @@ import { RoleModuleService } from './service/roleModule.service';
 import { RoleService } from './service/role.service';
 import { UserService } from './service/user.service';
 import { UserRoleService } from './service/userRole.service';
-import { JwtModule, JwtService } from '@nestjs/jwt';
-import { AuthController } from './controller/auth.controller';
 import { ModuleController } from './controller/module.controller';
-import { AuthService } from './service/auth.service';
-import { LocalStorage } from './auth/local.strategy';
-import { JwtStrategy } from './auth/jwt.strategy';
-import { PassportModule } from '@nestjs/passport';
-import { jwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
 import { OssController } from './controller/oss.controller';
 import { OssService } from './service/oss.service';
+import { AuthModule } from './auth/auth.module';
+
+/**
+ * 系统管理模块
+ */
 @Module({
   imports: [
+    AuthModule,
     RouterModule.register([{ path: '', module: SystemModule }]),
     TypeOrmModule.forFeature([
       UserEntity,
@@ -42,15 +41,8 @@ import { OssService } from './service/oss.service';
       PositionEntity,
       DeptEntity,
     ]),
-    /**jwt鉴权 key和过期时间 */
-    PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({
-      secret: jwtContants.secret,
-      signOptions: { expiresIn: jwtContants.expiresIn }, // d天后过期 s秒后过期
-    }),
   ],
   controllers: [
-    AuthController, // 登录jwt鉴权控制器
     UserController,
     RoleController,
     PositionController,
@@ -60,12 +52,6 @@ import { OssService } from './service/oss.service';
     OssController,
   ],
   providers: [
-    // jwt鉴权登录服务==============begin=============
-    AuthService,
-    JwtService,
-    LocalStorage,
-    JwtStrategy,
-    // jwt鉴权登录服务===============end==============
     UserService,
     RoleService,
     UserRoleService,
@@ -74,7 +60,6 @@ import { OssService } from './service/oss.service';
     DeptService,
     ModuleService,
     OssService,
-  ],
-  exports: [JwtModule], // 必须输出jwt模块否则登录会有问题
+  ]
 })
 export class SystemModule {}

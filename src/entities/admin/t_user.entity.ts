@@ -2,7 +2,7 @@ import { Column, Entity, BeforeInsert, JoinColumn, OneToOne } from 'typeorm';
 import { ZJBaseEntity } from '../common/base.entity';
 import { DeptEntity } from './dept.entity';
 import { PositionEntity } from './position.entity';
-import { UserStatusEnum } from 'src/enum/user_status.enum';
+import { UserStatusEnum } from 'src/enum/admin_status.enum';
 
 /**
  * description:用户实体表

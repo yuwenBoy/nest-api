@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository, Like } from 'typeorm';
 import { DeptEntity } from 'src/entities/admin/dept.entity';
+import { toTableTree } from 'src/utils';
 
 @Injectable()
 export class DeptService {
@@ -11,22 +12,6 @@ export class DeptService {
     @InjectRepository(DeptEntity)
     private readonly deptRepository: Repository<DeptEntity>,
   ) {}
-
-  /***
-   * 组织列表转换成树形table展示
-   */
-  toTableTree(arr, pid) {
-    return arr.reduce((res, current) => {
-      if (current['parent_id'] == pid) {
-        current['children'] = this.toTableTree(arr, current['id']);
-        if (arr.filter((t) => t.parent_id == current['id']).length == 0) {
-          current['children'] = undefined;
-        }
-        return res.concat(current);
-      }
-      return res;
-    }, []);
-  }
 
   /**
    * 转换成组织树形结构
@@ -72,7 +57,7 @@ export class DeptService {
       queryBuilder.addOrderBy('dept.create_time','DESC');
       let data = await queryBuilder.getMany();
       let result = {
-        content: parameter.DepartmentName ? data : this.toTableTree(data, 0),
+        content: parameter.DepartmentName ? data : toTableTree(data, 0),
       };
       return {
         ...result
