@@ -83,7 +83,7 @@ async function bootstrap() {
   await app.listen(port, () => {
     Logger.log(`服务已经启动,接口请访问http://localhost:${port}${prefix}`);
     Logger.log(
-      `服务已经启动,接口接口请访问http://localhost:${port}${prefix}/docs`,
+      `服务已经启动,接口文档请访问http://localhost:${port}${prefix}/docs`,
     );
   });
 }
