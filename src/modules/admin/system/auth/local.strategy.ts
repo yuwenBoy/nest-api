@@ -25,7 +25,7 @@ export class LocalStorage extends PassportStrategy(Strategy) {
       }
     }
     if (!user) {
-      throw new HttpException('账号或密码错误！',HttpStatus.OK);
+      throw new HttpException('用户名或密码错误！',HttpStatus.OK);
     }
     return user;
   }
