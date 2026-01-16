@@ -12,7 +12,7 @@ import { ConfigService } from '@nestjs/config';
 import rateLimit from 'express-rate-limit';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-import { WsAdapter } from './modules/chat/ws.adapter';
+import { ChatGateway } from './gateway/chat.gateway';
 import { OperationLogInterceptor } from './operation-log/operation-log.interceptor';
 /**
  * 程序入口文件main.ts
@@ -80,7 +80,7 @@ async function bootstrap() {
   });
 
   // 使用ws适配器
-  app.useWebSocketAdapter(new WsAdapter(app));
+//   app.useWebSocketAdapter(new ChatGateway());
   await app.listen(port, () => {
     Logger.log(`服务已经启动,接口请访问http://localhost:${port}${prefix}`);
     Logger.log(
