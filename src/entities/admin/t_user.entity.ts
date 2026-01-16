@@ -1,8 +1,9 @@
-import { Column, Entity, BeforeInsert, JoinColumn, OneToOne } from 'typeorm';
+import { Column, Entity, BeforeInsert, JoinColumn, OneToOne, OneToMany } from 'typeorm';
 import { ZJBaseEntity } from '../common/base.entity';
 import { DeptEntity } from './dept.entity';
 import { PositionEntity } from './position.entity';
-import { UserStatusEnum } from 'src/enum/admin_status.enum';
+import { UserStatusEnum, UserTypeEnum } from 'src/enum/admin_enum';
+import { EmployeeEntity } from '../store/employee.entity';
 
 /**
  * description:用户实体表
@@ -66,4 +67,14 @@ export class UserEntity extends ZJBaseEntity {
   // 用户关联职位
   @OneToOne(type => PositionEntity,posi => posi.id)
   positionName:PositionEntity[];
+
+   
+  @Column({type:'int', name: 'business_id',comment:'商家ID'})
+   business_id:number;
+
+   @OneToMany(() => EmployeeEntity, employee => employee.user)
+   employees: EmployeeEntity[]; // 员工表关联
+
+   @Column({type:'enum',default:UserTypeEnum.SYSTEMUSER,enum:UserTypeEnum, name: 'user_type',comment:'用户类型'})
+   userType: UserTypeEnum;
 }

@@ -1,5 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert } from 'typeorm';
 import { ZJBaseEntity } from '../common/base.entity';
+import { RoleTypeEnum } from 'src/enum/admin_enum';
 
 /**
  * description:角色表
@@ -19,6 +20,9 @@ export class RoleEntity extends ZJBaseEntity {
 
     @Column({type:'varchar',comment:'系统编码'})
     system_code: string;
+
+    @Column({type:'enum',default:RoleTypeEnum.SYSTEMROLE,enum:RoleTypeEnum, name: 'role_type',comment:'角色类型'})
+    roleType: RoleTypeEnum;
 
     @Column({type:'varchar',comment:'备注'})
     remark: string;

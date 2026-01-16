@@ -79,8 +79,8 @@ export class AuthService {
    * @returns 返回token和用户信息
    */
   async login(user: Partial<UserEntity>) {
-    console.log('user=============================' + user);
-    const payload = { username: user.username, id: user.id };
+    console.log('user=============================' + JSON.stringify(user));
+    const payload = { username: user.username, id: user.id,business_id:user.business_id,userType:user.userType };
     return {
       ...(await this.userInfo(user.id)),
       ...this.genToken(payload),

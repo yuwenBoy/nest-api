@@ -9,4 +9,10 @@ export class UserInfoDto {
 
   @ApiProperty({ description: '用户id' })
   id: number;
+
+  @ApiProperty({ description: '商家id' })
+  business_id:number;
+
+  @ApiProperty({ description: '用户类型' })
+  userType:number;
 }

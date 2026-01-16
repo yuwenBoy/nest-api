@@ -12,8 +12,11 @@ import { UpdateUserPwdDto } from '../dto/user/updateUserPwd.dto';
 import { ConfigService } from '@nestjs/config';
 
 import xlsx from 'node-xlsx';
-import { async } from 'rxjs';
 import { plainToInstance } from 'class-transformer';
+import { BusinessEntity } from 'src/entities/business/business.entity';
+import { StoreEntity } from 'src/entities/store/store.entity';
+import { UserInfoDto } from '../dto/user/userInfo.dto';
+import { UserTypeEnum } from 'src/enum/admin_enum';
 
 @Injectable()
 export class UserService {
@@ -32,7 +35,7 @@ export class UserService {
    * @param parameter 查询条件
    * @returns list
    */
-  async pageQuery(parameter: any): Promise<PageListVo> {
+  async pageQuery(parameter: any,userInfo: UserInfoDto): Promise<PageListVo> {
     try {
       const [pageIndex, pageSize] = [parameter.page, parameter.size];
       let qb = await this.userRepository
@@ -48,8 +51,7 @@ export class UserService {
           PositionEntity,
           'posi',
           'user.position_id=posi.id',
-        )
-        .where(
+        ).where(
           new Brackets((qb) => {
             if (parameter.cname) {
               return qb.where(
@@ -86,7 +88,27 @@ export class UserService {
               return qb;
             }
           }),
-        )
+        ).andWhere(
+            new Brackets((qb) => {
+              if (userInfo.userType===UserTypeEnum.BUSINESSUSER) {
+                return qb.where('user.business_id=:business_id', {
+                    business_id: userInfo.business_id,
+                  });
+              } else {
+                return qb;
+              }
+            }),
+          ).andWhere(
+            new Brackets((qb) => {
+              if (userInfo.userType===UserTypeEnum.BUSINESSUSER) {
+                return qb.where('user.user_type=:user_type', {
+                    user_type:UserTypeEnum.STOREUSER,
+                  });
+              } else {
+                return qb;
+              }
+            }),
+          )
         .orderBy(`user.${parameter.sort}`, 'DESC')
         .addOrderBy('user.create_time', 'DESC')
         .skip((pageIndex - 1) * Number(pageSize))
@@ -270,24 +292,57 @@ export class UserService {
    * 根据用户id获取用户
    * @param userId 用户id
    */
-  async getUserById(userId: string | number): Promise<any> {
-    return await this.userRepository
-      .createQueryBuilder('user')
-      .innerJoinAndMapOne(
-        'user.dept_id',
-        DeptEntity,
-        'dept',
-        'user.dept_id=dept.id',
-      )
-      .innerJoinAndMapOne(
-        'user.position_id',
-        PositionEntity,
-        'posi',
-        'user.position_id=posi.id',
-      )
-      .where('user.id = :userId')
-      .setParameter('userId', userId)
-      .getOne();
+  async getUserById(userId: number): Promise<any> {
+    const user = await this.userRepository.findOne({ where: { id:userId } });
+    if(user.userType>1){
+        return await this.userRepository
+        .createQueryBuilder('user')
+        .innerJoinAndMapOne(
+          'user.dept_id',
+          DeptEntity,
+          'dept',
+          'user.dept_id=dept.id',
+        )
+        .innerJoinAndMapOne(
+          'user.position_id',
+          PositionEntity,
+          'posi',
+          'user.position_id=posi.id',
+        )
+        .innerJoinAndMapOne(
+          'user.business',
+          BusinessEntity,
+          'busin',
+          'user.business_id=busin.id',
+        )
+        .innerJoinAndMapMany(
+          'busin.store',
+          StoreEntity,
+          'store',
+          'busin.id=store.business_id',
+        )
+        .where('user.id = :userId')
+        .setParameter('userId', userId)
+        .getOne();
+    }else{
+        return await this.userRepository
+        .createQueryBuilder('user')
+        .innerJoinAndMapOne(
+          'user.dept_id',
+          DeptEntity,
+          'dept',
+          'user.dept_id=dept.id',
+        )
+        .innerJoinAndMapOne(
+          'user.position_id',
+          PositionEntity,
+          'posi',
+          'user.position_id=posi.id',
+        )
+        .where('user.id = :userId')
+        .setParameter('userId', userId)
+        .getOne();
+    }
   }
 
   /**

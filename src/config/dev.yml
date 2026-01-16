@@ -23,7 +23,7 @@ db:
     port: 3306
     charset: 'utf8mb4'
     logger: 'advanced-console'
-    logging: false
+    logging: true
     multipleStatements: true
     dropSchema: false
     synchronize: false
@@ -46,3 +46,11 @@ perm:
 # 初始密码， 重置密码
 user:
   initialPassword: 'jxxqz123'
+
+# 商家模块 配置
+business:
+  roleId: 45
+  deptId: 39
+  positionId: 29
+  account: 'merchant'
+  initialPassword: 'jxxqz123'    

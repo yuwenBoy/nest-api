@@ -34,12 +34,14 @@ import { UserInfoDto } from '../dto/user/userInfo.dto';
 import { AuthGuard } from 'src/modules/common/auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as xlsx  from 'xlsx';
+import { SkipLog } from 'src/common/decorators/skip-log.decorator';
 
 /***
  * author：zhao.jian
  * createTime：2022年12月22日14:27:17
  * description：用户业务控制器模块
  */
+@SkipLog() // 标记该不需控制器不需要记录日志
 @ApiTags('用户管理')
 @ApiBearerAuth()
 @PermissionModule('用户管理')
@@ -59,9 +61,9 @@ export class UserController {
   @ApiOkResponse({ type: PageListVo, description: '分页查询用户返回值' })
   @HttpCode(HttpStatus.OK)
   @Post('/getByCondition')
-  list(@Body() query): Promise<PageListVo> {
+  list(@Body() query,@CurrentUser() userInfo: UserInfoDto): Promise<PageListVo> {
     Logger.log(`分页查询接受参数：${JSON.stringify(query)}`);
-    return this.UserService.pageQuery(query);
+    return this.UserService.pageQuery(query,userInfo);
   }
 
   /**
@@ -166,8 +168,8 @@ export class UserController {
 
   @Post('/export')
   @ApiOperation({ summary: '导出用户' })
-  async exportData(@Res() res:Response,@Body() query): Promise<void> {
-    this.UserService.pageQuery(query).then(data=>{
+  async exportData(@Res() res:Response,@Body() query,@CurrentUser() userInfo: UserInfoDto): Promise<void> {
+    this.UserService.pageQuery(query,userInfo).then(data=>{
        let userData = data.content; 
        let arr2Data = userData.map(obj=>[obj.id,obj.username,obj.password,obj.cname,obj.sxe,obj.nick_name,obj.email,obj.phone,obj.address,obj.avatar,obj.dept_id.id,obj.position_id.id,obj.birthday,obj.create_time,obj.update_time,obj.create_by,obj.update_by]);
        const workbook = xlsx.utils.book_new();
@@ -195,3 +197,4 @@ export class UserController {
      });
   }
 }
+

@@ -6,6 +6,10 @@ import { RedisModule } from './common/libs/redis/redis.module';
 import configuration from './config/index';
 import { AdminModule } from './modules/admin/admin.module';
 import { WebSocketModule } from './modules/chat/websocket.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { OperationLogModule } from './operation-log/operation-log.module';
+import { OperationLogInterceptor } from './operation-log/operation-log.interceptor';
+import { IpGeolocationService } from './common/services/ip-geolocation.service';
 // import { WsstartGateway } from './modules/chat/EventsGateway';
 @Module({
   imports: [  
@@ -41,8 +45,15 @@ import { WebSocketModule } from './modules/chat/websocket.module';
         }
     }),
     AdminModule,
+    OperationLogModule, // 导入 OperationLogModule
     WebSocketModule
   ],
-//   providers:[WsstartGateway]
+providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: OperationLogInterceptor,
+    },
+    IpGeolocationService, // 提供 IpGeolocationService
+  ],
 })
 export class AppModule {}

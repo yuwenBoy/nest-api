@@ -16,9 +16,7 @@ export class LocalStorage extends PassportStrategy(Strategy) {
   }
 
   async validate(username: string, password: string): Promise<any> {
-    console.log('登录请求参数');
     const user = await this.authService.validateUser(username, password);
-    console.log(user);
     if(user){
       if(user.disabled == 2){
         throw new HttpException('账号被锁定，请联系管理员！',HttpStatus.OK);

@@ -21,7 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
    * 当用户存在时，会将 user 对象添加到 req 中，在之后的 req 对象中，可以使用 req.user 获取当前登录用户。
    */
   async validate(payload: any) {
-    console.log('jwt认证通成功...');
-    return { username: payload.username, id: payload.id };
+    console.log('jwt认证通成功...'+payload);
+    return { username: payload.username, id: payload.id,business_id:payload.business_id };
   }
 }

@@ -13,6 +13,7 @@ import rateLimit from 'express-rate-limit';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { WsAdapter } from './modules/chat/ws.adapter';
+import { OperationLogInterceptor } from './operation-log/operation-log.interceptor';
 /**
  * 程序入口文件main.ts
  */

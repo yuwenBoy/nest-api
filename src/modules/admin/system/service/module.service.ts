@@ -6,6 +6,8 @@ import { RoleModuleService } from './roleModule.service';
 import { menuDto, menuList, menuMeta } from '../dto/menu.dto';
 import { EntityManager } from 'typeorm/entity-manager/EntityManager';
 import { toTableTree } from 'src/utils';
+import { UserInfoDto } from '../dto/user/userInfo.dto';
+import { ModuleInheritAuthorizationEnum, ModuleIsAuthorizedEnum, UserTypeEnum } from 'src/enum/admin_enum';
 
 @Injectable()
 export class ModuleService {
@@ -45,7 +47,7 @@ export class ModuleService {
         const _meta = new menuMeta();
         _menuListModal.component = item.menu_path;
         _menuListModal.name = item.menu_path.split('/')[item.menu_path.split('/').length-1];
-        _menuListModal.path = item.menu_path;
+        _menuListModal.path = item.menu_path.split('/')[item.menu_path.split('/').length-1] //item.menu_path; // 使用相对路径
         _menuListModal.hidden = item.hidden == 1 ? true:false;
         _meta.title = item.name;
         _meta.noCache = true;
@@ -103,23 +105,51 @@ export class ModuleService {
    * @param pid 父级id
    * @returns 资源树形结构
    */
-  toModuleTree(arr, pid) {
-    return arr.reduce((res, current) => {
-      if (current['parent_id'] == pid) {
-        let obj = { name: '', label: '', id: '', pid: '', children: [] };
-        obj.name = current['label'];
-        obj.label = current['label'];
-        obj.id = current['id'];
-        obj.pid = current['parent_id'];
-        obj.children = this.toModuleTree(arr, current['id']);
-        if (arr.filter((t) => t.parent_id == current['id']).length == 0) {
-          obj.children = undefined;
+//   toModuleTree(arr, pid) {
+//     return arr.reduce((res, current) => {
+//       if (current['parent_id'] == pid) {
+//         let obj = { name: '', label: '', id: '', pid: '', children: [] };
+//         obj.name = current['label'];
+//         obj.label = current['label'];
+//         obj.id = current['id'];
+//         obj.pid = current['parent_id'];
+//         obj.children = this.toModuleTree(arr, current['id']);
+//         if (arr.filter((t) => t.parent_id == current['id']).length == 0) {
+//           obj.children = undefined;
+//         }
+//         return res.concat(obj);
+//       }
+//       return res;
+//     }, []);
+//   }
+toModuleTree(arr, pid) {
+    Logger.log('arr ===========' + JSON.stringify(arr))
+    Logger.log('pid ===========' +pid)
+    const tree = arr.reduce((res, current) => {
+        if (parseInt(current['parent_id']) === pid) {
+            Logger.log('parent_id ===========' + current)
+            const obj = {
+                name: current['label'],
+                label: current['label'],
+                id: current['id'],
+                pid: current['parent_id'],
+                children: this.toModuleTree(arr, current['id']) // 递归生成子节点
+            };
+            res.push(obj);
         }
-        return res.concat(obj);
-      }
-      return res;
+        return res;
     }, []);
-  }
+
+    // 如果某个节点没有子节点，移除 children 属性
+    tree.forEach(node => {
+        if (node.children.length === 0) {
+            delete node.children;
+        }
+    });
+
+    return tree;
+}
+
   /**
    * 查询系统全部资源
    * @returns 返回全部资源【菜单模块表】
@@ -133,17 +163,26 @@ export class ModuleService {
   }
 
   /**
-   * 查询全部机构转换成树形结构
+   * 获取系统可授权的资源
+   * @userInfo 如果是商家用户仅获取给员工的可授权资源
    */
-  async getModuleTreeAll(): Promise<any> {
+  async getModuleTreeAll(userInfo:UserInfoDto): Promise<any> {
     try {
-      let list = await this.moduleRepository
+      if(userInfo.userType === UserTypeEnum.BUSINESSUSER){
+        let list = await this.moduleRepository
+        .createQueryBuilder('md')
+        .select(['id', 'name AS label', 'parent_id'])
+        .where('is_authorized=1')
+        .getRawMany();
+        return this.toModuleTree(list, 0);
+      } else{
+        let list = await this.moduleRepository
         .createQueryBuilder('md')
         .select(['id', 'name AS label', 'parent_id'])
         .where('1=1')
         .getRawMany();
-      let result = this.toModuleTree(list, 0);
-      return result;
+        return this.toModuleTree(list, 0);
+      } 
     } catch (error) {
       Logger.error('查询机构失败，原因：' + error);
     }
@@ -208,12 +247,45 @@ export class ModuleService {
       // 必须用save 更新时间才生效
       let res = await this.moduleRepository.save(parameter);
       if (res.id > 0) {
+        // 如果资源是可授权的，更新子级资源的授权状态
+        if(parseInt(parameter.isAuthorized)===ModuleIsAuthorizedEnum.YES){
+            if(parseInt(parameter.inheritAuthorization) === ModuleInheritAuthorizationEnum.YES){
+                await this.updateChildModule(res.id,parameter.isAuthorized);
+            }
+        }
         return true;
       } else {
         return false;
       }
     } catch (error) {
       Logger.error(`【新增|编辑】资源请求失败：${JSON.stringify(error)}`);
+    }
+  }
+
+  /**
+ * 递归更新子级资源的授权状态
+ * @param parentId 父级资源ID
+ * @param isAuthorized 授权状态
+ */
+async updateChildModule(parentId: number, isAuthorized: number): Promise<void> {
+    try {
+      // 查询所有子级资源
+      const childResources = await this.moduleRepository.find({
+        where: { parent_id: parentId }
+      });
+  
+      // 遍历子级资源并更新授权状态
+      for (const child of childResources) {
+        child.isAuthorized = isAuthorized;
+        await this.moduleRepository.save(child);
+  
+        // 如果子级资源还有子级，递归更新
+        if (child.id) {
+          await this.updateChildModule(child.id, isAuthorized);
+        }
+      }
+    } catch (error) {
+      Logger.error(`更新子级资源授权状态失败：${JSON.stringify(error)}`);
     }
   }
 

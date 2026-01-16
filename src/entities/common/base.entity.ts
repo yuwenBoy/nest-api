@@ -39,3 +39,30 @@ export abstract class ZJBaseEntity extends BaseEntity {
   @Column({comment:'创建人', type: 'varchar', name: 'create_by', select: false,update:false })
   create_by: string;
 }
+
+/**
+ * @description：商家板块基类
+ * @author:zhao.jian
+ * @create_time：2023-1-9 11:59:11
+ */
+export abstract class BusinessBaseEntity extends BaseEntity {
+
+    @PrimaryGeneratedColumn({comment:'主键ID'})
+    id: number;
+
+      // 自动管理创建时间
+      @CreateDateColumn({name: 'created_at',comment:'创建时间'})
+      @Transform((row: TransformFnParams) => {
+         let timestamp: any = new Date(row.value);
+         return formatTime(timestamp / 1000);
+       })
+     createdAt: Date;
+     
+     // 自动管理更新时间
+     @Transform((row: TransformFnParams) => {
+         let timestamp: any = new Date(row.value);
+         return formatTime(timestamp / 1000);
+       })
+     @UpdateDateColumn({name: 'updated_at',comment:'最后更新时间'})
+     updatedAt: Date;
+  }

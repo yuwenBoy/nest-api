@@ -6,6 +6,7 @@ import { LocalAuthGuard } from '../auth/local.auth.guard';
 import { Captcha } from 'src/modules/common/services/tools/Captcha';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
 import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { SkipLog } from 'src/common/decorators/skip-log.decorator';
 
 @ApiTags('用户身份认证登录(jwt鉴权)')
 @Controller('auth')
@@ -14,6 +15,7 @@ export class AuthController {
     private readonly authService: AuthService
   ) {}
 
+  @SkipLog()
   // 1.先进行登录验证，执行local.strategy.ts 文件中的calidate方法
   @UseGuards(LocalAuthGuard) // 无需token验证
   @Post('/login')
@@ -51,6 +53,7 @@ export class AuthController {
    * @param req token
    * @returns null
    */
+  @SkipLog()
   @ApiOperation({ summary: '系统退出登录' })
   @Get('/logout')
   async logout() {
@@ -62,6 +65,7 @@ export class AuthController {
    * @param req token
    * @returns userInfo
    */
+  @SkipLog()
   @ApiOperation({ summary: '获取用户信息' })
   @ApiBearerAuth() // swagger文档设置token
   @UseGuards(AuthGuard) // 需要jwt鉴权认证

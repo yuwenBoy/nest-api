@@ -1,18 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { CategoryEntity } from 'src/entities/shop/category.entity';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { BusinessCategoryEntity } from 'src/entities/business/category.entity';
 import { toTableTree } from 'src/utils';
-import { Repository } from 'typeorm';
+import { EntityManager, getRepository, Repository } from 'typeorm';
 
 @Injectable()
 export class CategoryService {
   constructor(
-    @InjectRepository(CategoryEntity)
-    private readonly categoryRepository: Repository<CategoryEntity>,
+    @InjectRepository(BusinessCategoryEntity)
+    private readonly categoryRepository: Repository<BusinessCategoryEntity>,
+    @InjectEntityManager()
+    private entityManager: EntityManager,
   ) {}
 
   async list() {
-   return await this.categoryRepository.query('select * from t_shop_category');
+   return await this.categoryRepository.query('select * from businesscategory');
   }
 
   
@@ -28,18 +30,17 @@ export class CategoryService {
       );
       let queryBuilder = await this.categoryRepository.createQueryBuilder('cate');
       if (parameter.name) {
-        queryBuilder.where(
-          'cate.name LIKE "%' + parameter.name + '%"',
-        );
+        // 使用参数化查询来防止SQL注入
+        queryBuilder.where('cate.category_name LIKE :name', { name: `%${parameter.name}%` });
       }
       queryBuilder.orderBy(`cate.${parameter.sort}`, 'ASC');
-      queryBuilder.addOrderBy('cate.create_time','DESC');
-      let data = await queryBuilder.getMany();
+    //   queryBuilder.addOrderBy('cate.create_time','DESC');
+      let data = await queryBuilder.getMany();  
       let result = {
-        content: parameter.name ? data : toTableTree(data, 0),
+        content: parameter.name ? data : toTableTree(data, 0),  
       };
-      return {
-        ...result
+      return {  
+        ...result  
       };
     } catch (error) {
       Logger.error(`品类列表请求失败,原因：${JSON.stringify(error)}`);
@@ -49,13 +50,13 @@ export class CategoryService {
     /**
    * 查询全部品类转换成树形结构
    */
-    async getCategoryAll(): Promise<any> {
+    async getCategoryAll(): Promise<any> {      
         try {
           return await this.categoryRepository
             .createQueryBuilder('dept')
             .select([
               'id',
-              'name AS label',
+              'category_name AS label',
               'parent_id',
             ])
             .where('1=1')
@@ -71,15 +72,9 @@ export class CategoryService {
    * @param parameter 参数
    * @returns 布尔类型
    */
-  async save(parameter: any, userName: string): Promise<any> {
+  async save(parameter: any): Promise<any> {
     Logger.log(`请求参数：${JSON.stringify(parameter)}`);
-    Logger.log(`userName:${userName}`);
     try {
-      if (!parameter.id) {
-        parameter.create_by = userName;
-      } else {
-        parameter.update_by = userName;
-      }
       // 必须用save 更新时间才生效
       let res = await this.categoryRepository.save(parameter);
       if (res.id > 0) {
@@ -124,5 +119,45 @@ export class CategoryService {
       Logger.log(`【批量删除品类】请求失败：${JSON.stringify(error)}`);
       return false;
     }
+  }
+
+   /**
+   * 查询所有主分类
+   * @param ids id
+   * @returns
+   */
+  async main(): Promise<any[]> {
+       // 使用EntityManager构建查询
+       const queryBuilder = this.entityManager.createQueryBuilder(BusinessCategoryEntity, 'category');
+       const category = await queryBuilder.where('category.parent_id = :parentId', { parentId: 0 }).getMany();
+       const result = category.map(t=>({
+           label:t.name,
+           value:t.id,
+           ...t
+       }));
+       return result;
+ }
+ /**
+   * 查询主分类下的次分类
+   * @param ids id
+   * @returns
+   */
+ async getSubCategories(parentId: number): Promise<any[]> {
+    const rawQuery = `
+      SELECT
+        category.id,
+        category.category_name,
+        EXISTS(SELECT 1 FROM businesscategory subCategory WHERE subCategory.parent_id = category.id) AS hasChildren
+      FROM
+        businesscategory category
+      WHERE
+        category.parent_id = ?
+    `;
+    const categories = await this.entityManager.query(rawQuery,[parentId]);
+    return categories.map(category => ({
+      label: category.category_name,
+      value: category.id,
+      hasChildren: category.hasChildren == 0,
+    }));
   }
 }

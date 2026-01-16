@@ -51,7 +51,7 @@ export class AuthGuard implements CanActivate {
       try {
         // 这里可以添加验证逻辑
 
-        const userInfo: any = this.authService.verifyToken(token);
+        const userInfo = this.authService.verifyToken(token);
         logger.log('当前登录用户信息：' + JSON.stringify(userInfo));
 
         // const isExpire: boolean = userInfo.exp > Number(new Date().getTime() / 1000);

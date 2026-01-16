@@ -8,12 +8,14 @@ import { PageListVo } from 'src/modules/common/page/pageList';
 import { PositionService } from '../service/position.service';
 import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
 import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { SkipLog } from 'src/common/decorators/skip-log.decorator';
 
 /***
  * author：zhao.jian
  * createTime：2023-3-8 21:39:18
  * description：职位控制器模块
  */
+@SkipLog() // 标记该不需控制器不需要记录日志
 @ApiTags('职位管理')
 @ApiBearerAuth()
 @PermissionModule('职位管理')

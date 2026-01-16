@@ -9,12 +9,15 @@ import { UserRoleService } from '../service/userRole.service';
 import { ModuleService } from '../service/module.service';
 import { AuthGuard } from 'src/modules/common/auth/auth.guard';
 import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
+import { UserInfoDto } from '../dto/user/userInfo.dto';
+import { SkipLog } from 'src/common/decorators/skip-log.decorator';
 
 /***
  * author：zhao.jian
  * createTime：2023-1-11 17:49:48
  * description：菜单控制器模块
  */
+@SkipLog() // 标记该不需控制器不需要记录日志
 @ApiTags('菜单管理')
 @ApiBearerAuth() // swagger文档设置token
 @PermissionModule('菜单管理')
@@ -67,8 +70,8 @@ export class ModuleController {
   @ApiOperation({ summary: '查询所有机构' })
   @ApiAuth()
   @Get('/getModuleTreeAll')
-  getModuleTreeAll():Promise<any> {
-    return  this.moduleService.getModuleTreeAll();
+  getModuleTreeAll(@CurrentUser() userInfo:UserInfoDto):Promise<any> {
+    return  this.moduleService.getModuleTreeAll(userInfo);
   }
   
   @ApiOperation({ summary: '查询资源列表' })

@@ -18,6 +18,7 @@ import { UserRoleDto } from '../dto/userRole.dto';
 import { RoleService } from '../service/role.service';
 import { AuthGuard } from 'src/modules/common/auth/auth.guard';
 import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
+import { SkipLog } from 'src/common/decorators/skip-log.decorator';
 // import { Transaction, TransactionManager, EntityManager } from 'typeorm';// 开启事务
 
 /***
@@ -25,6 +26,7 @@ import { ApiAuth } from 'src/modules/common/collections-permission/decorators/ap
  * createTime：2023年3月13日16:34:33
  * description：角色管理业务控制器模块
  */
+@SkipLog() // 标记该不需控制器不需要记录日志
 @ApiTags('角色管理')
 @ApiBearerAuth() // swagger文档设置token
 @PermissionModule('用户管理')
@@ -36,11 +38,11 @@ export class RoleController {
 
   @ApiOperation({ summary: '角色管理：查询分页列表' })
   @Post('/getByCondition')
-  list(@Body() query): Promise<PageListVo> {
+  list(@Body() query,@CurrentUser() userInfo:UserInfoDto): Promise<PageListVo> {
     Logger.log(
       `【角色管理：查询分页列表】分页查询接受参数：${JSON.stringify(query)}`,
     );
-    return this.roleService.pageQuery(query);
+    return this.roleService.pageQuery(query,userInfo);
   }
 
   @ApiOperation({ summary: '查询全部角色' })
@@ -80,7 +82,7 @@ export class RoleController {
   @Post('/add')
   addUser(@Body() addUserDto: [], @CurrentUser() userInfo:UserInfoDto): Promise<boolean> {
     Logger.log(`新增角色接收参数：${JSON.stringify(addUserDto)}`);
-    return this.roleService.save(addUserDto, userInfo.username);
+    return this.roleService.save(addUserDto, userInfo);
   }
 
   /**

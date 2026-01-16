@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CategoryEntity } from 'src/entities/shop/category.entity';
 import { userOrderController } from './controller/userOrder.controller';
 import { UserOrderService } from './service/userOrder.service';
 @Module({

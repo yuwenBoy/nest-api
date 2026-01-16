@@ -8,12 +8,14 @@ import { UserInfoDto } from '../dto/user/userInfo.dto';
 import { RoleModuleService } from '../service/roleModule.service';
 import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
 import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { SkipLog } from 'src/common/decorators/skip-log.decorator';
 
 /***
  * author：zhao.jian
  * createTime：2022年12月22日14:27:17
  * description：用户业务控制器模块
  */
+@SkipLog() // 标记该不需控制器不需要记录日志
 @ApiTags('操作权限管理')
 @ApiBearerAuth()
 @PermissionModule('操作权限管理')

@@ -11,6 +11,7 @@ import { plainToInstance } from 'class-transformer';
 import { UserRoleEntity } from 'src/entities/admin/t_user_role.entity';
 import { UserRoleDto } from '../dto/userRole.dto';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
+import { RoleTypeEnum, UserTypeEnum } from 'src/enum/admin_enum';
 
 @Injectable()
 export class RoleService {
@@ -28,7 +29,7 @@ export class RoleService {
    * @param parameter 查询条件
    * @returns list
    */
-  async pageQuery(parameter: any): Promise<PageListVo> {
+  async pageQuery(parameter: any,userInfo:UserInfoDto): Promise<PageListVo> {
     try {
       const [pageIndex, pageSize] = [parameter.page, parameter.size];
       let find_object = {
@@ -38,13 +39,18 @@ export class RoleService {
         take: pageSize, // 分页，取几项
         cache: false,
       };
-      if (parameter.name) {
-        find_object.where.push(
-          { name: Like(`%${parameter.name}%`) },
-          { code: Like(`%${parameter.name}%`) },
-        );
-      } else {
-        delete find_object.where;
+      
+      if(userInfo.userType===UserTypeEnum.BUSINESSUSER){
+        find_object.where.push({roleType:RoleTypeEnum.EMPLOYESSROLE});
+      }else{
+        if (parameter.name) {
+            find_object.where.push(
+              { name: Like(`%${parameter.name}%`) },
+              { code: Like(`%${parameter.name}%`) },
+            );
+          } else{
+            delete find_object.where;
+          }
       }
 
       if (parameter.sort) find_object.order[parameter.sort] = 'DESC';
@@ -79,7 +85,7 @@ export class RoleService {
       };
       result.roleList = await this.roleRepository
         .createQueryBuilder('role')
-        .select(['role.id value', 'role.name name'])
+        .select(['role.id value', 'role.name name','role.role_type roleType'])
         .where('1=1')
         .getRawMany();
 
@@ -142,7 +148,7 @@ export class RoleService {
    * @param parameter 参数
    * @returns 布尔类型
    */
-  async save(parameter: any, userName: string): Promise<any> {
+  async save(parameter: any,userInfo:UserInfoDto): Promise<any> {
     Logger.log(`请求参数：${JSON.stringify(parameter)}`);
     try {
       if (!parameter.id) {
@@ -153,9 +159,14 @@ export class RoleService {
         if (existUser) {
           return '角色已存在';
         }
-        parameter.create_by = userName;
+        parameter.create_by = userInfo.username;
       } else {
-        parameter.update_by = userName;
+        parameter.update_by = userInfo.username;
+      }
+
+      // 如果是商家 默认赋值角色类型为员工角色
+      if(userInfo.userType===UserTypeEnum.BUSINESSUSER){
+        parameter.roleType = RoleTypeEnum.EMPLOYESSROLE; 
       }
       // 必须用save 更新时间才生效
       let res = await this.roleRepository.save(parameter);

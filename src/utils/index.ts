@@ -8,5 +8,6 @@ export const toTableTree = (arr, pid) => {
       return res.concat(current);
     }
     return res;
-  }, []);
-};
+  }, []);  
+};  
+

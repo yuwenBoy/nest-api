@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert } from 'typeorm';
 import { ZJBaseEntity } from '../common/base.entity';
-import { MenuHiddenEnum } from 'src/enum/admin_status.enum';
+import { MenuHiddenEnum, ModuleInheritAuthorizationEnum, ModuleIsAuthorizedEnum } from 'src/enum/admin_enum';
 
 /**
  * description:菜单表
@@ -16,7 +16,7 @@ export class ModuleEntity extends ZJBaseEntity {
     code: string;
 
     @Column({type:'int', name: 'parent_id'})
-    parent_id: Number;
+    parent_id: number;
 
     @Column({type:'varchar', name: 'system_code'})
     systemCode: string;
@@ -28,13 +28,19 @@ export class ModuleEntity extends ZJBaseEntity {
     indexNo: string;
 
     @Column({type:'int', name: 'menu_type'})
-    menuType: Number;
+    menuType: number;
 
     @Column({type:'varchar', name: 'icon'})
     icon: string;
 
     @Column({type:'varchar', name: 'permission'})
     permission: string;
+
+    @Column({type:'enum',default:ModuleIsAuthorizedEnum.NO,enum:ModuleIsAuthorizedEnum, name: 'is_authorized',comment:'资源是否可授权给员工，默认不可授权给员工'})
+    isAuthorized:ModuleIsAuthorizedEnum;
+
+    @Column({type:'enum',default:ModuleInheritAuthorizationEnum.YES,enum:ModuleInheritAuthorizationEnum, name: 'inherit_authorization',comment:'该资源是否继承父级的资源状态，默认继承，设置1不继承'})
+    inheritAuthorization:ModuleInheritAuthorizationEnum;
 
     /***
      * 是否可见
