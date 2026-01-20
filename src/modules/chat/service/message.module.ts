@@ -2,13 +2,13 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChatGateway } from 'src/gateway/chat.gateway';
 import { MessageService } from './message.service';
-import { Message } from 'src/entities/chat/message.entity';
+import { MessageEntity } from 'src/entities/chat/message.entity';
 import { MessageController } from './message.controller';
 
 @Module({
   imports: [
     // 注册 TypeORM 实体
-    TypeOrmModule.forFeature([Message]),
+    TypeOrmModule.forFeature([MessageEntity]),
   ],
   controllers: [
     // 注册 RESTful 控制器

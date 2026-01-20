@@ -10,7 +10,6 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { OperationLogModule } from './operation-log/operation-log.module';
 import { OperationLogInterceptor } from './operation-log/operation-log.interceptor';
 import { IpGeolocationService } from './common/services/ip-geolocation.service';
-// import { WsstartGateway } from './modules/chat/EventsGateway';
 @Module({
   imports: [  
     // 动态加载配置文件  
@@ -46,9 +45,9 @@ import { IpGeolocationService } from './common/services/ip-geolocation.service';
     }),
     AdminModule,
     OperationLogModule, // 导入 OperationLogModule
-    MessageModule
+    MessageModule,
   ],
-providers: [
+  providers: [
     {
       provide: APP_INTERCEPTOR,
       useClass: OperationLogInterceptor,

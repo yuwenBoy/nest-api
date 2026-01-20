@@ -13,11 +13,7 @@ export class MessageController {
     @Query('userId') userId: string,
     @Query('page') page: number = 1,
   ) {
-    return await this.messageService.getPrivateHistory(
-      req.user.userId,
-      parseInt(userId),
-      page,
-    );
+    return await this.messageService.getPrivateHistory(req.user.userId,parseInt(userId),page);
   }
 
   // 获取群聊历史

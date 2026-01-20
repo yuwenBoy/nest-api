@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './core/filter/HttpException.filter';
-
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { TransformInterceptor } from './core/filter/TransformInterceptor.filter';
 
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -12,8 +12,6 @@ import { ConfigService } from '@nestjs/config';
 import rateLimit from 'express-rate-limit';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-import { ChatGateway } from './gateway/chat.gateway';
-import { OperationLogInterceptor } from './operation-log/operation-log.interceptor';
 /**
  * 程序入口文件main.ts
  */
@@ -35,33 +33,44 @@ async function bootstrap() {
 
   let config = app.get(ConfigService);
 
-  const prefix = config.get<string>('admin.prefix') || 8080;
-  const port = config.get<string>('admin.port') || 8080;
+  const prefix = config.get<string>('admin.prefix') || 8080
+  const port = config.get<string>('admin.port') || 8080
+
+  
+  // 使用ws适配器
+  app.useWebSocketAdapter(new IoAdapter(app))
 
   // 全局注册xml支持中间件（这里必须调用.use才能够注册）
-  app.use(new XMLMiddleware().use);
+  app.use(new XMLMiddleware().use)
 
   // app.useLogger()
 
   // 全局使用管道:这里使用的是内置，也可以使用自定义管道，在下文
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe())
 
   // 全局路由前缀
-  app.setGlobalPrefix(prefix + '/');
+  app.setGlobalPrefix(prefix + '/',{
+    exclude: [
+    // /socket\.io(\/.*)?/,    
+    'socket.io/*', 
+    'socket.io', 
+    '/chat',               // 显式排除命名空间
+    '/chat/'],
+  })
 
   // 全局注册通用异常过滤器httpExceptionFilter
-  app.useGlobalFilters(new HttpExceptionFilter(new Logger()));
+  app.useGlobalFilters(new HttpExceptionFilter(new Logger()))
 
   // 全局注册权限验证守卫
 //   app.useGlobalGuards(new AuthGuard(config));
 
   // 全局使用拦截器
-  app.useGlobalInterceptors(new TransformInterceptor());
+  app.useGlobalInterceptors(new TransformInterceptor())
 
   // 配置静态资源文件访问
   app.useStaticAssets(join(__dirname, '..', config.get<string>('admin.file.location')), {
     prefix: config.get<string>('admin.file.serveRoot'), //设置虚拟路径
-  });
+  })
 
   // 设置swagger文档
   const swagger = new DocumentBuilder()
@@ -77,10 +86,8 @@ async function bootstrap() {
       persisAuthorization: true,
     },
     customSiteTitle: 'nest-api API Docs',
-  });
+  })
 
-  // 使用ws适配器
-//   app.useWebSocketAdapter(new ChatGateway());
   await app.listen(port, () => {
     Logger.log(`服务已经启动,接口请访问http://localhost:${port}${prefix}`);
     Logger.log(

@@ -1,28 +1,24 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
+import { BusinessBaseEntity } from '../common/base.entity';
 
 @Entity('message')
-export class Message {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ name: 'sender_id' })
+export class MessageEntity extends BusinessBaseEntity{
+   
+  @Column({ name: 'sender_id',comment:'发送者ID', nullable: true })
   senderId: number;
 
-  @Column({ name: 'receiver_id', nullable: true })
+  @Column({ name: 'receiver_id',comment:'接收者ID', nullable: true })
   receiverId: number;
 
-  @Column({ name: 'group_id', nullable: true })
+  @Column({ name: 'group_id',comment:'群组ID', nullable: true })
   groupId: number;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text' ,comment:'消息内容'})
   content: string;
 
-  @Column({ name: 'message_type', default: 'text' })
-  messageType: string;
+  @Column({ name: 'message_type', comment:'消息类型', default: 'text' })
+  messageType: number
 
-  @Column({ name: 'is_read', default: false })
-  isRead: boolean;
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  @Column({ name: 'is_read',comment:'是否已读', default: 0 })
+  isRead: number;
 }
