@@ -11,6 +11,7 @@ import { Logger, UseGuards } from '@nestjs/common';
 import { MessageService } from '../modules/chat/service/message.service';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
 import { DataSource } from 'typeorm';
+import { MessageStatusEnum } from 'src/enum/chat_enum';
 
 /**
  * WebSocket 聊天模块
@@ -105,8 +106,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
-   * 
-   * @param client 
+   *
+   * @param client
    */
   handleDisconnect(client: Socket) {
     this.logger.log(`客户端断开连接: ${client.id}`);
@@ -127,7 +128,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // 2. 查询发送者信息（用于显示）
     const sender = await this.dataSource.getRepository(UserEntity).findOne({
       where: { id: senderId },
-      select: ['id', 'username', 'avatar','cname'],
+      select: ['id', 'username', 'avatar', 'cname'],
     });
 
     const messageWithUser = {
@@ -148,7 +149,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // ✅ 打印广播结果
     const socketsInRoom = await this.server.in(receiverRoom).fetchSockets();
 
-    this.logger.log(`🏠 房间 ${receiverRoom} 中有 ${socketsInRoom.length} 个客户端`);
+    this.logger.log(
+      `🏠 房间 ${receiverRoom} 中有 ${socketsInRoom.length} 个客户端`,
+    );
 
     // 4. ✅ 也发送给发送者（用于确认，显示"已发送"状态）
     client.emit('message_sent', messageWithUser);
@@ -177,5 +180,82 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleJoinRoom(client: Socket, roomId: string) {
     client.join(roomId);
     this.logger.log(`用户 ${client.data.userId} 加入房间 ${roomId}`);
+  }
+
+  @SubscribeMessage('mark_as_delivered')
+  async handleMarkAsDelivered(
+    client: Socket,
+    payload: { messageIds: number[] },
+  ) {
+    const userId = client.data.userId;
+
+    console.log('📦 标记消息为已送达:', {
+      userId,
+      messageIds: payload.messageIds,
+    });
+
+    // 更新数据库
+    await this.messageService.updateStatus(
+      payload.messageIds,
+      MessageStatusEnum.DELIVERED,
+      userId,
+    );
+
+    // ✅ 通知发送者消息已送达
+    payload.messageIds.forEach(async (messageId) => {
+      const message = await this.messageService.getMessageById(messageId);
+      if (message) {
+        const senderRoom = `user_${message.senderId}`;
+        this.server.to(senderRoom).emit('message_status_updated', {
+          messageId: message.id,
+          status: MessageStatusEnum.DELIVERED,
+          updatedAt: new Date(),
+        });
+      }
+    });
+  }
+
+  // ✅ 标记消息为已读
+  @SubscribeMessage('mark_as_read')
+  async handleMarkAsRead(client: Socket, payload: { messageIds: number[] }) {
+    const userId = client.data.userId;
+
+    console.log('📖 标记消息为已读:', {
+      userId,
+      messageIds: payload.messageIds,
+    });
+
+    // 更新数据库
+    await this.messageService.updateStatus(
+      payload.messageIds,
+      MessageStatusEnum.READ,
+      userId,
+    );
+
+    // ✅ 通知发送者消息已读
+    payload.messageIds.forEach(async (messageId) => {
+      const message = await this.messageService.getMessageById(messageId);
+      if (message) {
+        const senderRoom = `user_${message.senderId}`;
+        this.server.to(senderRoom).emit('message_status_updated', {
+          messageId: message.id,
+          status: MessageStatusEnum.READ,
+          readAt: new Date(),
+          readerId: userId,
+        });
+      }
+    });
+  }
+
+  // ✅ 获取消息状态
+  @SubscribeMessage('get_message_status')
+  async handleGetMessageStatus(client: Socket, payload: { messageId: number }) {
+    const status = await this.messageService.getMessageStatus(
+      payload.messageId,
+    );
+    client.emit('message_status_response', {
+      messageId: payload.messageId,
+      status,
+    });
   }
 }

@@ -1,6 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
+import { Entity, Column, UpdateDateColumn } from 'typeorm';
 import { BusinessBaseEntity } from '../common/base.entity';
-
+import { MessageStatusEnum } from 'src/enum/chat_enum';
+import { Transform, TransformFnParams } from 'class-transformer';
+import { formatTime } from 'src/utils/date';
 @Entity('message')
 export class MessageEntity extends BusinessBaseEntity{
    
@@ -19,6 +21,17 @@ export class MessageEntity extends BusinessBaseEntity{
   @Column({ name: 'message_type', comment:'消息类型', default: 'text' })
   messageType: number
 
-  @Column({ name: 'is_read',comment:'是否已读', default: 0 })
-  isRead: number;
+  @Column({ 
+    name: 'status', 
+    enum: MessageStatusEnum, 
+    default: MessageStatusEnum.SENT 
+  })  
+  status: MessageStatusEnum; // ✅ 消息状态
+
+   @Transform((row: TransformFnParams) => {
+      let timestamp: any = new Date(row.value);
+      return formatTime(timestamp / 1000);
+   })
+  @UpdateDateColumn({name: 'read_at',comment:'读取时间'})
+  readAt: Date;
 }
