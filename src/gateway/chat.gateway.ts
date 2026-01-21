@@ -8,15 +8,16 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger, UseGuards } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { MessageService } from '../modules/chat/service/message.service';
-import { cli } from 'winston/lib/winston/config';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
 import { DataSource } from 'typeorm';
 
+/**
+ * WebSocket 聊天模块
+ */
 @WebSocketGateway({
   namespace: '/chat', // 命名空间必须与前端一致
-  path: '/socket.io',  
+  path: '/socket.io',
   cors: {
     origin: '*', // Vue 开发服务器地址
     credentials: true,
@@ -32,50 +33,81 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private messageService: MessageService,
     private AuthService: AuthService,
     private dataSource: DataSource, // ✅ 用于复杂查询
-
   ) {}
 
-  // 客户端连接时验证 token
+  /**
+   *
+   * @param client 客户端连接
+   * @returns
+   */
   async handleConnection(client: Socket) {
     try {
-      
-      console.log('客户端连接')  
+      this.logger.log('🔌 客户端连接:', client.id);
+      this.logger.log('🔌 客户端 IP:', client.request.connection.remoteAddress);
+      this.logger.log('时间：', new Date().toISOString());
+
+      // 1. 验证 token
       const token = client.handshake.auth.token;
-      if(!token){
-        this.logger.error('未提供token，连接被拒绝');
-        client.emit('error',{message:'未提供认证token'})
+
+      if (!token) {
+        this.logger.error('WebSocket 未提供认证token!');
+        client.emit('error', { message: '未提供认证token' });
+        // 关闭连接
         client.disconnect(true);
         return;
       }
       let userInfo;
-        try {
-          userInfo =  this.AuthService.verifyToken(token)
+      try {
+        this.logger.log('开始验证Token...');
 
-        } catch (error) {
-          this.logger.error('WebSocket 认证失败');
-          client.emit('error',{message:'WebSocket 认证失败'})
-          client.disconnect(true);
-          return;
-        }
-          // ✅ 关键：将用户加入自己的房间
-       client.join(`user_${userInfo.userId}`);
-      console.log(`✅ 用户 ${userInfo.id} 加入房间: user_${userInfo.id}`);
-       console.log('userinfo',JSON.stringify(userInfo)) 
-       client.data.userId = userInfo.id; // 将用户ID挂载到socket
-       client.data.username = userInfo.username; // 将用户名挂载到socket
-       this.logger.log(`✅ 用户 ${userInfo.id} 连接成功: ${client.id}`);
-      
+        userInfo = this.AuthService.verifyToken(token);
+
+        this.logger.log('Token 验证成功！', JSON.stringify(userInfo));
+      } catch (error) {
+        this.logger.error('WebSocket 认证失败');
+
+        client.emit('error', { message: 'WebSocket 认证失败' });
+
+        // 关闭连接
+        client.disconnect(true);
+        return;
+      }
+
+      // 加入房间
+      const roomName = `user_${userInfo.id}`;
+
+      this.logger.log('准备加入房间：' + roomName);
+      await client.join(roomName);
+      this.logger.log('成功加入房间：' + roomName);
+
+      //    // 立即检查房间状态
+      //    const rooms = this.server.sockets.adapter.rooms;
+      //    const room = rooms.get(roomName);
+      //    console.log(`立即检查 - 房间 ${roomName} 中有 ${room?.size || 0 } 个客户端`)
+
+      //    // 延迟1秒检查房间状态
+      //    setTimeout(() => {
+      //      const socketsInRoom = rooms.get(roomName);
+      //      console.log(`延迟1秒检查 - 房间 ${roomName} 中有 ${socketsInRoom?.size || 0 } 个客户端`)
+      //    }, 1000);
+
+      client.data.userId = userInfo.id; // 将用户ID挂载到socket
+      //    client.data.username = userInfo.username; // 将用户名挂载到socket
       // 4. 发送欢迎消息
-      client.emit('connected', { 
+      client.emit('connected', {
         message: 'WebSocket 连接成功！',
-        userId: userInfo.userId 
-      })
+        userId: userInfo.id,
+      });
     } catch (error) {
       this.logger.error('WebSocket 认证失败');
       client.disconnect();
     }
   }
 
+  /**
+   * 
+   * @param client 
+   */
   handleDisconnect(client: Socket) {
     this.logger.log(`客户端断开连接: ${client.id}`);
   }
@@ -87,28 +119,37 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const senderId = client.data.userId;
     // 1. 保存消息
     const message = await this.messageService.create({
-        senderId,
-        receiverId,
-        content,
+      senderId,
+      receiverId,
+      content,
     });
 
     // 2. 查询发送者信息（用于显示）
     const sender = await this.dataSource.getRepository(UserEntity).findOne({
-        where: { id: senderId },
-        select: ['id', 'username', 'avatar'],
+      where: { id: senderId },
+      select: ['id', 'username', 'avatar','cname'],
     });
 
     const messageWithUser = {
-        ...message,
-        senderUsername: sender?.username || `用户${senderId}`,
-        senderAvatar: sender?.avatar,
+      ...message,
+      senderUsername: sender?.username || `用户${senderId}`,
+      senderCname: sender?.cname,
+      senderAvatar: sender?.avatar,
     };
 
     // 3. ✅ 广播给接收者（关键：发送给接收者的房间）
     const receiverRoom = `user_${receiverId}`;
-    console.log('📨 正在广播到房间:', receiverRoom);
+
+    this.logger.log('📨 正在广播到房间:', receiverRoom);
+
+    // 广播给接收者
     this.server.to(receiverRoom).emit('new_message', messageWithUser);
-    
+
+    // ✅ 打印广播结果
+    const socketsInRoom = await this.server.in(receiverRoom).fetchSockets();
+
+    this.logger.log(`🏠 房间 ${receiverRoom} 中有 ${socketsInRoom.length} 个客户端`);
+
     // 4. ✅ 也发送给发送者（用于确认，显示"已发送"状态）
     client.emit('message_sent', messageWithUser);
 

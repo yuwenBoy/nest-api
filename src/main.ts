@@ -36,8 +36,7 @@ async function bootstrap() {
   const prefix = config.get<string>('admin.prefix') || 8080
   const port = config.get<string>('admin.port') || 8080
 
-  
-  // 使用ws适配器
+  // 设置socket.io 服务
   app.useWebSocketAdapter(new IoAdapter(app))
 
   // 全局注册xml支持中间件（这里必须调用.use才能够注册）
