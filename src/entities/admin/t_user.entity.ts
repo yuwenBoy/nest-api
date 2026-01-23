@@ -28,13 +28,13 @@ export class UserEntity extends ZJBaseEntity {
   address: string;
 
   @Column({type:'varchar', name: 'avatar'})
-  avatar: string;
+  avatar?: string;
 
   @Column({type:'enum',default:UserStatusEnum.DISABLED,enum:UserStatusEnum, name: 'disabled',comment:'状态'})
   disabled: UserStatusEnum;
 
   @Column({type:'varchar', name: 'phone',length:11})
-  phone: string;
+  phone?: string;
 
   @Column({type:'int', name: 'dept_id'})
   dept_id: Number;
@@ -49,7 +49,7 @@ export class UserEntity extends ZJBaseEntity {
   birthday: string;
 
   @Column({type:'varchar', name: 'nick_name',comment:'昵称'})
-  nick_name: string;
+  nick_name?: string;
 
   @Column({type:'int', name: 'master_work_id',comment:'主管Id'})
   master_work_id: Number;
@@ -68,7 +68,6 @@ export class UserEntity extends ZJBaseEntity {
   @OneToOne(type => PositionEntity,posi => posi.id)
   positionName:PositionEntity[];
 
-   
   @Column({type:'int', name: 'business_id',comment:'商家ID'})
    business_id:number;
 
@@ -76,5 +75,5 @@ export class UserEntity extends ZJBaseEntity {
    employees: EmployeeEntity[]; // 员工表关联
 
    @Column({type:'enum',default:UserTypeEnum.SYSTEMUSER,enum:UserTypeEnum, name: 'user_type',comment:'用户类型'})
-   userType: UserTypeEnum;
+   userType!: UserTypeEnum;
 }

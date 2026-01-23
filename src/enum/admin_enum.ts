@@ -16,12 +16,14 @@ export enum MenuHiddenEnum {
  }
 
  /**
- * 用户类型 1 系统用户 2 商家用户 3门店用户
+ * 用户类型 1 系统用户 2 商家用户 3门店用户 4客户端用户 5骑士用户
  */
 export enum UserTypeEnum {
     SYSTEMUSER = 1, // 系统用户
     BUSINESSUSER = 2, // 商家用户
-    STOREUSER = 3 // 门店用户
+    STOREUSER = 3, // 门店用户
+    CLIENT = 4, // 客户端用户
+    KNIGHT = 5 // 骑士用户
 }
 
  
