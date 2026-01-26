@@ -265,7 +265,7 @@ export class BusinessService {
                 const roleId = this.config.get<string>('business.roleId');
                 const deptId = this.config.get<string>('business.deptId');
                 const positionId = this.config.get<string>('business.positionId');
-                const transformAccount = account + '_' + merchant.id
+                const transformAccount = 'M' +Date.now().toString().substr(7); // account + '_' + merchant.id
 
                 if (parseInt(dto.status) === 1) {
                     // 审核通过
@@ -276,9 +276,7 @@ export class BusinessService {
                     // 新增商户账户信息表
                     const merchantAccount = transactionalEntityManager.create(BusinessAccountEntity, {
                         business_id: merchant.id,
-                        email:merchant.email,
-                        userName:transformAccount,
-                        password:transformPass, 
+                        status:0, // 待完善
                     });
                     await transactionalEntityManager.save(merchantAccount);
 
