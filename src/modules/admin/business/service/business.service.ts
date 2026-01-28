@@ -4,7 +4,7 @@ import { BusinessEntity } from 'src/entities/business/business.entity';
 import { BusinessAuditEntity } from 'src/entities/business/business_audit.entity';
 import { Brackets, EntityManager, getRepository, In, Repository } from 'typeorm';
 import { CreateMerchantApplicationDto } from '../dto/CreateMerchantApplicationDto';
-import { BusinessAuditStatusEnum, BusinessStatusEnum } from 'src/enum/business_enum';
+import { BusinessAuditStatusEnum, BusinessStatusEnum, StoreOnlineEnum, StoreStatusEnum } from 'src/enum/business_enum';
 import { BusinessCategoryRelationEntity } from 'src/entities/business/business_category_relation.entity';
 import { BusinessCategoryEntity } from 'src/entities/business/category.entity';
 import { PageListVo } from 'src/modules/common/page/pageList';
@@ -16,6 +16,7 @@ import { UserRoleEntity } from 'src/entities/admin/t_user_role.entity';
 import { EmailService } from 'src/modules/common/services/email/email.service';
 import { compareSync, hashSync } from 'bcryptjs';
 import { UserTypeEnum } from 'src/enum/admin_enum';
+import { StoreEntity } from 'src/entities/store/store.entity';
 
 @Injectable()
 export class BusinessService {
@@ -197,11 +198,29 @@ export class BusinessService {
             // 保存商家审核
             const savedApplication = await transactionalEntityManager.save(application);
 
+            // 创建首个门店
+            const firstStore = transactionalEntityManager.create(StoreEntity, {
+                storeName:'默认门店',
+                business_id: savedMerchant.id,
+                address: savedMerchant.address,
+                status: StoreStatusEnum.APPLYIN, // 待审核
+                online: StoreOnlineEnum.DOWNLINE, // 门店已下线
+                contactInfo: savedMerchant.contactPhone,
+                remark: '门店简介：新店开业，请多多关照',
+                notice: '你好，欢迎光临',
+                // latitude:0.3,
+                // longitude:0.3
+                avatarImg: '',
+                isDefault: 1, // 默认门店
+            });
+
+            await transactionalEntityManager.save(firstStore);
+
             Logger.log('保存商家审核',savedApplication);
         
             // 如果提供了分类 ID，则创建关联
-            if (dto.categories) {
-                const categoryIds = dto.categories.split(',').map(id => Number(id));
+            if (dto.categories && dto.categories.length>0) {
+                const categoryIds = dto.categories.map(id => Number(id));
                 const categories = await transactionalEntityManager.find(BusinessCategoryEntity, {
                 where: { id: In(categoryIds) },
                 });
@@ -322,6 +341,15 @@ export class BusinessService {
                     reason: dto.reason,
                 });
                 const savedApplication = await transactionalEntityManager.save(businessAudit);
+
+                // 更新门店状态
+                const stores = await transactionalEntityManager.find(StoreEntity, {
+                    where: { business_id: merchant.id },
+                });
+                for (const store of stores) {
+                    store.status = parseInt(dto.status) === 1? StoreStatusEnum.ACTIVE : StoreStatusEnum.END;
+                    await transactionalEntityManager.save(store);
+                }
 
                 return savedApplication;
  

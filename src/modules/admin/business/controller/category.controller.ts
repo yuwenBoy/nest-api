@@ -17,11 +17,6 @@ import { SkipLog } from "src/common/decorators/skip-log.decorator";
 export class CategoryController {
     constructor(private readonly categoryService: CategoryService) {}
 
-    @Get('test')  
-    test(){
-       return '测试接口';
-    }
-
     @ApiOperation({ summary: '查询品类列表' })
     @Post('/getByCondition')
     list(@Body() query):Promise<any> {
@@ -29,7 +24,6 @@ export class CategoryController {
       return this.categoryService.pageQuery(query);
     }
 
-    
    /**
    * 品类管理-新增品类
    */

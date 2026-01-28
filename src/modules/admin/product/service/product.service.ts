@@ -1017,7 +1017,7 @@ export class ProductService {
                     await transactionalEntityManager.save(productDynamicAttributeRelation);
                 }
                 } else {
-                console.warn(`Skipping duplicate record for attributeId: ${attr.id}`);
+                     console.warn(`Skipping duplicate record for attributeId: ${attr.id}`);
                 }
             }
              return savedProduct;

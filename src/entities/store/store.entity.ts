@@ -6,12 +6,12 @@ import { StoreOnlineEnum, StoreStatusEnum } from "src/enum/business_enum";
 
 @Entity('store')
 export class StoreEntity extends BusinessBaseEntity {
- 
- @Column({type:'varchar', name: 'store_name',comment:'门店名称'})
-  storeName: string;
+    
+    @Column({type:'varchar', name: 'store_name',comment:'门店名称'})
+    storeName: string;  
 
-  @OneToMany(() => EmployeeEntity, employee => employee.store)
-  employees: EmployeeEntity[];
+    @OneToMany(() => EmployeeEntity, employee => employee.store)
+    employees: EmployeeEntity[];
 
     @Column({type:'int', name: 'business_id',comment:'商家ID'})
     business_id:number;
@@ -24,7 +24,6 @@ export class StoreEntity extends BusinessBaseEntity {
 
     @Column({type:'int',default:StoreOnlineEnum.DOWNLINE,enum:StoreOnlineEnum, name: 'online',comment:'门店上线状态'})
     online: StoreOnlineEnum;  
-
 
     @Column({type:'varchar', name: 'contact_info',comment:'门店联系方式'})
     contactInfo: string;     

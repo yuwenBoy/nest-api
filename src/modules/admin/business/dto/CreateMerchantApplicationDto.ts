@@ -28,8 +28,8 @@ export class CreateMerchantApplicationDto {
   @IsString()
   healthLicense: string;
 
-  @IsString()
-  categories?: string;
+  @IsNotEmpty()
+  categories: Array<number>;
 
   description?:string;
 
