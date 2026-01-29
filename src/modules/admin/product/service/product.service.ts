@@ -1,6 +1,3 @@
-import { filter } from 'rxjs/operators';
-import { map } from 'rxjs';
-import { Type } from 'class-transformer';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { Brackets, EntityManager, In, Repository } from 'typeorm';
@@ -306,7 +303,7 @@ export class ProductService {
 
                     if (params.properties.length > 0) {
                     
-                        const {savedProperties,savedPropertyValues} = await this.savePropertyAndPropertieOption(transactionalEntityManager,params.properties,products[0].businessId);
+                        const {savedProperties,savedPropertyValues} = await this.savePropertyAndPropertieOption(transactionalEntityManager,params.properties,products[0].storeId);
                    
                     
                         // 确保 savedProductSpecs 和 savedProperties 有数据
@@ -408,8 +405,8 @@ export class ProductService {
    * 查询全部产品数量、已下架、已售罄数量
    * @returns 
    */
-   async getStatistics(businessId:number){
-    const products = await this.productRepository.find({where:{businessId:businessId}});
+   async getStatistics(storeId:number){
+    const products = await this.productRepository.find({where:{storeId}});
     const productCount = products.length; //商品总数
     const downActiveCount = products.filter(t=>t.isActive==2)?.length; // 已下架
     const spec = await this.productSpecRepository.find({ where: {productId:In(products.map(t=>t.id)), stock: 0 } });
@@ -426,7 +423,7 @@ export class ProductService {
    * @param parameter 查询条件
    * @returns list
    */
-  async pageQuery(parameter: any,businessId:number): Promise<any> {
+  async pageQuery(parameter: any): Promise<any> {
      try {
              const [pageIndex, pageSize] = [parameter.page, parameter.size];
                   let qb = await this.productRepository.createQueryBuilder('product')
@@ -450,8 +447,8 @@ export class ProductService {
                       }),
                     ).andWhere(
                         new Brackets((qb) => {
-                            if (businessId) {
-                              qb.andWhere('product.business_id  = :business_id', { business_id: businessId });
+                            if (parameter.storeId) {
+                              qb.andWhere('product.store_id  = :storeId', { storeId: parameter.storeId });
                             }
                         }),
                       ).andWhere(new Brackets((qb) => {
@@ -675,7 +672,7 @@ export class ProductService {
         * @param dto 
         * @returns 
         */
-    async update(dto: SaveProductDto, business_id: number): Promise<any> {
+    async update(dto: SaveProductDto): Promise<any> {
         return this.productRepository.manager.transaction(async (transactionalEntityManager) => {
             try {
                  // 获取产品实体
@@ -686,7 +683,7 @@ export class ProductService {
                 // 更新产品实体
                 product.productName = dto.productName;
                 product.description = dto.description;
-                product.businessId = business_id;
+                product.storeId = dto.storeId;
                 product.imageUrl = dto.imageUrl.map(t => t).toString();
                 product.categoryId = dto.categories[dto.categories.length - 1];
                 product.status = ProductAuditStatusEnum.SUCCESS; // 默认审核通过
@@ -827,7 +824,7 @@ export class ProductService {
                             }
                         
                             // 处理属性、属性选项保存操作
-                            const {savedProperties,savedPropertyValues} = await this.savePropertyAndPropertieOption(transactionalEntityManager,dto.properties,business_id);
+                            const {savedProperties,savedPropertyValues} = await this.savePropertyAndPropertieOption(transactionalEntityManager,dto.properties,dto.storeId);
 
                             Logger.log('// 处理属性、属性选项保存操作')
                             Logger.log(savedProperties,savedPropertyValues)
@@ -851,7 +848,7 @@ export class ProductService {
           * @param dto 
           * @returns 
           */
-         async create(dto: SaveProductDto,business_id:number): Promise<ProductEntity> {
+         async create(dto: SaveProductDto): Promise<ProductEntity> {
            return this.productRepository.manager.transaction(async (transactionalEntityManager) => {
              try {
 
@@ -859,7 +856,7 @@ export class ProductService {
                const product = transactionalEntityManager.create(ProductEntity, {
                    productName: dto.productName,
                    description:dto.description,
-                   businessId:business_id,
+                   businessId:dto.storeId,
                    imageUrl: dto.imageUrl.map(t=>t).toString(),
                    categoryId: dto.categories[dto.categories.length-1],
                    status:ProductAuditStatusEnum.SUCCESS, // 默认审核通过
@@ -915,7 +912,7 @@ export class ProductService {
 
                     if (dto.properties.length > 0) {
 
-                        const {savedProperties,savedPropertyValues} = await this.savePropertyAndPropertieOption(transactionalEntityManager,dto.properties,business_id);
+                        const {savedProperties,savedPropertyValues} = await this.savePropertyAndPropertieOption(transactionalEntityManager,dto.properties,dto.storeId);
 
                         await this.saveProductSpecPropertyRelation(transactionalEntityManager,savedProductSpecs,savedProperties,savedPropertyValues,savedProduct.id);
                         // // 构建需要插入的新关联记录

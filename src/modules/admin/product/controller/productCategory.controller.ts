@@ -65,15 +65,9 @@ export class ProductCategoryController {
     return  this.productCategoryService.getCategoryAll();
   }
 
-  @ApiOperation({ summary: '查询所有主分类' })
-  @Get('/main')
+  @ApiOperation({ summary: '查询产品类目' })
+  @Get('category')
   async main(): Promise<BusinessCategoryEntity[]> {
     return this.productCategoryService.main();
-  }
-
-  @ApiOperation({ summary: '根据父分类ID查询次分类' })
-  @Get('/sub')
-  async getSubCategories(@Query('parent_id') parentId: number): Promise<BusinessCategoryEntity[]> {
-    return this.productCategoryService.getSubCategories(parentId);
   }
 }

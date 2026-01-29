@@ -18,9 +18,9 @@ export class ProductGroupController {
     constructor(private readonly productGroupService: ProductGroupService) {}
 
     @ApiOperation({ summary: '查询品类列表' })
-    @Post('/getByCondition')
-    list(@Body() query,@CurrentUser() userInfo: UserInfoDto):Promise<any> {
-      return this.productGroupService.pageQuery(query,userInfo.business_id);
+    @Post('getByCondition')
+    list(@Body() query):Promise<any> {
+      return this.productGroupService.pageQuery(query);
     }
 
    /**
@@ -52,14 +52,17 @@ export class ProductGroupController {
 
   @ApiOperation({ summary: '查询所有分组' })
   @Post('/productGroupAll')
-  productGroupAll(@Body() params, @CurrentUser() userInfo: UserInfoDto):Promise<any> {
-    return  this.productGroupService.productGroupAll(params,userInfo.business_id);
+  productGroupAll(@Body() params):Promise<any> {
+    return  this.productGroupService.productGroupAll(params);
   }
 
 
   @ApiOperation({ summary: '查询门店分组菜单' })
   @Get('/fetchProductGroup')
-  fetchProductGroup(@CurrentUser() userInfo: UserInfoDto):Promise<any>{
-      return this.productGroupService.fetchProductGroup(userInfo.business_id);
+  fetchProductGroup(@Query() params):Promise<any>{
+    let storeId = params.storeId;
+    if(storeId>0){
+      return this.productGroupService.fetchProductGroup(storeId);
+    }
   }
 }

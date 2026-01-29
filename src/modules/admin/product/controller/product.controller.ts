@@ -20,17 +20,20 @@ export class ProductController {
 
     @SkipLog()
     @ApiOperation({ summary: '查询产品列表' })
-    @Post('/productListPager')
-    list(@Body() query,@CurrentUser() userInfo: UserInfoDto):Promise<any> {
+    @Post('productListPager')
+    list(@Body() query):Promise<any> {
       Logger.log(`分页查询接受参数：${JSON.stringify(query)}`);
-      return this.productService.pageQuery(query,userInfo.business_id);
+      return this.productService.pageQuery(query);
     }
 
     @SkipLog()
     @ApiOperation({ summary: '查询产品总数' })
-    @Get('/getStatistics')
-    getStatistics(@CurrentUser() userInfo: UserInfoDto):Promise<any> {
-      return this.productService.getStatistics(userInfo.business_id);
+    @Get('getStatistics')
+    getStatistics(@Query() query):Promise<any> {
+      let storeId = query.storeId;
+      if(storeId>0){
+         return this.productService.getStatistics(storeId);
+      }
     }
 
     @SkipLog()
@@ -46,11 +49,11 @@ export class ProductController {
    @SkipLog()
    @ApiOperation({ summary: '新建产品' })
    @Post('/create')
-   addUser(@Body() params:SaveProductDto,@CurrentUser() userInfo: UserInfoDto): Promise<ProductEntity> {
+   addUser(@Body() params:SaveProductDto): Promise<ProductEntity> {
      if(params.id>0){
-        return this.productService.update(params,userInfo.business_id);
+        return this.productService.update(params);
      }else{
-        return this.productService.create(params,userInfo.business_id);
+        return this.productService.create(params);
      }
    }
  

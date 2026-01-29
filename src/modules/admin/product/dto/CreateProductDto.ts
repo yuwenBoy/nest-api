@@ -21,7 +21,13 @@ export class SaveProductDto {
   @IsString()
   productName: string;
   
-
+ /**
+   * 门店ID
+   * - 必填：门店ID
+   * - 类型：整数
+   */  
+  @IsNotEmpty()
+  storeId: number;
    /**
    * 产品名称
    * - 选填：

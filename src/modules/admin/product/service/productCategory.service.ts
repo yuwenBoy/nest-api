@@ -115,7 +115,7 @@ export class ProductCategoryService {
   async main(): Promise<any[]> {
        // 使用EntityManager构建查询
        const queryBuilder = this.entityManager.createQueryBuilder(ProductCategoryEntity, 'category');
-       const category = await queryBuilder.where('category.parent_id = :parentId', { parentId: 0 }).getMany();
+       const category = await queryBuilder.getMany();
        const result = category.map(t=>({
            label:t.name,
            value:t.id,

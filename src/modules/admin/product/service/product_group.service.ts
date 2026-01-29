@@ -16,109 +16,111 @@ export class ProductGroupService {
 
     @InjectRepository(StoreEntity)
     private readonly sroreRepository: Repository<StoreEntity>,
-   
   ) {}
-  
+
   /**
    * 查询分组列表
    * @param parameter 查询条件
    * @returns list
    */
-  async pageQuery(parameter: any,businessId:number): Promise<any> {
-     try {
+  async pageQuery(parameter: any): Promise<any> {
+    try {
+      const [pageIndex, pageSize] = [parameter.page, parameter.size];
+      let qb = await this.productGroupRepository
+        .createQueryBuilder('productGroup')
+        .innerJoinAndMapOne(
+          'productGroup.store',
+          StoreEntity,
+          'store',
+          'productGroup.store_id=store.id',
+        )
+        .where(
+          new Brackets((qb) => {
+            if (parameter.name) {
+              qb.andWhere('productGroup.name LIKE :name', {
+                name: `%${parameter.name}%`,
+              });
+            }
+          }),
+        )
+        .andWhere(
+          new Brackets((qb) => {
+            if (parameter.storeId) {
+              qb.andWhere('productGroup.store_id  = :store_id', {
+                store_id: parameter.storeId,
+              });
+            }
+          }),
+        )
+        // .orderBy(`business.created_at`, 'DESC')
+        .skip((pageIndex - 1) * Number(pageSize))
+        .take(pageSize);
 
-             // 根据商家获取默认门店
-             const storeEntity = await this.sroreRepository.findOne({where:{business_id:businessId,isDefault:1}}) 
-        
-             const [pageIndex, pageSize] = [parameter.page, parameter.size];
-                  let qb = await this.productGroupRepository.createQueryBuilder('productGroup')
-                   .innerJoinAndMapOne(
-                                    'productGroup.store',
-                                    StoreEntity,
-                                    'store',
-                                    'productGroup.store_id=store.id',
-                    )
-                  .where(
-                      new Brackets((qb) => {
-                          if (parameter.name) {
-                            qb.andWhere('productGroup.name LIKE :name', {
-                                name: `%${parameter.name}%`,
-                            });
-                          }
-                      }),
-                    ).andWhere(
-                        new Brackets((qb) => {
-                            if (businessId) {
-                              qb.andWhere('productGroup.store_id  = :store_id', { store_id: storeEntity.id });
-                            }
-                        }),
-                      )
-                    // .orderBy(`business.created_at`, 'DESC')
-                    .skip((pageIndex - 1) * Number(pageSize))
-                    .take(pageSize);
-            
-                  const [data, count] = await qb.getManyAndCount();
-            
-                  return {
-                    ...{ content: data },
-                    page: pageIndex,
-                    size: pageSize,
-                    totalElements: count,
-                    totalPage: Math.ceil(count / pageSize),
-                  };
-            } catch (error) {
-              Logger.error(`查询分页列表失败，原因：${JSON.stringify(error)}`);
-              throw new HttpException('查询分页列表失败', HttpStatus.INTERNAL_SERVER_ERROR);
-      }
+      const [data, count] = await qb.getManyAndCount();
+
+      return {
+        ...{ content: data },
+        page: pageIndex,
+        size: pageSize,
+        totalElements: count,
+        totalPage: Math.ceil(count / pageSize),
+      };
+    } catch (error) {
+      Logger.error(`查询分页列表失败，原因：${JSON.stringify(error)}`);
+      throw new HttpException(
+        '查询分页列表失败',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-    /**
+  /**
    * 查询全部分组
    */
-    async productGroupAll(params:any,businessId:number): Promise<any> {
-        try {
-            // 根据商家获取默认门店
-            const storeEntity = await this.sroreRepository.findOne({where:{business_id:businessId,isDefault:1}}) 
-            const queryBuilder = this.productGroupRepository
-            .createQueryBuilder('a') // 使用 'a' 作为 product_group 表的别名
-            .select(['a.*', 'COUNT(DISTINCT b.product_id) AS product_count'])
-            .leftJoin(ProductGroupRelationEntity, 'b', 'a.id = b.group_id') // 使用 'b' 作为 product_group_relation 表的别名
-            .leftJoin(ProductEntity,'c','b.product_id=c.id')
-            .leftJoin(ProductSpecEntity,'d','c.id=d.product_id')
-           
-            .where('a.store_id = :storeId', { storeId:storeEntity.id }) // 添加业务 ID 过滤条件
+  async productGroupAll(params: any): Promise<any> {
+    try {
+      const queryBuilder = this.productGroupRepository
+        .createQueryBuilder('a') // 使用 'a' 作为 product_group 表的别名
+        .select(['a.*', 'COUNT(DISTINCT b.product_id) AS product_count'])
+        .leftJoin(ProductGroupRelationEntity, 'b', 'a.id = b.group_id') // 使用 'b' 作为 product_group_relation 表的别名
+        .leftJoin(ProductEntity, 'c', 'b.product_id=c.id')
+        .leftJoin(ProductSpecEntity, 'd', 'c.id=d.product_id')
 
-            // 已下架
-            if(params.isActive==2){
-                 queryBuilder.andWhere('c.is_active = :isActive',{isActive:params.isActive})
-            }
+        .where('a.store_id = :storeId', { storeId: params.storeId }); // 添加业务 ID 过滤条件
 
-            // 已售罄
-            if(params.isActive == 3){
-                queryBuilder.andWhere('d.stock = 0');
-            }
-            queryBuilder.groupBy('a.id, a.name'); // 按分组 ID 和名称分组
-    
-          const groups = await queryBuilder.getRawMany();
-          return {
-            ...{ content: groups },
-          };
-        } catch (error) {
-          Logger.error('查询品类失败，原因：' + error);
-        }
+      // 已下架
+      if (params.isActive == 2) {
+        queryBuilder.andWhere('c.is_active = :isActive', {
+          isActive: params.isActive,
+        });
       }
 
-  
+      // 已售罄
+      if (params.isActive == 3) {
+        queryBuilder.andWhere('d.stock = 0');
+      }
+      queryBuilder.groupBy('a.id, a.name'); // 按分组 ID 和名称分组
+
+      const groups = await queryBuilder.getRawMany();
+      return {
+        ...{ content: groups },
+      };
+    } catch (error) {
+      Logger.error('查询品类失败，原因：' + error);
+    }
+  }
+
   /**
    * 新增|编辑 品类
    * @param parameter 参数
    * @returns 布尔类型
    */
-  async save(parameter: Partial<ProductGroupEntity>): Promise<ProductGroupEntity> {
+  async save(
+    parameter: Partial<ProductGroupEntity>,
+  ): Promise<ProductGroupEntity> {
     Logger.log(`请求参数：${JSON.stringify(parameter)}`);
     try {
-        
-      Logger.log('parameter'+parameter)
+      Logger.log('parameter' + parameter);
 
       // 必须用save 更新时间才生效
       let res = await this.productGroupRepository.save(parameter);
@@ -166,13 +168,11 @@ export class ProductGroupService {
     }
   }
 
-     /**
-     * 根据商家获取全部门店信息
-     * @param businessId 商家ID
-     */
-     async fetchProductGroup(businessId:number):Promise<any>{
-         // 根据商家获取默认门店
-        const storeEntity = await this.sroreRepository.findOne({where:{business_id:businessId,isDefault:1}}) 
-        return await this.productGroupRepository.find({where:{storeId:storeEntity.id}})
-     }
+  /**
+   * 根据商家获取全部门店信息
+   * @param businessId 商家ID
+   */
+  async fetchProductGroup(storeId: number): Promise<any> {
+    return await this.productGroupRepository.find({ where: { storeId } });
+  }
 }

@@ -13,8 +13,8 @@ export class ProductEntity extends BusinessBaseEntity {
     @Column({type:'varchar', name: 'product_name'})
     productName: string;
 
-    @Column({type:'int', name: 'business_id',comment:'商家ID'})
-    businessId: number;
+    @Column({type:'int', name: 'store_id',comment:'门店ID'})
+    storeId: number;
 
     @Column({type:'varchar', name: 'description',comment:'产品描述'})
     description: string;
