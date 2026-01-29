@@ -25,9 +25,9 @@ export class SaveProductDto {
    * 门店ID
    * - 必填：门店ID
    * - 类型：整数
-   */  
-  @IsNotEmpty()
-  storeId: number;
+   */ 
+  @IsInt()
+  storeId: number;  // axios拦截器添加的字段
    /**
    * 产品名称
    * - 选填：

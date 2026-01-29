@@ -851,12 +851,11 @@ export class ProductService {
          async create(dto: SaveProductDto): Promise<ProductEntity> {
            return this.productRepository.manager.transaction(async (transactionalEntityManager) => {
              try {
-
                // 创建产品实体
                const product = transactionalEntityManager.create(ProductEntity, {
                    productName: dto.productName,
                    description:dto.description,
-                   businessId:dto.storeId,
+                   storeId:dto.storeId,
                    imageUrl: dto.imageUrl.map(t=>t).toString(),
                    categoryId: dto.categories[dto.categories.length-1],
                    status:ProductAuditStatusEnum.SUCCESS, // 默认审核通过

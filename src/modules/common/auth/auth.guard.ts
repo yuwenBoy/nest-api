@@ -13,6 +13,7 @@ import { getUrlQuery } from 'src/utils/url';
 import { AuthService } from 'src/modules/admin/system/service/auth.service';
 import { API_AUTH_KEY } from 'src/modules/common/collections-permission/constants/api.auth';
 @Injectable()
+// 全局权限守卫
 export class AuthGuard implements CanActivate {
   constructor(
     private readonly config: ConfigService,

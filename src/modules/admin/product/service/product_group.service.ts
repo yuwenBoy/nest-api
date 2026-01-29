@@ -1,8 +1,7 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger,Request } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductGroupEntity } from 'src/entities/product/product_group.entity';
 import { Brackets, Repository } from 'typeorm';
-import { BusinessEntity } from 'src/entities/business/business.entity';
 import { ProductGroupRelationEntity } from 'src/entities/product/product_group_relation.entity';
 import { ProductEntity } from 'src/entities/product/product.entity';
 import { ProductSpecEntity } from 'src/entities/product/product_spec.entity';
@@ -13,9 +12,6 @@ export class ProductGroupService {
   constructor(
     @InjectRepository(ProductGroupEntity)
     private readonly productGroupRepository: Repository<ProductGroupEntity>,
-
-    @InjectRepository(StoreEntity)
-    private readonly sroreRepository: Repository<StoreEntity>,
   ) {}
 
   /**
@@ -23,8 +19,9 @@ export class ProductGroupService {
    * @param parameter 查询条件
    * @returns list
    */
-  async pageQuery(parameter: any): Promise<any> {
+  async pageQuery(@Request() req,parameter: any): Promise<any> {
     try {
+      console.log('打印请求参数==='+req.storeQuery,req.queryParams)  
       const [pageIndex, pageSize] = [parameter.page, parameter.size];
       let qb = await this.productGroupRepository
         .createQueryBuilder('productGroup')
@@ -42,17 +39,13 @@ export class ProductGroupService {
               });
             }
           }),
-        )
-        .andWhere(
+        ).andWhere(
           new Brackets((qb) => {
             if (parameter.storeId) {
-              qb.andWhere('productGroup.store_id  = :store_id', {
-                store_id: parameter.storeId,
-              });
+              qb.andWhere('productGroup.store_id  = :store_id',req.queryParams);
             }
           }),
         )
-        // .orderBy(`business.created_at`, 'DESC')
         .skip((pageIndex - 1) * Number(pageSize))
         .take(pageSize);
 
