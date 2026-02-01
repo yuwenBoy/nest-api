@@ -1,4 +1,4 @@
-import { Body, Controller,Get,Logger,Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller,Get,Logger,Post, Query, UseGuards,Request } from "@nestjs/common";
 import { AuthGuard } from 'src/modules/common/auth/auth.guard';
 import { ApiBearerAuth, ApiTags,ApiOperation } from "@nestjs/swagger";
 import { ApiAuth, CurrentUser, PermissionModule } from "src/modules/common/collections-permission/decorators";
@@ -6,13 +6,14 @@ import { UserInfoDto } from "../../system/dto/user/userInfo.dto";
 import { SaveProductDto } from "../dto/CreateProductDto";
 import { ProductService } from "../service/product.service";
 import { ProductEntity } from "src/entities/product/product.entity";
-
 import { SkipLog } from "src/common/decorators/skip-log.decorator";
+import { AuthStoreFilterGuard } from "src/modules/common/auth/auth.store.guard";
 
 @ApiTags('产品管理')
 @ApiBearerAuth() // swagger文档设置token
 @PermissionModule('产品管理')
 @UseGuards(AuthGuard)
+@UseGuards(AuthStoreFilterGuard)
 @ApiAuth()
 @Controller('product')
 export class ProductController {
@@ -29,11 +30,8 @@ export class ProductController {
     @SkipLog()
     @ApiOperation({ summary: '查询产品总数' })
     @Get('getStatistics')
-    getStatistics(@Query() query):Promise<any> {
-      let storeId = query.storeId;
-      if(storeId>0){
-         return this.productService.getStatistics(storeId);
-      }
+    getStatistics(@Request() req):Promise<any> {
+       return this.productService.getStatistics(req);
     }
 
     @SkipLog()

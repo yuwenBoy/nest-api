@@ -28,7 +28,7 @@ export class ProductGroupController {
    * 新建分组
    */
    @ApiOperation({ summary: '新建分组' })
-   @Post('/add')
+   @Post('add')
    addUser(@Body() params: Partial<ProductGroupEntity>): Promise<ProductGroupEntity> {
      return this.productGroupService.save(params);
    }
@@ -37,7 +37,7 @@ export class ProductGroupController {
     * 编辑分组
     */
    @ApiOperation({ summary: '编辑分组' })
-   @Post('/edit')
+   @Post('edit')
    updateUser(@Body() params: Partial<ProductGroupEntity>): Promise<ProductGroupEntity> {
      return this.productGroupService.save(params);
    }
@@ -53,17 +53,13 @@ export class ProductGroupController {
 
   @ApiOperation({ summary: '查询所有分组' })
   @Post('/productGroupAll')
-  productGroupAll(@Body() params):Promise<any> {
-    return  this.productGroupService.productGroupAll(params);
+  productGroupAll(@Request() req, @Body() params):Promise<any> {
+    return  this.productGroupService.productGroupAll(req,params);
   }
-
 
   @ApiOperation({ summary: '查询门店分组菜单' })
   @Get('/fetchProductGroup')
-  fetchProductGroup(@Query() params):Promise<any>{
-    let storeId = params.storeId;
-    if(storeId>0){
-      return this.productGroupService.fetchProductGroup(storeId);
-    }
+  fetchProductGroup(@Request() req):Promise<ProductGroupEntity[]>{
+     return this.productGroupService.fetchProductGroup(req);
   }
 }

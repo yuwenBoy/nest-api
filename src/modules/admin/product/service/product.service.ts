@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger,Request } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { Brackets, EntityManager, In, Repository } from 'typeorm';
 import { ProductEntity } from 'src/entities/product/product.entity';
@@ -405,8 +405,8 @@ export class ProductService {
    * 查询全部产品数量、已下架、已售罄数量
    * @returns 
    */
-   async getStatistics(storeId:number){
-    const products = await this.productRepository.find({where:{storeId}});
+   async getStatistics(@Request() req){
+    const products = await this.productRepository.find({where:{storeId:req.queryParams.store_id}});
     const productCount = products.length; //商品总数
     const downActiveCount = products.filter(t=>t.isActive==2)?.length; // 已下架
     const spec = await this.productSpecRepository.find({ where: {productId:In(products.map(t=>t.id)), stock: 0 } });

@@ -70,7 +70,7 @@ export class ProductGroupService {
   /**
    * 查询全部分组
    */
-  async productGroupAll(params: any): Promise<any> {
+  async productGroupAll(@Request() req,params: any): Promise<any> {
     try {
       const queryBuilder = this.productGroupRepository
         .createQueryBuilder('a') // 使用 'a' 作为 product_group 表的别名
@@ -78,9 +78,7 @@ export class ProductGroupService {
         .leftJoin(ProductGroupRelationEntity, 'b', 'a.id = b.group_id') // 使用 'b' 作为 product_group_relation 表的别名
         .leftJoin(ProductEntity, 'c', 'b.product_id=c.id')
         .leftJoin(ProductSpecEntity, 'd', 'c.id=d.product_id')
-
-        .where('a.store_id = :storeId', { storeId: params.storeId }); // 添加业务 ID 过滤条件
-
+        .where('a.store_id = :store_id', req.queryParams); // 添加业务 ID 过滤条件
       // 已下架
       if (params.isActive == 2) {
         queryBuilder.andWhere('c.is_active = :isActive', {
@@ -104,26 +102,20 @@ export class ProductGroupService {
   }
 
   /**
-   * 新增|编辑 品类
+   * 新增|编辑 菜单分组
    * @param parameter 参数
    * @returns 布尔类型
    */
   async save(
     parameter: Partial<ProductGroupEntity>,
   ): Promise<ProductGroupEntity> {
-    Logger.log(`请求参数：${JSON.stringify(parameter)}`);
+    Logger.log(`请求参数：${JSON.stringify(parameter)}`)
     try {
-      Logger.log('parameter' + parameter);
-
       // 必须用save 更新时间才生效
-      let res = await this.productGroupRepository.save(parameter);
-      if (res.id > 0) {
-        return res;
-      } else {
-        return res;
-      }
+      let res = await this.productGroupRepository.save(parameter)
+      return res;
     } catch (error) {
-      Logger.error(`【新增|编辑】品类请求失败：${JSON.stringify(error)}`);
+      Logger.error(`【新增|编辑】菜单分组请求失败：${JSON.stringify(error)}`)
     }
   }
 
@@ -162,10 +154,10 @@ export class ProductGroupService {
   }
 
   /**
-   * 根据商家获取全部门店信息
-   * @param businessId 商家ID
+   * 查询门店分组菜单
    */
-  async fetchProductGroup(storeId: number): Promise<any> {
-    return await this.productGroupRepository.find({ where: { storeId } });
+  async fetchProductGroup(@Request() req): Promise<ProductGroupEntity[]> {
+    console.log('打印请求参数==='+req.storeQuery,req.queryParams)
+    return await this.productGroupRepository.find({ where : {storeId:req.queryParams.store_id} });
   }
 }

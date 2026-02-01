@@ -82,7 +82,7 @@ export class StoreService {
     async createStore(storeData:any, businessId: number): Promise<any> {
         const business = await this.businessRepository.findOne({ where: { id: businessId } });
         if (!business) {
-        throw new NotFoundException(`Business with ID ${businessId} not found`);
+            throw new NotFoundException(`Business with ID ${businessId} not found`);
         }
 
         const newStore = this.storeRepository.create({
