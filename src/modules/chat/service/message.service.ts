@@ -15,6 +15,7 @@ export class MessageService {
 
   // 创建消息
   async create(messageData: Partial<MessageEntity>): Promise<MessageEntity> {
+    messageData.targetId = messageData.targetId || 0; // 防止前端传null
     const message = this.messageRepository.create(messageData);
     return await this.messageRepository.save(message);
   }

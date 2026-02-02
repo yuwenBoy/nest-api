@@ -10,6 +10,7 @@ import {
   HttpStatus,
   HttpCode,
   UploadedFile,
+  Query,
 
 } from '@nestjs/common';
 import {
@@ -35,6 +36,7 @@ import { AuthGuard } from 'src/modules/common/auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as xlsx  from 'xlsx';
 import { SkipLog } from 'src/common/decorators/skip-log.decorator';
+import { UserEntity } from 'src/entities/admin/t_user.entity';
 
 /***
  * author：zhao.jian
@@ -195,6 +197,15 @@ export class UserController {
        // 将 Excel 文件发送给客户端
        res.status(200).send(excelBuffer);
      });
+  }
+
+  /**
+   * 获取商家用户列表
+   */
+  @HttpCode(200)
+  @Get('/getBussinessUserList')
+  async getBussinessUserList():Promise<any[]>{
+     return await this.UserService.getBussinessUserList();
   }
 }
 

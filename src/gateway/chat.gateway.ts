@@ -116,13 +116,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // 监听私聊消息
   @SubscribeMessage('private_message')
   async handlePrivateMessage(client: Socket, payload: any) {
-    const { receiverId, content } = payload;
+    const { receiverId, content,targetId } = payload;
     const senderId = client.data.userId;
     // 1. 保存消息
     const message = await this.messageService.create({
       senderId,
       receiverId,
       content,
+      targetId,
     });
 
     // 2. 查询发送者信息（用于显示）

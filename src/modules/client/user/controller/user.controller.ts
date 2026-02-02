@@ -16,8 +16,8 @@ import { LoginDto } from '../dto/login.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // 发送验证码
-  @Post('sendCode')
+ // 发送验证码
+ @Post('sendCode')
  @HttpCode(200)
   async sendCode(@Body() body: { phone: string }) {
     const code = await this.userService.sendSmsCode(body.phone);

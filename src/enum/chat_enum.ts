@@ -4,3 +4,10 @@ export enum MessageStatusEnum {
   READ = 2, // 已读
   FAILED = 3,// 发送失败
 }
+
+export enum TargetTypeEnum {
+  STORE = 'STORE', // 平台-商家（门店）
+  ORDER = 'ORDER',// 平台-用户（订单）
+  CUSTOMER = 'CUSTOMER',// 平台-用户（顾客）
+  SYSTEM = 'SYSTEM',// 平台-系统
+}

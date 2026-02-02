@@ -289,6 +289,29 @@ export class UserService {
   }
 
   /**
+   * 
+   * 获取商家用户列表
+   */
+  async getBussinessUserList():Promise<any[]>{
+     // 正确写法（假设你的表结构是：user → business → store）
+    const query = this.userRepository
+      .createQueryBuilder('user')
+      // 手动 join business 表
+      .innerJoin(BusinessEntity, 'buss', 'user.business_id = buss.id')
+      // 手动 join store 表
+      .innerJoin(StoreEntity, 'store', 'buss.id = store.business_id')
+      // 选择 user 所有字段
+      .addSelect('user.avatar','avatar')
+      // 额外选择 store.name
+      .addSelect('store.store_name', 'name')
+      .addSelect('store.id', 'id')
+      // 模糊搜索用户名 + userType
+      .where('user.userType = :userType', { userType: UserTypeEnum.BUSINESSUSER })
+      let users = await query.getRawMany();
+      return users;
+  }
+
+  /**
    * 根据用户id获取用户
    * @param userId 用户id
    */
