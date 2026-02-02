@@ -27,7 +27,7 @@ export class StoreController {
      pageQuery(@Body() query,@CurrentUser() userInfo: UserInfoDto): Promise<PageListVo> {
        Logger.log(`分页查询接受参数：${JSON.stringify(query)}`);
        return this.storeService.pageQuery(query,userInfo);
-   }
+     }
       
    /**
    * 店铺管理-新增门店
