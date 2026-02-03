@@ -6,17 +6,16 @@ import * as fs from 'fs';
 let path = require("path");
 let mime = require('mime-types')
 import { ConfigService } from "@nestjs/config";
-import { instanceToInstance, plainToInstance } from "class-transformer";
 import { UserEntity } from "src/entities/admin/t_user.entity";
 import { getManager, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
-import { url } from "inspector";
 @Injectable()
 export class OssService {
     private readonly productLocation = process.cwd()
     private isAbsPath = false;
 
-    constructor(private readonly config:ConfigService,  
+    constructor(
+    private readonly config:ConfigService,  
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,){
         this.isAbsPath = path.isAbsolute(this.config.get('admin.file.location'))
@@ -31,7 +30,7 @@ export class OssService {
             writeFile.write(file.buffer);
             writeFile.close();
             const ossFile = {
-                url: `${this.config.get('admin.file.domain')}${this.config.get('admin.file.serveRoot') || ''}/${newFileName}`,
+                url: `${newFileName}`,
                 size: file.size,
                 type: file.mimetype,  
                 location: fileLocation,
@@ -40,12 +39,9 @@ export class OssService {
             return ossFile
         });
 
-        
-        // return ossList;
-        console.log(await this.userRepository.findOneById(user.id)) 
         let result = await this.userRepository.createQueryBuilder().update(UserEntity)
         .set({
-            avatar:ossList[0].location,
+            avatar:ossList[0].url,
             update_by: user.username,
           })
           .where('id = :id', { id: user.id })

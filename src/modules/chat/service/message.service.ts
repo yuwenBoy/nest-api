@@ -4,10 +4,12 @@ import { Repository, DataSource, In } from 'typeorm';
 import { MessageEntity } from 'src/entities/chat/message.entity';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
 import { MessageStatusEnum } from 'src/enum/chat_enum';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MessageService {
   constructor(
+    private readonly config:ConfigService,  
     @InjectRepository(MessageEntity)
     private messageRepository: Repository<MessageEntity>,
     private dataSource: DataSource, // ✅ 用于复杂查询
@@ -59,22 +61,17 @@ export class MessageService {
       select: ['id', 'username', 'avatar', 'cname'], // 只选择需要的字段
     });
 
-    console.log(`👤 查询到的用户:`, users);
-
     const userMap = new Map(users.map((u) => [u.id, u]));
 
     // 5. 组合结果
     const result = messages
       .map((msg) => ({
         ...msg,
-        senderUsername:
-          userMap.get(msg.senderId)?.username || `用户${msg.senderId}`,
+        senderUsername:userMap.get(msg.senderId)?.username || `用户${msg.senderId}`,
         senderCname: userMap.get(msg.senderId)?.cname,
-        senderAvatar: userMap.get(msg.senderId)?.avatar,
+        senderAvatar:this.config.get('admin.file.domain') +'/'+ userMap.get(msg.senderId)?.avatar,
       }))
       .reverse();
-
-    console.log(`✅ 最终结果:`, result);
     return result;
   }
 
