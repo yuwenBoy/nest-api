@@ -1,8 +1,9 @@
 import { Entity, Column, UpdateDateColumn } from 'typeorm';
 import { BusinessBaseEntity } from '../common/base.entity';
-import { MessageStatusEnum, TargetTypeEnum } from 'src/enum/chat_enum';
+import { MessageStatusEnum } from 'src/enum/chat_enum';
 import { Transform, TransformFnParams } from 'class-transformer';
 import { formatTime } from 'src/utils/date';
+import { UserTypeEnum } from 'src/enum/admin_enum';
 @Entity('message')
 export class MessageEntity extends BusinessBaseEntity{
    
@@ -21,10 +22,10 @@ export class MessageEntity extends BusinessBaseEntity{
   @Column({ name: 'message_type', comment:'消息类型', default: 'text' })
   messageType: number
  
-  @Column({ name: 'target_type', comment:'目标类型', enum: TargetTypeEnum, default: TargetTypeEnum.STORE })
-  targetType: string // ✅ 目标类型
-
+  @Column({type:'enum',default:UserTypeEnum.SYSTEMUSER,enum:UserTypeEnum, name: 'target_type',comment:'目标类型'})
+  targetType: number // ✅ 目标类型
   @Column({ name: 'target_id',comment:'目标ID', nullable: true })
+
   targetId: number;
 
   @Column({ 

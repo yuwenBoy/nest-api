@@ -36,7 +36,6 @@ import { AuthGuard } from 'src/modules/common/auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as xlsx  from 'xlsx';
 import { SkipLog } from 'src/common/decorators/skip-log.decorator';
-import { UserEntity } from 'src/entities/admin/t_user.entity';
 
 /***
  * author：zhao.jian
@@ -200,12 +199,12 @@ export class UserController {
   }
 
   /**
-   * 获取商家用户列表
+   * 获取即时通讯联系人列表
    */
   @HttpCode(200)
-  @Get('/getBussinessUserList')
-  async getBussinessUserList():Promise<any[]>{
-     return await this.UserService.getBussinessUserList();
+  @Get('getChatContactList')
+  async getChatContactList(@CurrentUser() userInfo: UserInfoDto):Promise<any[]>{
+     return await this.UserService.getChatContactList(userInfo.id,userInfo.userType);
   }
 }
 

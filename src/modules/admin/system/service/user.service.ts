@@ -98,17 +98,18 @@ export class UserService {
                 return qb;
               }
             }),
-          ).andWhere(
-            new Brackets((qb) => {
-              if (userInfo.userType===UserTypeEnum.BUSINESSUSER) {
-                return qb.where('user.user_type=:user_type', {
-                    user_type:UserTypeEnum.STOREUSER,
-                  });
-              } else {
-                return qb;
-              }
-            }),
           )
+        //   .andWhere(
+        //     new Brackets((qb) => {
+        //       if (userInfo.userType===UserTypeEnum.BUSINESSUSER) {
+        //         return qb.where('user.user_type=:user_type', {
+        //             user_type:UserTypeEnum.STOREUSER,
+        //           });
+        //       } else {
+        //         return qb;
+        //       }
+        //     }),
+        //   )
         .orderBy(`user.${parameter.sort}`, 'DESC')
         .addOrderBy('user.create_time', 'DESC')
         .skip((pageIndex - 1) * Number(pageSize))
@@ -290,25 +291,66 @@ export class UserService {
 
   /**
    * 
-   * 获取商家用户列表
+   * 获取即时通讯联系人列表
    */
-  async getBussinessUserList():Promise<any[]>{
-     // 正确写法（假设你的表结构是：user → business → store）
-    const query = this.userRepository
-      .createQueryBuilder('user')
-      // 手动 join business 表
-      .innerJoin(BusinessEntity, 'buss', 'user.business_id = buss.id')
-      // 手动 join store 表
-      .innerJoin(StoreEntity, 'store', 'buss.id = store.business_id')
-      // 选择 user 所有字段
-      .addSelect('user.avatar','avatar')
-      // 额外选择 store.name
-      .addSelect('store.store_name', 'name')
-      .addSelect('store.id', 'id')
-      // 模糊搜索用户名 + userType
-      .where('user.userType = :userType', { userType: UserTypeEnum.BUSINESSUSER })
-      let users = await query.getRawMany();
-      return users;
+  async getChatContactList(currentUserId:number,userType:number):Promise<any[]>{
+      let strUserType  = userType==2? '1,2,3' : '1';
+      let platformUserId = 19; // 平台客服id
+      let whereCondition:string;
+      if(userType==1){
+          whereCondition = `WHERE a.user_type not in (${strUserType}) and a.username!=''`
+      }else if(userType==2){
+          whereCondition = `WHERE (a.user_type not in (${strUserType}) or a.id=${platformUserId}) and a.username!=''`
+      }
+      let sql = ` WITH base_msgs AS (
+                SELECT 
+                    sender_id,
+                    receiver_id,
+                    content,
+                    created_at,
+                    status,
+                    CASE WHEN sender_id = ${currentUserId} THEN receiver_id ELSE sender_id END AS partner_id
+                FROM message
+                WHERE sender_id = ${currentUserId} OR receiver_id = ${currentUserId}
+            ),
+            last_msg AS (
+                SELECT 
+                    partner_id,
+                    content,
+                    created_at,
+                    ROW_NUMBER() OVER (PARTITION BY partner_id ORDER BY created_at DESC) AS rn,
+                    SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) OVER (PARTITION BY partner_id) AS unread_count
+                FROM base_msgs
+            )
+            SELECT 
+                a.id,
+                a.username,
+                a.cname AS name,
+                a.avatar,
+                a.user_type,
+                c.id AS storeId,
+                c.store_name,
+                last_msg.content AS last_message,
+                last_msg.created_at AS last_time,
+                COALESCE(last_msg.unread_count, 0) AS unread_count
+            FROM t_user a
+            LEFT JOIN business b ON a.business_id = b.id
+            LEFT JOIN store c ON c.business_id = b.id
+            LEFT JOIN last_msg ON a.id = last_msg.partner_id AND last_msg.rn = 1
+            ${whereCondition}
+            ORDER BY last_msg.created_at DESC;`;
+            let result = await this.userRepository.query(sql);
+            let imageBaseUrl =this.config.get('admin.file.domain') +'/'
+            result.forEach(item => {
+                item.avatar = item.avatar ? imageBaseUrl + '/'+ item.avatar :'';
+                if(item.user_type == 2){
+                    item.name = item.store_name
+                }
+                if(item.id == 19){
+                    item.name = '平台客服'
+                }
+            })
+      return result//await this.userRepository.query(sql);
   }
 
   /**

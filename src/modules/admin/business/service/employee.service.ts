@@ -93,7 +93,7 @@ export class EmployeeService {
         const newUser = entityManager.create(UserEntity, {
           username: employeeData.username,
           cname:employeeData.cname,
-          userType:UserTypeEnum.STOREUSER, // 门店用户
+          userType:UserTypeEnum.BUSINESSUSER, // 门店用户
           password:transformPass,
           email: employeeData.email,
           dept_id:employeeData.deptId.id,

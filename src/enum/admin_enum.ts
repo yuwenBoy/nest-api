@@ -21,9 +21,9 @@ export enum MenuHiddenEnum {
 export enum UserTypeEnum {
     SYSTEMUSER = 1, // 系统用户
     BUSINESSUSER = 2, // 商家用户
-    STOREUSER = 3, // 门店用户
-    CLIENT = 4, // 客户端用户
-    KNIGHT = 5 // 骑士用户
+    // STOREUSER = 3, // 门店用户
+    CLIENT = 3, // 客户端用户
+    KNIGHT = 4 // 骑士用户
 }
 
  
