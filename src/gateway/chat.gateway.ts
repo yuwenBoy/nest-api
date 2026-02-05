@@ -145,6 +145,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     this.logger.log('📨 正在广播到房间:', receiverRoom);
 
+      // ✅ 推送给发送方，更新他的会话列表
+    client.emit('message_update', {
+      targetId: message.targetId,
+      lastMessage: message.content,
+      lastTime: message.createdAt
+    });
+
     // 广播给接收者
     this.server.to(receiverRoom).emit('new_message', messageWithUser);
 
