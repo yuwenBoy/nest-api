@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Request, Body, Post } from '@nestjs/common';
 import { MessageService } from './message.service';
 import { AuthGuard } from 'src/modules/common/auth/auth.guard';
 @Controller('messages')
@@ -6,14 +6,14 @@ import { AuthGuard } from 'src/modules/common/auth/auth.guard';
 export class MessageController {
   constructor(private messageService: MessageService) {}
 
-  // 获取私聊历史
-  @Get('private')
-  async getPrivateMessages(
-    @Request() req,
-    @Query('userId') userId: string,
-    @Query('page') page: number = 1,
-  ) {
-    return await this.messageService.getPrivateHistory(req.user.userId,parseInt(userId),page);
+  // 获取聊天历史记录
+  @Post('MessageHistory')
+  async getPrivateMessages(@Body() body, @Request() req) {
+    if(body.type === 'private'){
+         return await this.messageService.getPrivateHistory(req.user.userId,parseInt(body.userId),body.page);
+    }else{
+        //  return await this.messageService.getGroupHistory(parseInt(groupId), page);
+    }
   }
 
   // 获取群聊历史
