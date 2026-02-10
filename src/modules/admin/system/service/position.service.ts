@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { PositionEntity } from 'src/entities/admin/position.entity';
-import { PageEnum } from 'src/enum/page.enum';
 import { PageListVo } from 'src/modules/common/page/pageList';
 import { Like, Repository } from 'typeorm';
 
@@ -85,13 +84,10 @@ export class PositionService {
       } else {
         parameter.update_by = userName;
       }
+       const position = await this.positionRepository.create(parameter);
       // 必须用save 更新时间才生效
-      let res = await this.positionRepository.save(parameter);
-      if (res.id > 0) {
-        return true;
-      } else {
-        return false;
-      }
+       await this.positionRepository.save(position);
+       return true;
     } catch (error) {
       Logger.error(`【新增|编辑】职位请求失败：${JSON.stringify(error)}`);
     }

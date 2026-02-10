@@ -19,7 +19,7 @@ export abstract class ZJBaseEntity extends BaseEntity {
   @PrimaryGeneratedColumn({comment:'主键ID'})
   id: number;
 
-  @Column({comment:'更新人', type: 'varchar', name: 'update_by', select: false })
+  @Column({comment:'更新人', type: 'varchar', name: 'update_by', select: false,nullable:null,default:null })
   update_by: string;
 
   @CreateDateColumn({comment:'创建时间',nullable:true,update:true})

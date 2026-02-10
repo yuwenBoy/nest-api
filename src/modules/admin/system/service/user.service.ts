@@ -28,7 +28,9 @@ export class UserService {
     private readonly userManager: EntityManager,
     private readonly userRoleService: UserRoleService,
     private readonly config: ConfigService,
-  ) {}
+  ) {
+     
+  }
 
   /**
    * 查询用户分页列表
@@ -116,7 +118,9 @@ export class UserService {
         .take(pageSize);
 
       const [data, count] = await qb.getManyAndCount();
-
+      data.forEach(item=>{
+        item.avatar = item.avatar? this.config.get('admin.file.domain') +'/' + item.avatar : '';
+      })
       return {
         ...{ content: data },
         page: pageIndex,
@@ -295,14 +299,14 @@ export class UserService {
    */
   async getChatContactList(currentUserId:number,userType:number):Promise<any[]>{
       let strUserType  = userType==2? '1,2,3' : '1';
-      let platformUserId = 19; // 平台客服id
+      let platformUserId =  200//19; // 平台客服id
       let whereCondition:string;
       if(userType==1){
           whereCondition = `WHERE a.user_type not in (${strUserType}) and a.username!=''`
       }else if(userType==2){
           whereCondition = `WHERE (a.user_type not in (${strUserType}) or a.id=${platformUserId}) and a.username!=''`
       }
-      let sql = ` WITH base_msgs AS (
+      let sql = `WITH base_msgs AS (
                 SELECT 
                     sender_id,
                     receiver_id,
@@ -346,9 +350,9 @@ export class UserService {
                 if(item.user_type == 2){
                     item.name = item.store_name
                 }
-                if(item.id == 19){
-                    item.name = '平台客服'
-                }
+                // if(item.id == 19){
+                //     item.name = '平台客服'
+                // }
             })
       return result//await this.userRepository.query(sql);
   }
