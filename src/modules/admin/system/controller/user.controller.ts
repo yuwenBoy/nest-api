@@ -202,9 +202,10 @@ export class UserController {
    * 获取即时通讯联系人列表
    */
   @HttpCode(200)
-  @Get('getChatContactList')
-  async getChatContactList(@CurrentUser() userInfo: UserInfoDto):Promise<any[]>{
-     return await this.UserService.getChatContactList(userInfo.id,userInfo.userType);
+  @Post('getChatContactList')
+  async getChatContactList(@CurrentUser() userInfo: UserInfoDto,@Body() body):Promise<any[]>{
+     console.log('获取即时通讯联系人列表接收参数：',body)
+     return await this.UserService.getChatContactList(userInfo,body.type);
   }
 }
 

@@ -10,6 +10,7 @@ import { compareSync, hashSync } from 'bcryptjs';
 import { jwtContants, refreshExpiresIn } from 'src/modules/common/collections-permission/constants/jwtContants';
 import { UserService } from './user.service';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
+import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class AuthService {
   constructor(
@@ -18,6 +19,7 @@ export class AuthService {
     private readonly userRoleService: UserRoleService,
     private readonly roleModuleService: RoleModuleService,
     private readonly moduleService: ModuleService,
+    private readonly config: ConfigService,
   ) {}
 
   // 2.验证账号密码是否正确，正确返回user 错误返回null
@@ -136,6 +138,8 @@ export class AuthService {
         roles: [],
       };
       const userInfo = await this.userService.getUserById(userId);
+      let imageBaseUrl = this.config.get('admin.file.domain') + '/';
+      userInfo.avatar = userInfo.avatar ? imageBaseUrl + userInfo.avatar : '';
       res.user = userInfo;
       const roles = await this.userRoleService.getRoleIds(userId);
       if (roles.length > 0) {

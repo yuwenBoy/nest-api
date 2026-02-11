@@ -10,7 +10,7 @@ export class MessageController {
   @Post('MessageHistory')
   async getPrivateMessages(@Body() body, @Request() req) {
     if(body.type === 'private'){
-         return await this.messageService.getPrivateHistory(req.user.userId,parseInt(body.userId),body.page);
+         return await this.messageService.getPrivateHistory(req.user.id,parseInt(body.userId),body.page);
     }else{
         //  return await this.messageService.getGroupHistory(parseInt(groupId), page);
     }

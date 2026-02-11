@@ -118,8 +118,9 @@ export class UserService {
         .take(pageSize);
 
       const [data, count] = await qb.getManyAndCount();
+      let defaultAvatar = this.config.get('admin.file.domain') +'/'
       data.forEach(item=>{
-        item.avatar = item.avatar? this.config.get('admin.file.domain') +'/' + item.avatar : '';
+        item.avatar = item.avatar? defaultAvatar + item.avatar : '';
       })
       return {
         ...{ content: data },
@@ -297,64 +298,100 @@ export class UserService {
    * 
    * 获取即时通讯联系人列表
    */
-  async getChatContactList(currentUserId:number,userType:number):Promise<any[]>{
-      let strUserType  = userType==2? '1,2,3' : '1';
-      let platformUserId =  200//19; // 平台客服id
-      let whereCondition:string;
-      if(userType==1){
-          whereCondition = `WHERE a.user_type not in (${strUserType}) and a.username!=''`
-      }else if(userType==2){
-          whereCondition = `WHERE (a.user_type not in (${strUserType}) or a.id=${platformUserId}) and a.username!=''`
-      }
-      let sql = `WITH base_msgs AS (
-                SELECT 
-                    sender_id,
-                    receiver_id,
-                    content,
-                    created_at,
-                    status,
-                    CASE WHEN sender_id = ${currentUserId} THEN receiver_id ELSE sender_id END AS partner_id
-                FROM message
-                WHERE sender_id = ${currentUserId} OR receiver_id = ${currentUserId}
-            ),
-            last_msg AS (
-                SELECT 
-                    partner_id,
-                    content,
-                    created_at,
-                    ROW_NUMBER() OVER (PARTITION BY partner_id ORDER BY created_at DESC) AS rn,
-                    SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) OVER (PARTITION BY partner_id) AS unread_count
-                FROM base_msgs
-            )
-            SELECT 
-                a.id,
-                a.username,
-                a.cname AS name,
-                a.avatar,
-                a.user_type,
-                c.id AS storeId,
-                c.store_name,
-                last_msg.content AS last_message,
-                last_msg.created_at AS last_time,
-                COALESCE(last_msg.unread_count, 0) AS unread_count
-            FROM t_user a
-            LEFT JOIN business b ON a.business_id = b.id
-            LEFT JOIN store c ON c.business_id = b.id
-            LEFT JOIN last_msg ON a.id = last_msg.partner_id AND last_msg.rn = 1
-            ${whereCondition}
-            ORDER BY last_msg.created_at DESC;`;
-            let result = await this.userRepository.query(sql);
-            let imageBaseUrl =this.config.get('admin.file.domain') +'/'
-            result.forEach(item => {
-                item.avatar = item.avatar ? imageBaseUrl + '/'+ item.avatar :'';
-                if(item.user_type == 2){
-                    item.name = item.store_name
-                }
-                // if(item.id == 19){
-                //     item.name = '平台客服'
-                // }
-            })
-      return result//await this.userRepository.query(sql);
+  async getChatContactList(currentUser:any,type:string):Promise<any[]>{
+     let  currentUserId = currentUser.id
+     let  currentUserType = currentUser.userType
+     let platformUserId = 200; // 商家端平台用户ID，默认值
+     let whereCondition: string;
+     let needReplyFilter: string = ''; // 需回复过滤条件
+
+    // 平台端
+    if(currentUserType ===1){
+       if(type==='CUSTMSG'){
+            whereCondition = `WHERE a.user_type = 3 `;
+            needReplyFilter = ``;
+       }else if(type ==='NEEDED'){
+            whereCondition = `WHERE a.user_type in (2,3,4) `;
+            needReplyFilter = `AND (last_msg.need_reply_count > 0 OR (last_msg.is_from_me = 0 AND last_msg.rn = 1))`;
+       }else{
+            whereCondition = `WHERE a.user_type = 2 `;
+       }
+    }
+    // 商家端
+    else if(currentUserType ===2){
+        if(type==='ADMIN'){
+            whereCondition = `WHERE a.id=${platformUserId}`;
+            needReplyFilter = ``;
+        }else if(type==='CUSTMSG'){
+            whereCondition = `WHERE a.user_type = 3 `;
+            needReplyFilter = ``;
+        }else if(type ==='NEEDED'){
+             // 商家端：只看顾客发给我的需回复
+            whereCondition = `WHERE a.user_type in (1,3,4) `;
+            needReplyFilter = `AND (last_msg.need_reply_count > 0 OR (last_msg.is_from_me = 0 AND last_msg.rn = 1))`;
+        }
+    }
+let sql = `WITH base_msgs AS (
+    SELECT 
+        sender_id,
+        receiver_id,
+        content,
+        created_at,
+        status,
+        -- 判断是否我发的：1=我发的，0=对方发的
+        CASE WHEN sender_id = ${currentUserId} THEN 1 ELSE 0 END AS is_from_me,
+        CASE WHEN sender_id = ${currentUserId} THEN receiver_id ELSE sender_id END AS partner_id
+    FROM message
+    WHERE sender_id = ${currentUserId} OR receiver_id = ${currentUserId}
+),
+last_msg AS (
+    SELECT 
+        partner_id,
+        content,
+        created_at,
+        is_from_me,
+        ROW_NUMBER() OVER (PARTITION BY partner_id ORDER BY created_at DESC) AS rn,
+        -- 需回复数：对方发给我且未读（status=1且is_from_me=0）
+        SUM(CASE WHEN status = 1 AND is_from_me = 0 THEN 1 ELSE 0 END) OVER (PARTITION BY partner_id) AS need_reply_count
+    FROM base_msgs
+)
+SELECT 
+    a.id,
+    a.username,
+    a.cname AS name,
+    r.name AS role_name,
+    a.avatar,
+    a.user_type,
+    c.id AS storeId,
+    c.store_name,
+    last_msg.content AS last_message,
+    last_msg.created_at AS last_time,
+    last_msg.is_from_me AS last_msg_from_me,
+    COALESCE(last_msg.need_reply_count, 0) AS need_reply_count,
+    COALESCE(last_msg.need_reply_count, 0) AS unread_count -- 兼容旧字段
+FROM t_user a
+LEFT JOIN t_user_role ur ON a.id = ur.user_id
+LEFT JOIN t_role r ON ur.role_id = r.id
+LEFT JOIN business b ON a.business_id = b.id
+LEFT JOIN store c ON c.business_id = b.id
+LEFT JOIN last_msg ON a.id = last_msg.partner_id AND last_msg.rn = 1
+${whereCondition}
+AND a.username != ''
+${needReplyFilter}
+ORDER BY last_msg.created_at DESC;`;
+let result = await this.userRepository.query(sql);
+let imageBaseUrl = this.config.get('admin.file.domain') + '/';
+
+result.forEach(item => {
+    item.avatar = item.avatar ? imageBaseUrl + item.avatar : '';
+    if (item.user_type == 2) {
+        item.name = item.store_name;
+    }
+    // 标记是否需回复
+    item.needReply = item.need_reply_count > 0 || item.last_msg_from_me === 0;
+});
+
+return result;
   }
 
   /**
