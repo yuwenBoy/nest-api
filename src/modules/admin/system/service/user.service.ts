@@ -361,14 +361,10 @@ last_msg AS (
         created_at,
         is_from_me,
         status,
-        read_at
-    FROM (
-        SELECT *,
-            ROW_NUMBER() OVER (PARTITION BY partner_id ORDER BY created_at DESC) AS rn
-        FROM base_msgs
-    ) t
-    WHERE rn = 1
-)    
+        read_at,
+        ROW_NUMBER() OVER (PARTITION BY partner_id ORDER BY created_at DESC) AS rn
+    FROM base_msgs
+)
 SELECT 
     a.id,
     a.username,
