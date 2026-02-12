@@ -122,6 +122,7 @@ export class MessageService {
     messageIds: number[],
     status: MessageStatusEnum,
     userId: number,
+    isSender: boolean,
   ): Promise<void> {
     const updateData: any = { status };
 
@@ -129,13 +130,10 @@ export class MessageService {
       updateData.readAt = new Date();
     }
 
-    await this.messageRepository.update(
-      {
-        id: In(messageIds),
-        receiverId: userId, // 只能更新接收者的消息
-      },
-      updateData,
-    );
+    const whereCondition = isSender
+     ? { id: In(messageIds), senderId: userId }
+      : { id: In(messageIds), receiverId: userId };
+    await this.messageRepository.update(whereCondition,updateData);
   }
 
   /**

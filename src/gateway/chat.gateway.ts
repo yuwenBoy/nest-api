@@ -210,6 +210,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.messageIds,
       MessageStatusEnum.DELIVERED,
       userId,
+      true,
     );
 
     // ✅ 通知发送者消息已送达
@@ -241,6 +242,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.messageIds,
       MessageStatusEnum.READ,
       userId,
+      false,
     );
 
     // ✅ 通知发送者消息已读

@@ -312,7 +312,7 @@ export class UserService {
             needReplyFilter = ``;
        }else if(type ==='NEEDED'){
             whereCondition = `WHERE a.user_type in (2,3,4) `;
-            needReplyFilter = `AND (last_msg.need_reply_count > 0 OR (last_msg.is_from_me = 0 AND last_msg.rn = 1))`;
+            needReplyFilter = `AND (unread_stats.unread_count > 0 OR last_msg.rn = 1)`;
        }else{
             whereCondition = `WHERE a.user_type = 2 `;
        }
@@ -328,7 +328,7 @@ export class UserService {
         }else if(type ==='NEEDED'){
              // 商家端：只看顾客发给我的需回复
             whereCondition = `WHERE a.user_type in (1,3,4) `;
-            needReplyFilter = `AND (last_msg.need_reply_count > 0 OR (last_msg.is_from_me = 0 AND last_msg.rn = 1))`;
+            needReplyFilter = `AND (unread_stats.unread_count > 0 OR last_msg.rn = 1)`;
         }
     }
 let sql = `WITH base_msgs AS (
@@ -338,11 +338,21 @@ let sql = `WITH base_msgs AS (
         content,
         created_at,
         status,
+        read_at,
         -- 判断是否我发的：1=我发的，0=对方发的
         CASE WHEN sender_id = ${currentUserId} THEN 1 ELSE 0 END AS is_from_me,
-        CASE WHEN sender_id = ${currentUserId} THEN receiver_id ELSE sender_id END AS partner_id
+        CASE WHEN sender_id = ${currentUserId} THEN receiver_id ELSE sender_id END AS partner_id,
+        CASE WHEN sender_id != ${currentUserId}  AND read_at IS NULL  AND status in (0,1) THEN 1 ELSE 0 END AS is_unread
     FROM message
     WHERE sender_id = ${currentUserId} OR receiver_id = ${currentUserId}
+),
+unread_stats AS (
+    SELECT 
+        partner_id,
+        SUM(is_unread) AS unread_count,
+        MAX(created_at) AS last_msg_time
+    FROM base_msgs
+    GROUP BY partner_id
 ),
 last_msg AS (
     SELECT 
@@ -350,11 +360,15 @@ last_msg AS (
         content,
         created_at,
         is_from_me,
-        ROW_NUMBER() OVER (PARTITION BY partner_id ORDER BY created_at DESC) AS rn,
-        -- 需回复数：对方发给我且未读（status=1且is_from_me=0）
-        SUM(CASE WHEN status = 1 AND is_from_me = 0 THEN 1 ELSE 0 END) OVER (PARTITION BY partner_id) AS need_reply_count
-    FROM base_msgs
-)
+        status,
+        read_at
+    FROM (
+        SELECT *,
+            ROW_NUMBER() OVER (PARTITION BY partner_id ORDER BY created_at DESC) AS rn
+        FROM base_msgs
+    ) t
+    WHERE rn = 1
+)    
 SELECT 
     a.id,
     a.username,
@@ -367,18 +381,22 @@ SELECT
     last_msg.content AS last_message,
     last_msg.created_at AS last_time,
     last_msg.is_from_me AS last_msg_from_me,
-    COALESCE(last_msg.need_reply_count, 0) AS need_reply_count,
-    COALESCE(last_msg.need_reply_count, 0) AS unread_count -- 兼容旧字段
+    COALESCE(unread_stats.unread_count, 0) AS need_reply_count,
+    COALESCE(unread_stats.unread_count, 0) AS unread_count,
+    last_msg.status AS last_msg_status,
+    last_msg.read_at AS last_msg_read_at
 FROM t_user a
 LEFT JOIN t_user_role ur ON a.id = ur.user_id
 LEFT JOIN t_role r ON ur.role_id = r.id
 LEFT JOIN business b ON a.business_id = b.id
 LEFT JOIN store c ON c.business_id = b.id
 LEFT JOIN last_msg ON a.id = last_msg.partner_id AND last_msg.rn = 1
+LEFT JOIN unread_stats ON a.id = unread_stats.partner_id
 ${whereCondition}
 AND a.username != ''
 ${needReplyFilter}
-ORDER BY last_msg.created_at DESC;`;
+-- 排序优先级（未读多的排前面）
+ORDER BY unread_stats.unread_count DESC, last_msg.created_at DESC`;
 let result = await this.userRepository.query(sql);
 let imageBaseUrl = this.config.get('admin.file.domain') + '/';
 
