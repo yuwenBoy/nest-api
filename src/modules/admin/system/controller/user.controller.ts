@@ -42,7 +42,7 @@ import { SkipLog } from 'src/common/decorators/skip-log.decorator';
  * createTime：2022年12月22日14:27:17
  * description：用户业务控制器模块
  */
-@SkipLog() // 标记该不需控制器不需要记录日志
+@SkipLog()
 @ApiTags('用户管理')
 @ApiBearerAuth()
 @PermissionModule('用户管理')

@@ -80,7 +80,6 @@ export class ProductController {
     * @param params 
     * @returns 
     */
-   @SkipLog()
    @ApiOperation({summary:'产品上下架更新'})
    @Post('/updateProductStatus')
    updateProductIsActive(@Body() params):Promise<any>{
@@ -92,7 +91,6 @@ export class ProductController {
     * @param params 
     * @returns 
     */
-    @SkipLog()
     @ApiOperation({summary:'批量改分组、描述'})
     @Post('/batch_update_info')
     batchUpdateInfo(@Body() params):Promise<any>{

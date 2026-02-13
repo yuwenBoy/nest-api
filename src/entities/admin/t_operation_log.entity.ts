@@ -43,4 +43,22 @@ export class OperationLogEntity {
 
   @Column('int', { nullable: true, comment: '状态码' })
   statusCode:number;
+
+  @Column('int', { nullable: true, comment: '用户 ID' })
+  userId:any;
+  
+  @Column('int', { nullable: true, comment: '用户 类型' })
+  userType:number;
+
+  @Column('int', { nullable: true, comment: '端类型' })
+  appType:number;
+
+  @Column('varchar', { nullable: true, comment: '业务 ID' })
+  businessId:string;
+
+  @Column('text', { nullable: true, comment: '错误堆栈' })
+  errorStack: string;
+
+  @Column('int', { nullable: true, comment: '日志等级' })
+  logLevel:number
 }

@@ -35,7 +35,6 @@ export class ModuleController {
   @ApiOperation({ summary: '获取权限菜单' })
   @Get('/getMenuAll')
   async getMenuAll(@Request() req) {
-    Logger.log('当前用户'+req.user.id+'操作权限');
     const roles =  await this.userRoleService.getRoleIds(req.user.id);
     if(roles.length>0){
       const role_ids = roles.map(item=>{return item.role_id}).toString();

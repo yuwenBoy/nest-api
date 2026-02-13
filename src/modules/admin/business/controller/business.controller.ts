@@ -7,7 +7,6 @@ import { CreateMerchantApplicationDto } from "../dto/CreateMerchantApplicationDt
 import { PageListVo } from "src/modules/common/page/pageList";
 import { CreateMerchantAuditApplicationDto } from "../dto/CreateMerchantAuditApplicationDto";
 import { UserInfoDto } from "../../system/dto/user/userInfo.dto";
-import { BusinessEntity } from "src/entities/business/business.entity";
 import { SkipLog } from "src/common/decorators/skip-log.decorator";
 
 @ApiTags('商家管理')
