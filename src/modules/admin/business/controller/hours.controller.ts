@@ -28,12 +28,31 @@ export class HoursController {
        return this.hoursService.pageQuery(query,userInfo.business_id);
      }
 
-    /**
+   /**
    * 设置营业时间
    */
    @ApiOperation({ summary: '设置营业时间' })
    @Post('/updateShopServingTime')
    updateShopServingTime(@Body() requestData: any): Promise<any> {
      return this.hoursService.updateShopServingTime(requestData);
+   }
+
+   /**
+    * 获取门店营业时间 
+    * @returns 
+    */
+   @ApiOperation({ summary: '获取门店营业时间' })
+   @Post('/queryShopServingTime')
+   queryShopServingTime(@Body() requestData:any): Promise<any> {
+     return this.hoursService.queryShopServingTime(requestData);
+   }
+
+   /**
+    * 获取门店营业状态详情 
+    */
+   @ApiOperation({ summary: '获取门店营业状态详情' })
+   @Post('/queryShopStatusViewDetail')
+   queryShopStatusViewDetail(@Body() requestData:any): Promise<any> {
+     return this.hoursService.queryShopStatusViewDetail(requestData);
    }
 }
