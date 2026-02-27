@@ -1,11 +1,9 @@
-import { Expose, Transform, TransformFnParams } from 'class-transformer';
-import { formatTime } from 'src/utils/date';
 import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { BusinessBaseEntity } from '../common/base.entity';
 import { BusinessCategoryRelationEntity } from './business_category_relation.entity';
 
 /**
- * description:商家 品类表哦
+ * description:商家 品类表
  * @createTime:2025-1-17 17:09:32
  * @Author:zhao.jian
  */
