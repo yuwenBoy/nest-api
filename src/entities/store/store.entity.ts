@@ -10,14 +10,20 @@ export class StoreEntity extends BusinessBaseEntity {
     @Column({type:'varchar', name: 'store_name',comment:'门店名称'})
     storeName: string;  
 
+    @Column({type:'varchar', name: 'door_photo',comment:'门脸图'})
+    doorPhoto: string;  
+
+    @Column({type:'varchar', name: 'env_photo',comment:'环境图'})
+    envPhoto: string;  
+
     @OneToMany(() => EmployeeEntity, employee => employee.store)
     employees: EmployeeEntity[];
 
     @Column({type:'int', name: 'business_id',comment:'商家ID'})
     business_id:number;
 
-    @Column({type:'varchar', name: 'address',comment:'门店地址'})
-    address: string;
+    @Column({type:'varchar', name: 'detail_address',comment:'门店地址'})
+    detail_address: string;
         
     @Column({type:'int',default:StoreStatusEnum.APPLYIN,enum:StoreStatusEnum, name: 'status',comment:'状态'})
     status: StoreStatusEnum;  
