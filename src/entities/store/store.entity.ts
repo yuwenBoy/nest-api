@@ -4,6 +4,19 @@ import { EmployeeEntity } from "./employee.entity";
 import { BusinessEntity } from "../business/business.entity";
 import { StoreOnlineEnum, StoreStatusEnum } from "src/enum/business_enum";
 
+// 下线类型枚举
+export enum OfflineType {
+  ACTIVE = 0, // 商家主动下线
+  MODIFY = 1, // 修改信息下线
+  PLATFORM =2, // 平台强制下线
+}
+
+// 暂停原因枚举
+export enum PauseReason {
+  MERCHANT = 1, // 商家主动暂停
+  PLATFORM = 2, // 平台暂停
+}
+
 @Entity('store')
 export class StoreEntity extends BusinessBaseEntity {
     
@@ -22,10 +35,13 @@ export class StoreEntity extends BusinessBaseEntity {
     @Column({type:'int', name: 'business_id',comment:'商家ID'})
     business_id:number;
 
+    @Column({type:'varchar', name: 'district_code',comment:'区代码'})
+    district_code: string;
+
     @Column({type:'varchar', name: 'detail_address',comment:'门店地址'})
     detail_address: string;
         
-    @Column({type:'int',default:StoreStatusEnum.APPLYIN,enum:StoreStatusEnum, name: 'status',comment:'状态'})
+    @Column({type:'int',default:StoreStatusEnum.OFFLINE,enum:StoreStatusEnum, name: 'status',comment:'状态'})
     status: StoreStatusEnum;  
 
     @Column({type:'int',default:StoreOnlineEnum.DOWNLINE,enum:StoreOnlineEnum, name: 'online',comment:'门店上线状态'})
@@ -58,4 +74,30 @@ export class StoreEntity extends BusinessBaseEntity {
 
    @Column({type:'int', name: 'is_default',comment:'是否默认门店'})
    isDefault:number;
+
+
+  // 新增：下线类型
+  @Column({ 
+    name: 'offline_type', 
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+    default: OfflineType.ACTIVE,
+    comment: '下线类型'
+  })
+  offlineType: OfflineType;
+
+  // 新增：暂停原因
+  @Column({ 
+    name: 'pause_reason', 
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+    comment: '暂停原因'
+  })
+  pauseReason: PauseReason;
+
+  syncOnlineStatus(): void {
+    this.online = [StoreStatusEnum.ONLINE, StoreStatusEnum.PAUSE].includes(this.status) ? 1 : 0;
+  }
 }

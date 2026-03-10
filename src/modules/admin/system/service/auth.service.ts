@@ -11,6 +11,8 @@ import { jwtContants, refreshExpiresIn } from 'src/modules/common/collections-pe
 import { UserService } from './user.service';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
 import { ConfigService } from '@nestjs/config';
+import * as fs from 'fs';
+import * as path from 'path';
 @Injectable()
 export class AuthService {
   constructor(
@@ -161,6 +163,22 @@ export class AuthService {
       return res;
     } catch (error) {
       Logger.error('查询用户信息异常，原因：' + error);
+    }
+  }
+
+  /**
+   * 获取省市区数据
+   * @returns 
+   */
+   getChinaRegions(){
+    try{
+       const filePath = path.join(process.cwd(),'src/config/china.json');
+       const rawData = fs.readFileSync(filePath, 'utf-8');
+       const jsonData = JSON.parse(rawData);
+       return jsonData
+    }catch(error){
+       console.log('获取省市区数据异常，原因：') 
+       console.log(error)
     }
   }
 }

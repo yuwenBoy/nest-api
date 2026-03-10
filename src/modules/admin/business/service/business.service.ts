@@ -203,8 +203,8 @@ export class BusinessService {
                 storeName:'默认门店',
                 business_id: savedMerchant.id,
                 address: savedMerchant.address,
-                status: StoreStatusEnum.APPLYIN, // 待审核
-                online: StoreOnlineEnum.DOWNLINE, // 门店已下线
+                // status: StoreStatusEnum.APPLYIN, // 待审核
+                // online: StoreOnlineEnum.DOWNLINE, // 门店已下线
                 contactInfo: savedMerchant.contactPhone,
                 remark: '门店简介：新店开业，请多多关照',
                 notice: '你好，欢迎光临',
@@ -342,14 +342,14 @@ export class BusinessService {
                 });
                 const savedApplication = await transactionalEntityManager.save(businessAudit);
 
-                // 更新门店状态
-                const stores = await transactionalEntityManager.find(StoreEntity, {
-                    where: { business_id: merchant.id },
-                });
-                for (const store of stores) {
-                    store.status = parseInt(dto.status) === 1? StoreStatusEnum.ACTIVE : StoreStatusEnum.END;
-                    await transactionalEntityManager.save(store);
-                }
+                // // 更新门店状态
+                // const stores = await transactionalEntityManager.find(StoreEntity, {
+                //     where: { business_id: merchant.id },
+                // });
+                // for (const store of stores) {
+                //     store.status = parseInt(dto.status) === 1? StoreStatusEnum.ACTIVE : StoreStatusEnum.END;
+                //     await transactionalEntityManager.save(store);
+                // }
 
                 return savedApplication;
  

@@ -76,4 +76,13 @@ export class AuthController {
       return await this.authService.userInfo(req.user.id);
     } catch (error) {}
   }
+
+  @SkipLog()
+  @ApiOperation({ summary: '获取省市区信息' })
+  @ApiBearerAuth() // swagger文档设置token
+  @UseGuards(AuthGuard) // 需要jwt鉴权认证
+  @Get('chinaRegions')
+  async getChinaRegions(){
+    return this.authService.getChinaRegions();
+  }
 }
