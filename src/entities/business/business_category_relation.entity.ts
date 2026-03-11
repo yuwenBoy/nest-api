@@ -4,7 +4,7 @@ import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateCol
 import { BusinessEntity } from './business.entity';
 import { BusinessCategoryEntity } from './category.entity';
 /**
- * description:商家审核表
+ * description:商家分类关联表
  * @createTime:2025-2-21 14:56:17  
  * @Author:zhao.jian
  */

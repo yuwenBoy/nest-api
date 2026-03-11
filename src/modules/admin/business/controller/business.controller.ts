@@ -49,6 +49,19 @@ export class BusinessController {
        return this.businessService.pageQuery(query);
      }
 
+     
+     /***
+      * 获取审核记录列表
+      */
+     @SkipLog()
+     @ApiOperation({ summary: '获取审核记录列表', description: '获取审核记录列表' })
+     @ApiOkResponse({ type: PageListVo, description: '获取审核记录列表' })
+     @HttpCode(HttpStatus.OK)
+     @Post('auditLogList')
+     getAuditLogList(@Body() query): Promise<PageListVo> {
+       return this.businessService.pageAuditLogQuery(query);
+     }
+
       /***
       * 获取商家列表
       */

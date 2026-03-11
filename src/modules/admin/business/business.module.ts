@@ -26,6 +26,7 @@ import { EmployeeService } from './service/employee.service';
 import { RoleEntity } from 'src/entities/admin/t_role.entity';
 import { StoreHoursEntity } from 'src/entities/store/store_hours.entity';
 import { StoreDeliveryAreaEntity } from 'src/entities/store/store_deliveryarea.entity';
+import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
 /**
  * 商家管理模块
  */
@@ -45,6 +46,7 @@ import { StoreDeliveryAreaEntity } from 'src/entities/store/store_deliveryarea.e
         StoreEntity, // 门店表
         EmployeeEntity, // 员工表
         RoleEntity,
+        AuditLogEntity, // 审核日志表
     ]),  
   ],
   controllers: [

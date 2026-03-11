@@ -2,12 +2,6 @@
 import { Column, Entity } from 'typeorm';
 import { BusinessBaseEntity } from '../common/base.entity';
 import { AuditLogStatusEnum } from 'src/enum/business_enum';
-
-// 审核目标类型
-export enum AuditTargetType {
-  STORE_MODIFY = 'store_modify', // 门店信息修改
-  STORE_QUALIFICATION = 'store_qualification', // 门店资质审核
-}
 /**
  * description:审核记录表
  * @author: zhao.jian
@@ -20,7 +14,7 @@ export class AuditLogEntity extends BusinessBaseEntity{
     targetId: number;
 
     @Column({ name: 'targetType', comment: '目标类型' })
-    targetType: AuditTargetType;
+    targetType: number;
 
     @Column({ name: 'status', default: AuditLogStatusEnum.PENDING, enum: AuditLogStatusEnum, comment: '审核状态' })
     status: AuditLogStatusEnum;

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { Brackets, EntityManager, getConnection, getRepository, In, Repository } from 'typeorm';
 import { PageListVo } from 'src/modules/common/page/pageList';
@@ -6,6 +6,9 @@ import { StoreEntity } from 'src/entities/store/store.entity';
 import { EmployeeEntity } from 'src/entities/store/employee.entity';
 import { BusinessEntity } from 'src/entities/business/business.entity';
 import { UserInfoDto } from '../../system/dto/user/userInfo.dto';
+import { UpdateStoreDTO } from '../dto/UpdateStoreDto';
+import { StoreStatusEnum } from 'src/enum/business_enum';
+import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
 
 @Injectable()
 export class StoreService {
@@ -16,6 +19,9 @@ export class StoreService {
         private businessRepository:Repository<BusinessEntity>,
         @InjectRepository(EmployeeEntity)
         private employeeRepository:Repository<EmployeeEntity>,
+        
+        @InjectRepository(AuditLogEntity)
+        private auditRepo:Repository<AuditLogEntity>,
       ) {}
       
       /**
@@ -107,4 +113,128 @@ export class StoreService {
     async getStoreList(businessId:number):Promise<any>{
        return await this.storeRepository.find({where:{business_id:businessId}})
     }
+
+    /**
+   * 修改门店信息并提交审核（核心方法）
+   * @param storeId 门店ID
+   * @param dto 修改内容
+   * @param userId 当前登录商家用户ID
+   */
+  async updateStoreAndSubmitAudit(
+    dto: UpdateStoreDTO,
+    userId: number,
+  ): Promise<{ auditId: number; message: string }> {
+    let storeId = dto.storeId
+        // 1. 权限校验：用户是否属于该门店的商家
+    const store = await this.storeRepository.findOne({ 
+      where: { id: storeId }
+    });
+    if (!store) {
+      throw new NotFoundException('门店不存在');
+    }
+    // const userMerchant = await this.userService.getUserMerchant(userId);
+    // if (store.merchantId !== userMerchant.id) {
+    //   throw new ForbiddenException('无权限修改该门店');
+    // }
+
+    // 2. 状态校验：仅已下线门店可修改
+    if (store.status !== StoreStatusEnum.OFFLINE) {
+      throw new BadRequestException('仅已下线门店可修改信息，请先下线门店');
+    }
+
+    // // 3. 业务类型校验：不可修改（前端已禁用，后端二次校验）
+    // if (store.businessType !== dto.businessType) {
+    //   throw new BadRequestException('业务类型不可修改，如需变更请重新入驻');
+    // }
+
+    // 4. 获取当前资质信息（用于生成beforeData）
+    // const currentQual = await this.storeQualRepo.findOne({ where: { storeId } });
+    // if (!currentQual) {
+    //   throw new NotFoundException('门店资质信息不存在');
+    // }
+
+    // 5. 生成修改前后快照（JSON格式，对齐前端参数）
+    const beforeData = {
+      store: {
+        storeName: store.storeName,
+        // businessCategory: store.businessCategory,
+        // businessType: store.businessType,
+        doorPhoto: store.doorPhoto,
+        envPhoto: store.envPhoto,
+        district_code: store.district_code,
+        detail_address: store.detail_address,
+        latitude: store.latitude,
+        longitude: store.longitude,
+      },
+    //   licenseInfo: {
+    //     license_type: currentQual.licenseType,
+    //     license_pic: currentQual.licensePic,
+    //     license_no: currentQual.licenseNo,
+    //     company_name: currentQual.companyName,
+    //     legal_person: currentQual.legalPerson,
+    //     license_plan: currentQual.licensePlan,
+    //     license_valid_date: currentQual.licenseValidDate,
+    //     is_long_term: currentQual.isLongTerm,
+    //   },
+    //   permitInfo: {
+    //     permit_type: currentQual.permitType,
+    //     permit_pic: currentQual.permitPic,
+    //     permit_no: currentQual.permitNo,
+    //     permit_name: currentQual.permitName,
+    //     permit_legalPerson: currentQual.permitLegalPerson,
+    //     permit_address: currentQual.permitAddress,
+    //     permit_mainBusiness: currentQual.permitMainBusiness,
+    //     permit_scope: currentQual.permitScope,
+    //     permit_expireDate: currentQual.permitExpireDate,
+    //     is_rang_date: currentQual.isRangDate,
+    //   },
+     };
+
+    const afterData = {
+      store: {
+        storeName: dto.storeName,
+        // businessCategory: dto.businessCategory,
+        // businessType: dto.businessType,
+        doorPhoto: dto.doorPhoto,
+        envPhoto: dto.envPhoto,
+        district_code: dto.districtCode,
+        detail_address: dto.detailAddress,
+        latitude: dto.latitude,
+        longitude: dto.longitude,
+      },
+      licenseInfo: dto.licenseInfo,
+      permitInfo: dto.permitInfo,
+    };
+
+    // 6. 创建审核记录
+    const auditLog = this.auditRepo.create({
+    //   bizType: 'store_modify', // 门店修改
+      targetType:2, // 门店修改
+      targetId: storeId,
+      status: 0, // 待审核
+      beforeData,
+      afterData,
+      applicantId: userId,
+    });
+    const savedAudit = await this.auditRepo.save(auditLog);
+
+    // 7. 更新门店基础信息（状态改为审核中）
+    // store.storeName = dto.storeName;
+    // // store.businessCategory = dto.businessCategory;
+    // store.doorPhoto = dto.doorPhoto;
+    // store.envPhoto = dto.envPhoto;
+    // store.district_code = dto.district_code;
+    // store.detail_address = dto.detail_address;
+    // store.latitude = dto.latitude;
+    // store.longitude = dto.longitude;
+    store.status = StoreStatusEnum.PENDING_AUDIT;
+    store.offlineType = 0;
+    store.syncOnlineStatus(); // 联动online=0
+    await this.storeRepository.save(store);
+
+    return {
+      auditId: savedAudit.id,
+      message: '门店信息修改已提交审核，请等待平台审核',
+    };
+  }
 }

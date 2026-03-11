@@ -1,4 +1,4 @@
-import { Body, Controller,Get,HttpCode,HttpStatus,Logger,Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller,Get,HttpCode,HttpStatus,Logger,Param,Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard } from 'src/modules/common/auth/auth.guard';
 import { ApiBearerAuth, ApiTags,ApiOperation, ApiOkResponse } from "@nestjs/swagger";
 import { ApiAuth, CurrentUser, PermissionModule } from "src/modules/common/collections-permission/decorators";
@@ -6,6 +6,7 @@ import { PageListVo } from "src/modules/common/page/pageList";
 import { UserInfoDto } from "../../system/dto/user/userInfo.dto";
 import { StoreService } from "../service/store.service";
 import { StoreEntity } from "src/entities/store/store.entity";
+import { UpdateStoreDTO } from "../dto/UpdateStoreDto";
 
 
 @ApiTags('门店管理')
@@ -53,5 +54,20 @@ export class StoreController {
      Logger.log(`编辑品类接收参数：${JSON.stringify(entityDto)}`);
      return this.storeService.updateStore(entityDto);
    }
+
+    /**
+   * 修改门店信息并提交审核
+   * @param storeId 门店ID
+   * @param dto 修改内容
+   * @param req 请求对象（含当前登录用户ID）
+   */
+  @Post('updateAndSubmitAudit')
+  async updateAndSubmitAudit(
+    @Body() dto: UpdateStoreDTO,
+    @CurrentUser() userInfo: UserInfoDto,
+  ) {
+    const userId = userInfo.id; // 从token解析的用户ID
+    return this.storeService.updateStoreAndSubmitAudit(dto, userId);
+  }
 
 }
