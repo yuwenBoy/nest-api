@@ -1,6 +1,20 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { Brackets, EntityManager, getConnection, getRepository, In, Repository } from 'typeorm';
+import {
+  Brackets,
+  EntityManager,
+  getConnection,
+  getRepository,
+  In,
+  Repository,
+} from 'typeorm';
 import { PageListVo } from 'src/modules/common/page/pageList';
 import { StoreEntity } from 'src/entities/store/store.entity';
 import { EmployeeEntity } from 'src/entities/store/employee.entity';
@@ -9,112 +23,125 @@ import { UserInfoDto } from '../../system/dto/user/userInfo.dto';
 import { UpdateStoreDTO } from '../dto/UpdateStoreDto';
 import { StoreStatusEnum } from 'src/enum/business_enum';
 import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
+import { UserEntity } from 'src/entities/admin/t_user.entity';
 
 @Injectable()
 export class StoreService {
-    constructor(
-        @InjectRepository(StoreEntity)
-        private storeRepository: Repository<StoreEntity>,
-        @InjectRepository(BusinessEntity)
-        private businessRepository:Repository<BusinessEntity>,
-        @InjectRepository(EmployeeEntity)
-        private employeeRepository:Repository<EmployeeEntity>,
-        
-        @InjectRepository(AuditLogEntity)
-        private auditRepo:Repository<AuditLogEntity>,
-      ) {}
-      
-      /**
-         * 查询分页列表
-         * @param parameter 查询条件
-         * @returns list
-         */
-      async pageQuery(parameter: any,userInfo:UserInfoDto): Promise<PageListVo> {
-        try {
-            const [pageIndex, pageSize] = [parameter.page, parameter.size];
-            Logger.log('userInfo.id'+userInfo.id)
-                // 查询员工记录
-            const employee = await this.employeeRepository.findOne({ where: { user_id:userInfo.id } });
+  constructor(
+    @InjectRepository(StoreEntity)
+    private storeRepository: Repository<StoreEntity>,
+    @InjectRepository(BusinessEntity)
+    private businessRepository: Repository<BusinessEntity>,
+    @InjectRepository(EmployeeEntity)
+    private employeeRepository: Repository<EmployeeEntity>,
 
-            Logger.log('查询员工记录'+employee)
-            const storeId = employee ? employee.store_id : null;
-              let qb = await this.storeRepository
-                .createQueryBuilder('store')
-                .innerJoinAndMapOne(
-                  'store.business',
-                  BusinessEntity,
-                  'business',
-                  'store.business_id=business.id',
-                ).where(
-                  new Brackets((qb) => {
-                    if (storeId) {
-                        qb.andWhere('store.id = :storeId', { storeId });
-                      }
-                      if (parameter.storeName) {
-                        qb.andWhere('store.store_name LIKE :storeName', {
-                            storeName: `%${parameter.storeName}%`,
-                        });
-                      }
-                      if (parameter.contactInfo) {
-                        qb.andWhere('store.contact_info LIKE :contactInfo', {
-                            contactInfo: `%${parameter.contactInfo}%`,
-                        });
-                      }
-                  }),
-                )
-                // .orderBy(`business.created_at`, 'DESC')
-                .skip((pageIndex - 1) * Number(pageSize))
-                .take(pageSize);
-        
-              const [data, count] = await qb.getManyAndCount();
-        
-              return {
-                ...{ content: data },
-                page: pageIndex,
-                size: pageSize,
-                totalElements: count,
-                totalPage: Math.ceil(count / pageSize),
-              };
-        } catch (error) {
-          Logger.error(`查询分页列表失败，原因：${JSON.stringify(error)}`);
-          throw new HttpException('查询分页列表失败', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-      }
-    // 新增门店
-    async createStore(storeData:any, businessId: number): Promise<any> {
-        const business = await this.businessRepository.findOne({ where: { id: businessId } });
-        if (!business) {
-            throw new NotFoundException(`Business with ID ${businessId} not found`);
-        }
+    @InjectRepository(AuditLogEntity)
+    private auditRepo: Repository<AuditLogEntity>,
+  ) {}
 
-        const newStore = this.storeRepository.create({
-            ...storeData,
-            business,
-        });
+  /**
+   * 查询分页列表
+   * @param parameter 查询条件
+   * @returns list
+   */
+  async pageQuery(parameter: any, userInfo: UserInfoDto): Promise<PageListVo> {
+    try {
+      const [pageIndex, pageSize] = [parameter.page, parameter.size];
+      Logger.log('userInfo.id' + userInfo.id);
+      // 查询员工记录
+      const employee = await this.employeeRepository.findOne({
+        where: { user_id: userInfo.id },
+      });
 
-        return this.storeRepository.save(newStore);
+      Logger.log('查询员工记录' + employee);
+      const storeId = employee ? employee.store_id : null;
+      let qb = await this.storeRepository
+        .createQueryBuilder('store')
+        .innerJoinAndMapOne(
+          'store.business',
+          BusinessEntity,
+          'business',
+          'store.business_id=business.id',
+        )
+        .where(
+          new Brackets((qb) => {
+            if (storeId) {
+              qb.andWhere('store.id = :storeId', { storeId });
+            }
+            if (parameter.storeName) {
+              qb.andWhere('store.store_name LIKE :storeName', {
+                storeName: `%${parameter.storeName}%`,
+              });
+            }
+            if (parameter.contactInfo) {
+              qb.andWhere('store.contact_info LIKE :contactInfo', {
+                contactInfo: `%${parameter.contactInfo}%`,
+              });
+            }
+          }),
+        )
+        // .orderBy(`business.created_at`, 'DESC')
+        .skip((pageIndex - 1) * Number(pageSize))
+        .take(pageSize);
+
+      const [data, count] = await qb.getManyAndCount();
+
+      return {
+        ...{ content: data },
+        page: pageIndex,
+        size: pageSize,
+        totalElements: count,
+        totalPage: Math.ceil(count / pageSize),
+      };
+    } catch (error) {
+      Logger.error(`查询分页列表失败，原因：${JSON.stringify(error)}`);
+      throw new HttpException(
+        '查询分页列表失败',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  // 新增门店
+  async createStore(storeData: any, businessId: number): Promise<any> {
+    const business = await this.businessRepository.findOne({
+      where: { id: businessId },
+    });
+    if (!business) {
+      throw new NotFoundException(`Business with ID ${businessId} not found`);
     }
 
-    // 编辑门店
-    async updateStore(storeData:any): Promise<any> {
-        const store = await this.storeRepository.findOne({ where: { id:storeData.id } });
-        if (!store) {
-        throw new NotFoundException(`Store with ID ${storeData.id} not found`);
-        }
+    const newStore = this.storeRepository.create({
+      ...storeData,
+      business,
+    });
 
-        await this.storeRepository.update(storeData.id, storeData);
-        return this.storeRepository.findOne({ where: { id:storeData.id } });
+    return this.storeRepository.save(newStore);
+  }
+
+  // 编辑门店
+  async updateStore(storeData: any): Promise<any> {
+    const store = await this.storeRepository.findOne({
+      where: { id: storeData.id },
+    });
+    if (!store) {
+      throw new NotFoundException(`Store with ID ${storeData.id} not found`);
     }
 
-    /**
-     * 根据商家获取全部门店信息
-     * @param businessId 商家ID
-     */
-    async getStoreList(businessId:number):Promise<any>{
-       return await this.storeRepository.find({where:{business_id:businessId}})
-    }
+    await this.storeRepository.update(storeData.id, storeData);
+    return this.storeRepository.findOne({ where: { id: storeData.id } });
+  }
 
-    /**
+  /**
+   * 根据商家获取全部门店信息
+   * @param businessId 商家ID
+   */
+  async getStoreList(businessId: number): Promise<any> {
+    return await this.storeRepository.find({
+      where: { business_id: businessId },
+    });
+  }
+
+  /**
    * 修改门店信息并提交审核（核心方法）
    * @param storeId 门店ID
    * @param dto 修改内容
@@ -124,10 +151,10 @@ export class StoreService {
     dto: UpdateStoreDTO,
     userId: number,
   ): Promise<{ auditId: number; message: string }> {
-    let storeId = dto.storeId
-        // 1. 权限校验：用户是否属于该门店的商家
-    const store = await this.storeRepository.findOne({ 
-      where: { id: storeId }
+    let storeId = dto.storeId;
+    // 1. 权限校验：用户是否属于该门店的商家
+    const store = await this.storeRepository.findOne({
+      where: { id: storeId },
     });
     if (!store) {
       throw new NotFoundException('门店不存在');
@@ -166,29 +193,29 @@ export class StoreService {
         latitude: store.latitude,
         longitude: store.longitude,
       },
-    //   licenseInfo: {
-    //     license_type: currentQual.licenseType,
-    //     license_pic: currentQual.licensePic,
-    //     license_no: currentQual.licenseNo,
-    //     company_name: currentQual.companyName,
-    //     legal_person: currentQual.legalPerson,
-    //     license_plan: currentQual.licensePlan,
-    //     license_valid_date: currentQual.licenseValidDate,
-    //     is_long_term: currentQual.isLongTerm,
-    //   },
-    //   permitInfo: {
-    //     permit_type: currentQual.permitType,
-    //     permit_pic: currentQual.permitPic,
-    //     permit_no: currentQual.permitNo,
-    //     permit_name: currentQual.permitName,
-    //     permit_legalPerson: currentQual.permitLegalPerson,
-    //     permit_address: currentQual.permitAddress,
-    //     permit_mainBusiness: currentQual.permitMainBusiness,
-    //     permit_scope: currentQual.permitScope,
-    //     permit_expireDate: currentQual.permitExpireDate,
-    //     is_rang_date: currentQual.isRangDate,
-    //   },
-     };
+      //   licenseInfo: {
+      //     license_type: currentQual.licenseType,
+      //     license_pic: currentQual.licensePic,
+      //     license_no: currentQual.licenseNo,
+      //     company_name: currentQual.companyName,
+      //     legal_person: currentQual.legalPerson,
+      //     license_plan: currentQual.licensePlan,
+      //     license_valid_date: currentQual.licenseValidDate,
+      //     is_long_term: currentQual.isLongTerm,
+      //   },
+      //   permitInfo: {
+      //     permit_type: currentQual.permitType,
+      //     permit_pic: currentQual.permitPic,
+      //     permit_no: currentQual.permitNo,
+      //     permit_name: currentQual.permitName,
+      //     permit_legalPerson: currentQual.permitLegalPerson,
+      //     permit_address: currentQual.permitAddress,
+      //     permit_mainBusiness: currentQual.permitMainBusiness,
+      //     permit_scope: currentQual.permitScope,
+      //     permit_expireDate: currentQual.permitExpireDate,
+      //     is_rang_date: currentQual.isRangDate,
+      //   },
+    };
 
     const afterData = {
       store: {
@@ -208,8 +235,8 @@ export class StoreService {
 
     // 6. 创建审核记录
     const auditLog = this.auditRepo.create({
-    //   bizType: 'store_modify', // 门店修改
-      targetType:2, // 门店修改
+      //   bizType: 'store_modify', // 门店修改
+      targetType: 2, // 门店修改
       targetId: storeId,
       status: 0, // 待审核
       beforeData,

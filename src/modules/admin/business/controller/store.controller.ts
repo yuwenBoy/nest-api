@@ -69,5 +69,4 @@ export class StoreController {
     const userId = userInfo.id; // 从token解析的用户ID
     return this.storeService.updateStoreAndSubmitAudit(dto, userId);
   }
-
 }

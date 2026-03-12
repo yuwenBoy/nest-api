@@ -27,6 +27,8 @@ import { RoleEntity } from 'src/entities/admin/t_role.entity';
 import { StoreHoursEntity } from 'src/entities/store/store_hours.entity';
 import { StoreDeliveryAreaEntity } from 'src/entities/store/store_deliveryarea.entity';
 import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
+import { AuditLogController } from './controller/auditLog.controller';
+import { AuditLogService } from './service/auditLog.service';
 /**
  * 商家管理模块
  */
@@ -56,6 +58,7 @@ import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
     HoursController,
     StoreController,
     EmployeeController,
+    AuditLogController,
   ],
   providers: [
     CategoryService,
@@ -65,6 +68,7 @@ import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
     HoursService,
     StoreService,
     EmployeeService,
+    AuditLogService,
   ],    
 })  
 export class BusinessModule {}
