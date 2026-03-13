@@ -17,11 +17,14 @@ import {
 } from '@nestjs/swagger';
 import {
   ApiAuth,
+  CurrentUser,
   PermissionModule,
 } from 'src/modules/common/collections-permission/decorators';
 import { AuditLogService } from '../service/auditLog.service';
 import { PageListVo } from 'src/modules/common/page/pageList';
 import { SkipLog } from 'src/common/decorators/skip-log.decorator';
+import { AuditRejectDto } from '../dto/AuditRejectDto';
+import { UserInfoDto } from '../../system/dto/user/userInfo.dto';
 
 @ApiTags('审核记录管理')
 @ApiBearerAuth() // swagger文档设置token
@@ -51,5 +54,15 @@ export class AuditLogController {
   @Get('detail/:id')
   async getAuditLogDetail(@Param('id') id: number) {
     return this.auditLogService.auditLogDetail(id);
+  }
+
+   @ApiOkResponse({ type: AuditRejectDto, description: '审核驳回' })
+  // 审核驳回
+  @Post('reject')
+  async rejectAuditLog(@Body() dto: AuditRejectDto,@CurrentUser() user:UserInfoDto) {
+    if(!user.id){
+        return { success: false, message: '操作人ID不能为空且必须为数字' };
+    }
+    return this.auditLogService.rejectAuditLog(dto,user.id);
   }
 }

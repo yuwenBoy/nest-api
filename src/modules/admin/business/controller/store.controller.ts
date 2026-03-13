@@ -69,4 +69,15 @@ export class StoreController {
     const userId = userInfo.id; // 从token解析的用户ID
     return this.storeService.updateStoreAndSubmitAudit(dto, userId);
   }
+
+  /**
+   * 获取门店信息
+   * @param dto 
+   */
+  @Post('getShopInfo')
+  async getShopInfo(@Body() dto: any): Promise<any> {
+    const storeId = dto.storeId;
+    const result = await this.storeService.getStoreInfo(storeId);
+    return result;
+  }
 }

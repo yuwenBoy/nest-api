@@ -1,41 +1,27 @@
 import {
+    BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { InjectConnection, InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { BusinessEntity } from 'src/entities/business/business.entity';
-import { BusinessAuditEntity } from 'src/entities/business/business_audit.entity';
 import {
-  Brackets,
-  EntityManager,
-  getRepository,
-  In,
-  QueryBuilder,
+  Connection,
   Repository,
 } from 'typeorm';
-import { CreateMerchantApplicationDto } from '../dto/CreateMerchantApplicationDto';
 import {
-  BusinessAuditStatusEnum,
-  BusinessStatusEnum,
-  StoreOnlineEnum,
+    AuditLogStatusEnum,
   StoreStatusEnum,
 } from 'src/enum/business_enum';
 import { BusinessCategoryRelationEntity } from 'src/entities/business/business_category_relation.entity';
-import { BusinessCategoryEntity } from 'src/entities/business/category.entity';
 import { PageListVo } from 'src/modules/common/page/pageList';
-import { CreateMerchantAuditApplicationDto } from '../dto/CreateMerchantAuditApplicationDto';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
-import { BusinessAccountEntity } from 'src/entities/business/business_account.entity';
-import { ConfigService } from '@nestjs/config';
-import { UserRoleEntity } from 'src/entities/admin/t_user_role.entity';
-import { EmailService } from 'src/modules/common/services/email/email.service';
-import { compareSync, hashSync } from 'bcryptjs';
-import { UserTypeEnum } from 'src/enum/admin_enum';
 import { StoreEntity } from 'src/entities/store/store.entity';
 import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
+import { AuditRejectDto } from '../dto/AuditRejectDto';
 
 @Injectable()
 export class AuditLogService {
@@ -43,6 +29,8 @@ export class AuditLogService {
 
     @InjectRepository(AuditLogEntity)
     private readonly auditLogRepository: Repository<AuditLogEntity>,
+    @InjectConnection() // 核心：添加这个装饰器
+    private readonly connection: Connection, 
  
   ) {}
  
@@ -106,8 +94,7 @@ export class AuditLogService {
           'bc',
           'audit.targetType = 1 AND audit.targetId = bc.business_id',
         )
-        // 4. 基础条件：状态筛选（保留原有status=0，如需动态传参可改为parameter.status）
-        .where('audit.status = :status', { status: parameter.status || 0 })
+        .where(parameter.status ? 'audit.status = :status':'', { status: parameter.status || 0 })
         // 新增：目标类型筛选
         .andWhere(
           parameter.targetType ? 'audit.targetType = :targetType' : '1=1',
@@ -139,7 +126,6 @@ export class AuditLogService {
         .take(pageSize);
 
       const [data, count] = await qb.getManyAndCount();
-
       return {
         ...{ content: data },
         page: pageIndex,
@@ -232,5 +218,77 @@ export class AuditLogService {
       minute: '2-digit',
       second: '2-digit',
     });
+  }
+
+  
+  /**
+   * 审核驳回接口（匹配前端调用参数）
+   * @param dto 前端传入的auditId + rejectReason
+   * @param operatorId 操作人ID（可从token解析，这里先作为参数传入）
+   */
+  async rejectAuditLog(dto: AuditRejectDto, operatorId: number) {
+    // 开启事务，确保审核记录和门店状态更新原子性
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const { auditId, rejectReason } = dto;  
+
+      // 1. 查询审核记录，校验状态
+      const auditLog = await queryRunner.manager.findOne(AuditLogEntity, {
+        where: { id: auditId },
+      });
+
+      if (!auditLog) {
+        throw new NotFoundException(`审核记录ID: ${auditId} 不存在`);
+      }
+
+      // 只能驳回「审核中」的记录
+      if (auditLog.status !== 0) { // 假设auditLog的status：0=审核中，1=已通过，2=已驳回
+        throw new BadRequestException(`审核记录ID: ${auditId} 当前状态不是「审核中」，无法驳回`);
+      }
+
+      // 2. 查询关联门店
+      const store = await queryRunner.manager.findOne(StoreEntity, {
+        where: { id: auditLog.targetId }, // 审核记录关联门店ID
+      });
+
+      if (!store) {
+        throw new NotFoundException(`审核记录关联的门店ID: ${auditLog.targetId} 不存在`);
+      }
+
+      // 3. 更新审核记录（标记驳回 + 存储结构化驳回原因）
+      auditLog.status = AuditLogStatusEnum.REJECTED; // 审核驳回
+      auditLog.reason = JSON.stringify(rejectReason); // 存储前端传入的结构化驳回原因
+      auditLog.operatorId = operatorId; // 操作人ID
+      auditLog.auditAt = new Date(); // 审核时间
+      await queryRunner.manager.save(AuditLogEntity, auditLog);
+
+      store.status = StoreStatusEnum.AUDIT_REJECTED;
+
+      await queryRunner.manager.save(StoreEntity, store);
+
+      // 提交事务
+      await queryRunner.commitTransaction();
+
+      return {
+        success: true,
+        message: `审核记录ID: ${auditId} 驳回成功`,
+        data: {
+          auditId,
+          storeId: store.id,
+          storeStatus: store.status,
+          rejectReason,
+        },
+      };
+    } catch (error) {
+      // 回滚事务
+      await queryRunner.rollbackTransaction();
+      throw error; // 抛出异常让全局过滤器处理
+    } finally {
+      // 释放连接
+      await queryRunner.release();
+    }
   }
 }

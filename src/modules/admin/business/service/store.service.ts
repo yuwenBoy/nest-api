@@ -6,13 +6,9 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 import {
   Brackets,
-  EntityManager,
-  getConnection,
-  getRepository,
-  In,
   Repository,
 } from 'typeorm';
 import { PageListVo } from 'src/modules/common/page/pageList';
@@ -23,7 +19,6 @@ import { UserInfoDto } from '../../system/dto/user/userInfo.dto';
 import { UpdateStoreDTO } from '../dto/UpdateStoreDto';
 import { StoreStatusEnum } from 'src/enum/business_enum';
 import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
-import { UserEntity } from 'src/entities/admin/t_user.entity';
 
 @Injectable()
 export class StoreService {
@@ -52,8 +47,6 @@ export class StoreService {
       const employee = await this.employeeRepository.findOne({
         where: { user_id: userInfo.id },
       });
-
-      Logger.log('查询员工记录' + employee);
       const storeId = employee ? employee.store_id : null;
       let qb = await this.storeRepository
         .createQueryBuilder('store')
@@ -263,5 +256,32 @@ export class StoreService {
       auditId: savedAudit.id,
       message: '门店信息修改已提交审核，请等待平台审核',
     };
+  }
+
+  /**
+   * 获取门店信息
+   * @param storeId 门店ID
+   */
+  async getStoreInfo(storeId:number):Promise<any>{
+      try {
+        const store = await this.storeRepository.findOne({
+          where: { id: storeId },
+        });
+        const auditLog = await this.auditRepo.findOne({
+          where: { targetType: 2, targetId: storeId },
+          order: { createdAt: 'DESC' },
+        });
+        
+        if (!store) {
+          throw new NotFoundException('门店不存在');
+        }
+        return {...auditLog, store};
+      } catch (error) {
+        Logger.error(`获取门店信息失败，原因：${JSON.stringify(error)}`);
+        throw new HttpException(
+          '获取门店信息失败',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
   }
 }

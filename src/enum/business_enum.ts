@@ -49,6 +49,7 @@ export enum StoreStatusEnum{
     ONLINE = 3, // 营业中
     PAUSE = 4, // 暂停营业
     FORBIDDEN = 5, // 永久封禁
+    AUDIT_REJECTED = 6, // 审核驳回
 }
 
 /****
@@ -78,3 +79,35 @@ export enum ProductSaleStatusEnum{
     DOWNSALE = 2, // 下架
     UPSALE = 1, // 上架
 }
+
+// 状态文案/说明映射（前端展示用）
+export const StoreStatusMap = {
+  [StoreStatusEnum.OFFLINE]: {
+    text: '已下线',
+    desc: '1. 新店创建未提交审核；2. 商家主动下线；3. 审核驳回后商家手动恢复；4. 暂停营业结束后手动下线'
+  },
+  [StoreStatusEnum.PENDING_AUDIT]: {
+    text: '审核中',
+    desc: '商家提交上线/修改申请后，平台未处理前'
+  },
+  [StoreStatusEnum.AUDIT_APPROVED]: {
+    text: '审核通过（待上线）',
+    desc: '平台审核通过，商家未手动点击“上线”'
+  },
+  [StoreStatusEnum.ONLINE]: {
+    text: '营业中',
+    desc: '商家点击“上线”后，正常接单/展示'
+  },
+  [StoreStatusEnum.PAUSE]: {
+    text: '暂停营业',
+    desc: '商家主动暂停（如装修），可手动恢复'
+  },
+  [StoreStatusEnum.FORBIDDEN]: {
+    text: '永久封禁',
+    desc: '平台强制封禁，不可恢复'
+  },
+  [StoreStatusEnum.AUDIT_REJECTED]: {
+    text: '审核驳回',
+    desc: '1. 新店上线申请驳回；2. 门店修改申请驳回；3. 资质续期审核驳回'
+  },
+};
