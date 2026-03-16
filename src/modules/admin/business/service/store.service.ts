@@ -152,15 +152,28 @@ export class StoreService {
     if (!store) {
       throw new NotFoundException('门店不存在');
     }
-    // const userMerchant = await this.userService.getUserMerchant(userId);
-    // if (store.merchantId !== userMerchant.id) {
-    //   throw new ForbiddenException('无权限修改该门店');
-    // }
+      const allowModifyStatusList = [
+    StoreStatusEnum.OFFLINE,        // 已下线
+    StoreStatusEnum.PENDING_AUDIT,  // 审核中
+    StoreStatusEnum.AUDIT_REJECTED  // 审核驳回
+  ];
 
-    // 2. 状态校验：仅已下线门店可修改
-    if (store.status !== StoreStatusEnum.OFFLINE) {
-      throw new BadRequestException('仅已下线门店可修改信息，请先下线门店');
+  // 3. 状态校验
+  if (!allowModifyStatusList.includes(store.status)) {
+    // 针对不同禁止状态，返回精准提示（提升商家体验）
+    switch (store.status) {
+      case StoreStatusEnum.ONLINE:
+        throw new BadRequestException('当前门店为营业中状态，无法直接修改，请先手动下线后再提交修改申请');
+      case StoreStatusEnum.AUDIT_APPROVED:
+        throw new BadRequestException('当前门店审核已通过（待上线），无需修改，可直接点击上线');
+      case StoreStatusEnum.PAUSE:
+        throw new BadRequestException('当前门店为暂停营业状态，需先恢复营业后下线，再提交修改申请');
+      case StoreStatusEnum.FORBIDDEN:
+        throw new BadRequestException('当前门店已被永久封禁，无法修改信息');
+      default:
+        throw new BadRequestException('当前门店状态不允许修改');
     }
+  }
 
     // // 3. 业务类型校验：不可修改（前端已禁用，后端二次校验）
     // if (store.businessType !== dto.businessType) {

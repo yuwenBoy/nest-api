@@ -17,6 +17,7 @@ import {
 import { PageListVo } from 'src/modules/common/page/pageList';
 import { StoreHoursEntity } from 'src/entities/store/store_hours.entity';
 import { StoreEntity } from 'src/entities/store/store.entity';
+import { StoreStatusEnum } from 'src/enum/business_enum';
 
 @Injectable()
 export class HoursService {
@@ -213,127 +214,348 @@ export class HoursService {
     };
   }
 
-  // 核心状态判断
   private calculateStatus(
-    store: StoreEntity,
-    businessHours: StoreHoursEntity[],
-  ) {
-    // 1. 下线状态（最高优先级）
-    if (store.online === 0) {
-      return {
-        status: 'offline',
-        statusIndex: 4,
-        remark: '门店已下线',
-        color: '#FA5555',
-        bgColor: '#FDF6EA',
-        detailContent:
-          "<font><em style='font-weight: 500;font-style:normal'>您的门店已经下线，无法正常营业</em><br/></font>",
-        canOperate: false,
-      };
-    }
-
-    // 2. 审核中
-    if (store.status === 0) {
-      return {
-        status: 'pending',
-        statusIndex: 1,
-        remark: '审核中',
-        color: '#FF9100',
-        bgColor: '#FDF6EA',
-        detailContent: '<font>门店正在审核中，请耐心等待</font>',
-        canOperate: false,
-      };
-    }
-
-    // 3. 被平台暂停
-    if (store.status === 3) {
-      return {
-        status: 'suspended',
-        statusIndex: 5,
-        remark: '被平台暂停',
-        color: '#FA5555',
-        bgColor: '#FDF6EA',
-        detailContent: '<font>门店被平台暂停，请联系客服</font>',
-        canOperate: false,
-      };
-    }
-
-    // 4. 暂停营业（商家主动）
-    if (store.status === 2) {
-      return {
-        status: 'paused',
-        statusIndex: 3,
-        remark: '暂停营业',
-        color: '#FF9100',
-        bgColor: '#FDF6EA',
-        detailContent: '<font>您已暂停营业，恢复后即可接单</font>',
-        canOperate: true, // 可以恢复营业
-      };
-    }
-
-    // 5. 营业中，检查时间
-    if (store.status === 1) {
-      const now = new Date();
-      const currentDay = now.getDay();
-      const currentTime = now.getHours() * 60 + now.getMinutes();
-
-      const todayHours = businessHours.find((h) => h.dayOfWeek === currentDay);
-
-      // 今天没有设置营业时间
-      if (!todayHours) {
-        return {
-          status: 'rest',
-          statusIndex: 3,
-          remark: '休息中',
-          color: '#FF9100',
-          bgColor: '#FDF6EA',
-          detailContent: '<font>今日未设置营业时间，客户可以预定</font>',
-          canOperate: true,
-        };
-      }
-
-      // 检查是否在营业时间内
-      const [startH, startM] = todayHours.startTime.split(':').map(Number);
-      const [endH, endM] = todayHours.endTime.split(':').map(Number);
-      const startMinutes = startH * 60 + startM;
-      const endMinutes = endH * 60 + endM;
-
-      const isInTime = currentTime >= startMinutes && currentTime <= endMinutes;
-
-      if (isInTime) {
-        return {
-          status: 'open',
-          statusIndex: 2,
-          remark: '营业中',
-          color: '#07C160',
-          bgColor: '#E6F7ED',
-          detailContent: '<font>当前在营业时间内，正常接单中</font>',
-          canOperate: true,
-        };
-      } else {
-        return {
-          status: 'rest',
-          statusIndex: 3,
-          remark: '休息中',
-          color: '#FF9100',
-          bgColor: '#FDF6EA',
-          detailContent: '<font>当前不在营业时间，客户可以预定</font>',
-          canOperate: true,
-        };
-      }
-    }
-
-    // 默认
+  store: StoreEntity,
+  businessHours: StoreHoursEntity[],
+) {
+  // 1. 已下线（OFFLINE=0，最高优先级）
+  if (store.status === StoreStatusEnum.OFFLINE) {
     return {
-      status: 'unknown',
-      statusIndex: 0,
-      remark: '未知状态',
-      color: '#999999',
-      bgColor: '#F5F5F5',
-      detailContent: '<font>状态异常，请联系客服</font>',
-      canOperate: false,
+      status: 'offline',
+      statusIndex: 4,
+      remark: '门店已下线',
+      color: '#FA5555',
+      bgColor: '#FDF6EA',
+      detailContent:
+        "<font><em style='font-weight: 500;font-style:normal'>您的门店已经下线，无法正常营业</em><br/></font>",
+      canOperate: true, // 可以上线
     };
   }
+
+  // 2. 审核中（PENDING_AUDIT=1）
+  if (store.status === StoreStatusEnum.PENDING_AUDIT) {
+    return {
+      status: 'pending',
+      statusIndex: 1,
+      remark: '审核中',
+      color: '#FF9100',
+      bgColor: '#FDF6EA',
+      detailContent: '<font>门店正在审核中，请耐心等待</font>',
+      canOperate: false, // 不可操作
+    };
+  }
+
+  // 3. 审核驳回（AUDIT_REJECTED=6）
+  if (store.status === StoreStatusEnum.AUDIT_REJECTED) {
+    return {
+      status: 'rejected',
+      statusIndex: 6,
+      remark: '审核驳回',
+      color: '#FA5555',
+      bgColor: '#FDF6EA',
+      detailContent: '<font>门店审核驳回，请修改信息后重新提交审核</font>',
+      canOperate: false, // 不可直接操作，需先修改信息
+    };
+  }
+
+  // 4. 永久封禁（FORBIDDEN=5）
+  if (store.status === StoreStatusEnum.FORBIDDEN) {
+    return {
+      status: 'forbidden',
+      statusIndex: 5,
+      remark: '永久封禁',
+      color: '#FA5555',
+      bgColor: '#FDF6EA',
+      detailContent: '<font>门店被永久封禁，请联系平台客服</font>',
+      canOperate: false, // 不可操作
+    };
+  }
+
+  // 5. 暂停营业（PAUSE=4，商家主动暂停）
+  if (store.status === StoreStatusEnum.PAUSE) {
+    return {
+      status: 'paused',
+      statusIndex: 4,
+      remark: '暂停营业',
+      color: '#FF9100',
+      bgColor: '#FDF6EA',
+      detailContent: '<font>您已暂停营业，恢复后即可接单</font>',
+      canOperate: true, // 可以恢复营业
+    };
+  }
+
+  // 6. 审核通过（AUDIT_APPROVED=2，未上线）
+  if (store.status === StoreStatusEnum.AUDIT_APPROVED) {
+    return {
+      status: 'approved',
+      statusIndex: 2,
+      remark: '审核通过',
+      color: '#07C160',
+      bgColor: '#E6F7ED',
+      detailContent: '<font>门店审核通过，可随时上线营业</font>',
+      canOperate: true, // 可以立即上线
+    };
+  }
+
+  // 7. 营业中（ONLINE=3），检查时间
+  if (store.status === StoreStatusEnum.ONLINE) {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+
+    const todayHours = businessHours.find((h) => h.dayOfWeek === currentDay);
+
+    // 今天没有设置营业时间
+    if (!todayHours) {
+      return {
+        status: 'rest',
+        statusIndex: 3,
+        remark: '休息中',
+        color: '#FF9100',
+        bgColor: '#FDF6EA',
+        detailContent: '<font>今日未设置营业时间，客户可以预定</font>',
+        canOperate: true, // 可以关店/下线
+      };
+    }
+
+    // 检查是否在营业时间内
+    const [startH, startM] = todayHours.startTime.split(':').map(Number);
+    const [endH, endM] = todayHours.endTime.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+
+    const isInTime = currentTime >= startMinutes && currentTime <= endMinutes;
+
+    if (isInTime) {
+      return {
+        status: 'open',
+        statusIndex: 3,
+        remark: '营业中',
+        color: '#07C160',
+        bgColor: '#E6F7ED',
+        detailContent: '<font>当前在营业时间内，正常接单中</font>',
+        canOperate: true, // 可以关店/下线
+      };
+    } else {
+      return {
+        status: 'rest',
+        statusIndex: 3,
+        remark: '休息中',
+        color: '#FF9100',
+        bgColor: '#FDF6EA',
+        detailContent: '<font>当前不在营业时间，客户可以预定</font>',
+        canOperate: true, // 可以关店/下线
+      };
+    }
+  }
+
+  // 默认（未知状态）
+  return {
+    status: 'unknown',
+    statusIndex: 0,
+    remark: '未知状态',
+    color: '#999999',
+    bgColor: '#F5F5F5',
+    detailContent: '<font>状态异常，请联系客服</font>',
+    canOperate: false,
+  };
+}
+
+  // // 核心状态判断
+  // private calculateStatus(
+  //   store: StoreEntity,
+  //   businessHours: StoreHoursEntity[],
+  // ) {
+  //   // 1. 下线状态（最高优先级）
+  //   if (store.online === 0) {
+  //     return {
+  //       status: 'offline',
+  //       statusIndex: 4,
+  //       remark: '门店已下线',
+  //       color: '#FA5555',
+  //       bgColor: '#FDF6EA',
+  //       detailContent:
+  //         "<font><em style='font-weight: 500;font-style:normal'>您的门店已经下线，无法正常营业</em><br/></font>",
+  //       canOperate: false,
+  //     };
+  //   }
+
+  //   // 2. 审核中
+  //   if (store.status === 0) {
+  //     return {
+  //       status: 'pending',
+  //       statusIndex: 1,
+  //       remark: '审核中',
+  //       color: '#FF9100',
+  //       bgColor: '#FDF6EA',
+  //       detailContent: '<font>门店正在审核中，请耐心等待</font>',
+  //       canOperate: false,
+  //     };
+  //   }
+
+  //   // 3. 被平台暂停
+  //   if (store.status === 3) {
+  //     return {
+  //       status: 'suspended',
+  //       statusIndex: 5,
+  //       remark: '被平台暂停',
+  //       color: '#FA5555',
+  //       bgColor: '#FDF6EA',
+  //       detailContent: '<font>门店被平台暂停，请联系客服</font>',
+  //       canOperate: false,
+  //     };
+  //   }
+
+  //   // 4. 暂停营业（商家主动）
+  //   if (store.status === 2) {
+  //     return {
+  //       status: 'paused',
+  //       statusIndex: 3,
+  //       remark: '暂停营业',
+  //       color: '#FF9100',
+  //       bgColor: '#FDF6EA',
+  //       detailContent: '<font>您已暂停营业，恢复后即可接单</font>',
+  //       canOperate: true, // 可以恢复营业
+  //     };
+  //   }
+
+  //   // 5. 营业中，检查时间
+  //   if (store.status === 1) {
+  //     const now = new Date();
+  //     const currentDay = now.getDay();
+  //     const currentTime = now.getHours() * 60 + now.getMinutes();
+
+  //     const todayHours = businessHours.find((h) => h.dayOfWeek === currentDay);
+
+  //     // 今天没有设置营业时间
+  //     if (!todayHours) {
+  //       return {
+  //         status: 'rest',
+  //         statusIndex: 3,
+  //         remark: '休息中',
+  //         color: '#FF9100',
+  //         bgColor: '#FDF6EA',
+  //         detailContent: '<font>今日未设置营业时间，客户可以预定</font>',
+  //         canOperate: true,
+  //       };
+  //     }
+
+  //     // 检查是否在营业时间内
+  //     const [startH, startM] = todayHours.startTime.split(':').map(Number);
+  //     const [endH, endM] = todayHours.endTime.split(':').map(Number);
+  //     const startMinutes = startH * 60 + startM;
+  //     const endMinutes = endH * 60 + endM;
+
+  //     const isInTime = currentTime >= startMinutes && currentTime <= endMinutes;
+
+  //     if (isInTime) {
+  //       return {
+  //         status: 'open',
+  //         statusIndex: 2,
+  //         remark: '营业中',
+  //         color: '#07C160',
+  //         bgColor: '#E6F7ED',
+  //         detailContent: '<font>当前在营业时间内，正常接单中</font>',
+  //         canOperate: true,
+  //       };
+  //     } else {
+  //       return {
+  //         status: 'rest',
+  //         statusIndex: 3,
+  //         remark: '休息中',
+  //         color: '#FF9100',
+  //         bgColor: '#FDF6EA',
+  //         detailContent: '<font>当前不在营业时间，客户可以预定</font>',
+  //         canOperate: true,
+  //       };
+  //     }
+  //   }
+
+  //   // 默认
+  //   return {
+  //     status: 'unknown',
+  //     statusIndex: 0,
+  //     remark: '未知状态',
+  //     color: '#999999',
+  //     bgColor: '#F5F5F5',
+  //     detailContent: '<font>状态异常，请联系客服</font>',
+  //     canOperate: false,
+  //   };
+  // }
+
+
+// 操作按钮（完全匹配枚举状态）
+private getOperations(store: StoreEntity, canOperate: boolean) {
+  if (!canOperate) return [];
+
+  const operations = [];
+
+  // 1. 已下线（OFFLINE=0）：立即上线
+  if (store.status === StoreStatusEnum.OFFLINE) {
+    operations.push({
+      code: 1,
+      operationTitle: '立即上线',
+      operationRemark: '恢复门店上线，审核通过后即可营业',
+      setAsh: false,
+      needShow: true,
+    });
+    return operations;
+  }
+
+  // 2. 审核通过（AUDIT_APPROVED=2）：立即上线
+  if (store.status === StoreStatusEnum.AUDIT_APPROVED) {
+    operations.push({
+      code: 1,
+      operationTitle: '立即上线',
+      operationRemark: '上线后门店将正常营业接单',
+      setAsh: false,
+      needShow: true,
+    });
+    return operations;
+  }
+
+  // 3. 暂停营业（PAUSE=4）：恢复营业
+  if (store.status === StoreStatusEnum.PAUSE) {
+    operations.push({
+      code: 1,
+      operationTitle: '恢复营业',
+      operationRemark: '按营业时间自动开关店',
+      setAsh: false,
+      needShow: true,
+    });
+    return operations;
+  }
+
+  // 4. 营业中/休息中（ONLINE=3）：关店/下线操作
+  if (store.status === StoreStatusEnum.ONLINE) {
+    // 5分钟后关店
+    operations.push({
+      code: 2,
+      operationTitle: '5分钟后关店',
+      operationRemark: '延迟关店，处理完现有订单',
+      setAsh: false,
+      needShow: true,
+    });
+    // 立即关店（暂停营业）
+    operations.push({
+      code: 3,
+      operationTitle: '立即关店',
+      operationRemark: '立即暂停营业，不再接收新订单',
+      setAsh: false,
+      needShow: true,
+    });
+    // 门店下线（需审核）
+    operations.push({
+      code: 4,
+      operationTitle: '门店下线',
+      operationRemark: '长期下线，需重新审核才能上线',
+      setAsh: false, // 原逻辑是置灰，根据需求调整
+      needShow: true,
+    });
+  }
+
+  return operations;
+}
 
   // 格式化营业时间（同上）
   private formatBusinessTime(businessHours: StoreHoursEntity[]) {
@@ -377,63 +599,63 @@ export class HoursService {
     return { simpleList, detailList, weeks };
   }
 
-  // 操作按钮（根据状态显示不同）
-  private getOperations(store: StoreEntity, canOperate: boolean) {
-    if (!canOperate) return [];
+  // // 操作按钮（根据状态显示不同）
+  // private getOperations(store: StoreEntity, canOperate: boolean) {
+  //   if (!canOperate) return [];
 
-    const operations = [];
+  //   const operations = [];
 
-    // 下线状态：只能上线
-    if (store.online === 0) {
-      operations.push({
-        code: 1,
-        operationTitle: '立即上线',
-        operationRemark: '恢复门店上线',
-        setAsh: false,
-        needShow: true,
-      });
-      return operations;
-    }
+  //   // 下线状态：只能上线
+  //   if (store.online === 0) {
+  //     operations.push({
+  //       code: 1,
+  //       operationTitle: '立即上线',
+  //       operationRemark: '恢复门店上线',
+  //       setAsh: false,
+  //       needShow: true,
+  //     });
+  //     return operations;
+  //   }
 
-    // 暂停营业：恢复营业
-    if (store.status === 2) {
-      operations.push({
-        code: 1,
-        operationTitle: '恢复营业',
-        operationRemark: '按营业时间自动开关店',
-        setAsh: false,
-        needShow: true,
-      });
-      return operations;
-    }
+  //   // 暂停营业：恢复营业
+  //   if (store.status === 2) {
+  //     operations.push({
+  //       code: 1,
+  //       operationTitle: '恢复营业',
+  //       operationRemark: '按营业时间自动开关店',
+  //       setAsh: false,
+  //       needShow: true,
+  //     });
+  //     return operations;
+  //   }
 
-    // 营业中/休息中：关店操作
-    if (store.status === 1) {
-      operations.push(
-        {
-          code: 2,
-          operationTitle: '5分钟后关店',
-          operationRemark: '延迟关店，处理完现有订单',
-          setAsh: false,
-          needShow: true,
-        },
-        {
-          code: 3,
-          operationTitle: '立即关店',
-          operationRemark: '立即暂停营业，谨慎操作',
-          setAsh: false,
-          needShow: true,
-        },
-        {
-          code: 4,
-          operationTitle: '门店下线',
-          operationRemark: '长期下线，需重新审核',
-          setAsh: true, // 置灰
-          needShow: true,
-        },
-      );
-    }
+  //   // 营业中/休息中：关店操作
+  //   if (store.status === 1) {
+  //     operations.push(
+  //       {
+  //         code: 2,
+  //         operationTitle: '5分钟后关店',
+  //         operationRemark: '延迟关店，处理完现有订单',
+  //         setAsh: false,
+  //         needShow: true,
+  //       },
+  //       {
+  //         code: 3,
+  //         operationTitle: '立即关店',
+  //         operationRemark: '立即暂停营业，谨慎操作',
+  //         setAsh: false,
+  //         needShow: true,
+  //       },
+  //       {
+  //         code: 4,
+  //         operationTitle: '门店下线',
+  //         operationRemark: '长期下线，需重新审核',
+  //         setAsh: true, // 置灰
+  //         needShow: true,
+  //       },
+  //     );
+  //   }
 
-    return operations;
-  }
+  //   return operations;
+  // }
 }
