@@ -5,13 +5,10 @@ import { RedisService } from 'src/common/libs/redis/redis.service';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
 import { UserProfileEntity } from 'src/entities/client/t_user_profile.entity';
 import { UserTypeEnum, UserStatusEnum } from 'src/enum/admin_enum';
-import {
-  clientJwtContants,
-  jwtContants,
-  refreshExpiresIn,
-} from 'src/modules/common/collections-permission/constants/jwtContants';
+import { clientJwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
 import { Repository } from 'typeorm';
-
+import * as fs from 'fs';
+import * as path from 'path';
 @Injectable()
 export class UserService {
   constructor(
@@ -134,10 +131,10 @@ export class UserService {
     // 3. 创建扩展表（关联主表ID）
     const profile = this.cProfileRepository.create({
       userId: user.id,
-      points:0,
-      balance:0,
-      total_order:0,
-      total_spent:0,
+      points: 0,
+      balance: 0,
+      total_order: 0,
+      total_spent: 0,
       lastLoginTime: new Date(), // ✅ 自动获取当前时间
       loginCount: 0,
     });
@@ -146,12 +143,13 @@ export class UserService {
     return { user, isNew: true };
   }
 
-
   /**
    * ✅ 更新最后登录时间和登录次数
    */
   async updateLoginStats(userId: number): Promise<void> {
-    const profile = await this.cProfileRepository.findOne({ where: { userId } });
+    const profile = await this.cProfileRepository.findOne({
+      where: { userId },
+    });
 
     if (profile) {
       // ✅ 1. 更新最后登录时间（当前时间）
@@ -162,10 +160,11 @@ export class UserService {
 
       // ✅ 3. 保存到数据库
       await this.cProfileRepository.save(profile);
-      console.log(`✅ 更新登录统计: userId=${userId}, loginCount=${profile.loginCount}`);
+      console.log(
+        `✅ 更新登录统计: userId=${userId}, loginCount=${profile.loginCount}`,
+      );
     }
   }
-
 
   /**
    * ✅ 生成JWT Token
@@ -175,25 +174,103 @@ export class UserService {
     phone: string;
     userType: number;
   }): Promise<string> {
-    //   return this.jwtService.sign(
-    //     {
-    //       sub: payload.userId,
-    //       phone: payload.phone,
-    //       userType: payload.userType,
-    //     },
-    //     {
-    //       expiresIn: '7d', // 7天过期
-    //       secret: process.env.JWT_SECRET || 'your-secret-key',
-    //     },
-    //   );
+    console.log(payload, 'payload===========');
     const accessToken = `Bearer ${this.jwtService.sign(
       {
-        sub: payload.userId,
+        userId: payload.userId,
         phone: payload.phone,
         userType: payload.userType,
       },
       clientJwtContants,
     )}`;
-    return accessToken
+    return accessToken;
   }
+
+  /** 校验 token */
+  verifyToken(token: string): string {
+    try {
+      if (!token) return null;
+      const user = this.jwtService.verify(
+        token.replace('Bearer ', ''),
+        clientJwtContants,
+      );
+      return user;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * 获取省市区数据
+   * @returns
+   */
+ /**
+ * 获取省市区数据（适配前端分级请求）
+ * @param parentId 父级ID（省ID/市ID）
+ * @param level 层级（1=省，2=市，3=区）
+ * @returns 对应层级的列表
+ */
+getChinaRegions(parentId: number = 0, level: number = 1) {
+  try {
+    const filePath = path.join(process.cwd(), 'src/config/china.json');
+    const rawData = fs.readFileSync(filePath, 'utf-8');
+    const jsonData = JSON.parse(rawData);
+
+    // 层级1：返回所有省份
+    if (level === 1) {
+      return  jsonData.provinceList
+    }
+
+    // 层级2：根据省ID返回市级列表
+    if (level === 2) {
+      // 找到对应省份
+      const province = jsonData.provinceList?.find(item => item.id === parentId);
+      // 返回该省的市级列表（directCityList）
+      const cityList = province?.directCityList || [];
+      return cityList
+    }
+
+    // 层级3：根据市ID返回区级列表
+    if (level === 3) {
+      let regionList = []; // 合并后的区+县列表
+      for (const province of jsonData.provinceList || []) {
+        const city = province.directCityList?.find(item => item.id === parentId);
+        if (city) {
+          // 1. 先加区列表（districtList）
+          if (city.districtList && city.districtList.length > 0) {
+            regionList = regionList.concat(city.districtList);
+          }
+          // 2. 再加县/县级市列表（lowerCityList）
+          if (city.lowerCityList && city.lowerCityList.length > 0) {
+            regionList = regionList.concat(city.lowerCityList);
+          }
+          break;
+        }
+      }
+      // 可选：给县/区统一补充 name 字段（确保显示一致，比如阳高县 → 阳高县，而非阳高）
+    //   regionList = regionList.map(item => ({
+    //     ...item,
+    //     // 如果有 fullName 则用 fullName，否则用 name（适配县的显示）
+    //     name: item.fullName || item.name 
+    //   }));
+      return regionList;
+    }
+
+    // 非法层级
+    return {
+      success: false,
+      result: [],
+      code: -1,
+      message: '层级参数错误'
+    };
+  } catch (error) {
+    console.log('获取省市区数据异常，原因：', error);
+    return {
+      success: false,
+      result: [],
+      code: -1,
+      message: '获取地区数据失败'
+    };
+  }
+}
 }

@@ -15,14 +15,20 @@ import { formatTime } from 'src/utils/date';
  * @create_time：2023-1-9 11:59:11
  */
 export abstract class ZJBaseEntity extends BaseEntity {
-
-  @PrimaryGeneratedColumn({comment:'主键ID'})
+  @PrimaryGeneratedColumn({ comment: '主键ID' })
   id: number;
 
-  @Column({comment:'更新人', type: 'varchar', name: 'update_by', select: false,nullable:null,default:null })
+  @Column({
+    comment: '更新人',
+    type: 'varchar',
+    name: 'update_by',
+    select: false,
+    nullable: null,
+    default: null,
+  })
   update_by: string;
 
-  @CreateDateColumn({comment:'创建时间',nullable:true,update:true})
+  @CreateDateColumn({ comment: '创建时间', nullable: true, update: true })
   @Transform((row: TransformFnParams) => {
     let timestamp: any = new Date(row.value);
     return formatTime(timestamp / 1000);
@@ -33,10 +39,16 @@ export abstract class ZJBaseEntity extends BaseEntity {
     let timestamp: any = new Date(row.value);
     return formatTime(timestamp / 1000);
   })
-  @UpdateDateColumn({comment:'更新时间'})
+  @UpdateDateColumn({ comment: '更新时间' })
   update_time: Date;
 
-  @Column({comment:'创建人', type: 'varchar', name: 'create_by', select: false,update:false })
+  @Column({
+    comment: '创建人',
+    type: 'varchar',
+    name: 'create_by',
+    select: false,
+    update: false,
+  })
   create_by: string;
 }
 
@@ -46,23 +58,48 @@ export abstract class ZJBaseEntity extends BaseEntity {
  * @create_time：2023-1-9 11:59:11
  */
 export abstract class BusinessBaseEntity extends BaseEntity {
+  @PrimaryGeneratedColumn({ comment: '主键ID' })
+  id: number;
 
-    @PrimaryGeneratedColumn({comment:'主键ID'})
-    id: number;
+  // 自动管理创建时间
+  @CreateDateColumn({ name: 'created_at', comment: '创建时间' })
+  @Transform((row: TransformFnParams) => {
+    let timestamp: any = new Date(row.value);
+    return formatTime(timestamp / 1000);
+  })
+  createdAt: Date;
 
-      // 自动管理创建时间
-      @CreateDateColumn({name: 'created_at',comment:'创建时间'})
-      @Transform((row: TransformFnParams) => {
-         let timestamp: any = new Date(row.value);
-         return formatTime(timestamp / 1000);
-       })
-     createdAt: Date;
-     
-     // 自动管理更新时间
-     @Transform((row: TransformFnParams) => {
-         let timestamp: any = new Date(row.value);
-         return formatTime(timestamp / 1000);
-       })
-     @UpdateDateColumn({name: 'updated_at',comment:'最后更新时间'})
-     updatedAt: Date;
-  }
+  // 自动管理更新时间
+  @Transform((row: TransformFnParams) => {
+    let timestamp: any = new Date(row.value);
+    return formatTime(timestamp / 1000);
+  })
+  @UpdateDateColumn({ name: 'updated_at', comment: '最后更新时间' })
+  updatedAt: Date;
+}
+
+/**
+ * @description：顾客端基类
+ * @author:zhao.jian
+ * @create_time：2026-3-16 10:44:11
+ */
+export abstract class ClientBaseEntity extends BaseEntity {
+  @PrimaryGeneratedColumn({ comment: '主键ID' })
+  id: number;
+
+  // 自动管理创建时间
+  @CreateDateColumn({ name: 'created_at', comment: '创建时间' })
+  @Transform((row: TransformFnParams) => {
+    let timestamp: any = new Date(row.value);
+    return formatTime(timestamp / 1000);
+  })
+  createdAt: Date;
+
+  // 自动管理更新时间
+  @Transform((row: TransformFnParams) => {
+    let timestamp: any = new Date(row.value);
+    return formatTime(timestamp / 1000);
+  })
+  @UpdateDateColumn({ name: 'updated_at', comment: '最后更新时间' })
+  updatedAt: Date;
+}

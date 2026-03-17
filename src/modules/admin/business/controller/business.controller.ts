@@ -54,7 +54,6 @@ export class BusinessController {
       * 获取审核记录列表
       */
      @SkipLog()
-     @ApiOperation({ summary: '获取审核记录列表', description: '获取审核记录列表' })
      @ApiOkResponse({ type: PageListVo, description: '获取审核记录列表' })
      @HttpCode(HttpStatus.OK)
      @Post('auditLogList')

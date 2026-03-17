@@ -6,13 +6,16 @@ import {
   Request,
   Body,
   HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from '../service/user.service';
 import { LoginDto } from '../dto/login.dto';
+import { SkipLog } from 'src/common/decorators/skip-log.decorator';
+import { ClientAuthGuard } from 'src/modules/common/auth/client-auth.guard';
 
 @ApiTags('客户端用户模块')
-@Controller('client/user')
+@Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -77,4 +80,16 @@ export class UserController {
       },
     };
   }
+
+    @SkipLog()
+    @ApiOperation({ summary: '获取省市区信息' })
+    @ApiBearerAuth() // swagger文档设置token
+    @UseGuards(ClientAuthGuard) // 需要jwt鉴权认证
+    @HttpCode(HttpStatus.OK)
+    @Post('chinaRegions')
+    async getChinaRegions(@Body() params){
+      let level = Number(params.level) || 1;
+      let parentId = Number(params.parentId) || 0;
+      return this.userService.getChinaRegions(parentId,level);
+    }
 }

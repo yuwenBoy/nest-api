@@ -6,7 +6,7 @@ import { StoreEntity } from 'src/entities/store/store.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 @Module({
   imports: [
-    RouterModule.register([{ path: '', module: HomeModule }]),
+    RouterModule.register([{ path: 'client', module: HomeModule }]),
     TypeOrmModule.forFeature([StoreEntity]),
   ],
   controllers: [HomeController],
