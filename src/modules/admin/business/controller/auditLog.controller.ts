@@ -31,6 +31,7 @@ import { UserInfoDto } from '../../system/dto/user/userInfo.dto';
 @PermissionModule('审核记录管理')
 @UseGuards(AuthGuard)
 @ApiAuth()
+@SkipLog()
 @Controller('auditLog')
 export class AuditLogController {
   constructor(private readonly auditLogService: AuditLogService) {}
@@ -38,7 +39,7 @@ export class AuditLogController {
   /***
    * 获取审核记录列表
    */
-  @SkipLog()
+ 
   @ApiOperation({
     summary: '获取审核记录列表',
     description: '获取审核记录列表',
@@ -56,7 +57,7 @@ export class AuditLogController {
     return this.auditLogService.auditLogDetail(id);
   }
 
-   @ApiOkResponse({ type: AuditRejectDto, description: '审核驳回' })
+  @ApiOkResponse({ type: AuditRejectDto, description: '审核驳回' })
   // 审核驳回
   @Post('reject')
   async rejectAuditLog(@Body() dto: AuditRejectDto,@CurrentUser() user:UserInfoDto) {
@@ -64,5 +65,12 @@ export class AuditLogController {
         return { success: false, message: '操作人ID不能为空且必须为数字' };
     }
     return this.auditLogService.rejectAuditLog(dto,user.id);
+  }
+
+  @ApiOkResponse({ type: AuditRejectDto, description: '审核通过' })
+  @Post('batchPass')
+  async pass(@Body() dto: any, @CurrentUser() user:UserInfoDto) {
+    const req =  { ...dto, operatorId: user.id };
+    return this.auditLogService.pass(req);
   }
 }

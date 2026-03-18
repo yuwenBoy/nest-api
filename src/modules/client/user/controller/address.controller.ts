@@ -42,8 +42,8 @@ export class UserAddressController {
    */
   @HttpCode(HttpStatus.OK)
   @Post('add')
-  create(@Body() createAddressDto: CreateAddressDto, @Request() req) {
-    const customerId = req.user.userId;
+  create(@Body() createAddressDto: CreateAddressDto, @CurrentUser() user) {
+    const customerId = user.userId;
     return this.userAddressService.create(createAddressDto, customerId);
   }
 
@@ -52,8 +52,8 @@ export class UserAddressController {
    */
   @HttpCode(HttpStatus.OK)
   @Post('edit')
-  update(@Body() updateAddressDto: UpdateAddressDto, @Request() req) {
-    const customerId = req.user.userId;
+  update(@Body() updateAddressDto: UpdateAddressDto,@CurrentUser() user) {
+    const customerId = user.userId;
     return this.userAddressService.update(updateAddressDto, customerId);
   }
 
@@ -62,20 +62,19 @@ export class UserAddressController {
    * POST /api/address/setDefault/:id
    */
   @HttpCode(HttpStatus.OK)
-  @Post('setDefault/:id')
-  setDefault(@Param() idDto: IdDto, @Request() req) {
-    const customerId = req.user.customerId;
-    return this.userAddressService.setDefault(idDto, customerId);
+  @Post('setDefaultAddress')
+  setDefaultAddress(@Body() id: any, @CurrentUser() user) {
+    const customerId = user.userId;
+    return this.userAddressService.setDefault(id, customerId);
   }
 
   /**
    * 删除地址
-   * POST /api/address/delete/:id
    */
   @HttpCode(HttpStatus.OK)
-  @Post('delete/:id')
-  remove(@Param() idDto: IdDto, @Request() req) {
-    const customerId = req.user.customerId;
-    return this.userAddressService.remove(idDto, customerId);
+  @Post('deleteAddress')
+  remove(@Body() id: any,@CurrentUser() user) {
+    const customerId = user.customerId;
+    return this.userAddressService.remove(id, customerId);
   }
 }

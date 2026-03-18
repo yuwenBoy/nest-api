@@ -28,6 +28,9 @@ export class StoreQualificationEntity extends BusinessBaseEntity {
   @Column({ name: 'license_pic', nullable: true, comment: '许可证图片' })
   licensePic: string;
 
+  @Column({name:'license_plan',nullable:true,comment:'经营场所'})
+  licensePlan:string;
+
   @Column({
     name: 'license_valid_date',
     nullable: true,

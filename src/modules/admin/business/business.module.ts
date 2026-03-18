@@ -29,6 +29,7 @@ import { StoreDeliveryAreaEntity } from 'src/entities/store/store_deliveryarea.e
 import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
 import { AuditLogController } from './controller/auditLog.controller';
 import { AuditLogService } from './service/auditLog.service';
+import { StoreQualificationEntity } from 'src/entities/store/store_qualification.entity';
 /**
  * 商家管理模块
  */
@@ -46,6 +47,7 @@ import { AuditLogService } from './service/auditLog.service';
         StoreDeliveryAreaEntity, // 商家配送表
         UserEntity,
         StoreEntity, // 门店表
+        StoreQualificationEntity, // 门店资质表
         EmployeeEntity, // 员工表
         RoleEntity,
         AuditLogEntity, // 审核日志表

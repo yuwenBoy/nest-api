@@ -1,44 +1,40 @@
 import {
-    BadRequestException,
+  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectConnection, InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import {
+  InjectConnection,
+  InjectEntityManager,
+  InjectRepository,
+} from '@nestjs/typeorm';
 import { BusinessEntity } from 'src/entities/business/business.entity';
-import {
-  Connection,
-  Repository,
-} from 'typeorm';
-import {
-    AuditLogStatusEnum,
-  StoreStatusEnum,
-} from 'src/enum/business_enum';
+import { Connection, Repository } from 'typeorm';
+import { AuditLogStatusEnum, StoreStatusEnum } from 'src/enum/business_enum';
 import { BusinessCategoryRelationEntity } from 'src/entities/business/business_category_relation.entity';
 import { PageListVo } from 'src/modules/common/page/pageList';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
 import { StoreEntity } from 'src/entities/store/store.entity';
 import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
 import { AuditRejectDto } from '../dto/AuditRejectDto';
+import { StoreQualificationEntity } from 'src/entities/store/store_qualification.entity';
 
 @Injectable()
 export class AuditLogService {
   constructor(
-
     @InjectRepository(AuditLogEntity)
     private readonly auditLogRepository: Repository<AuditLogEntity>,
     @InjectConnection() // 核心：添加这个装饰器
-    private readonly connection: Connection, 
- 
+    private readonly connection: Connection,
   ) {}
- 
 
   /**
    * 审核管理列表
-   * @param parameter 
-   * @returns 
+   * @param parameter
+   * @returns
    */
   async pageAuditLogQuery(parameter: any): Promise<PageListVo> {
     try {
@@ -51,11 +47,11 @@ export class AuditLogService {
           'user',
           'audit.applicantId = user.id',
         )
-         .leftJoinAndMapOne(
+        .leftJoinAndMapOne(
           'audit.operator',
           UserEntity,
           'user1',
-          'audit.operatorId = user1.id', 
+          'audit.operatorId = user1.id',
         )
         // 2. 根据目标类型（1=商家/2=门店/3=骑手）动态关联目标表
         .leftJoin(
@@ -94,7 +90,9 @@ export class AuditLogService {
           'bc',
           'audit.targetType = 1 AND audit.targetId = bc.business_id',
         )
-        .where(parameter.status ? 'audit.status = :status':'', { status: parameter.status || 0 })
+        .where(parameter.status ? 'audit.status = :status' : '', {
+          status: parameter.status || 0,
+        })
         // 新增：目标类型筛选
         .andWhere(
           parameter.targetType ? 'audit.targetType = :targetType' : '1=1',
@@ -142,7 +140,6 @@ export class AuditLogService {
     }
   }
 
-  
   // 获取审核记录详情
   async auditLogDetail(id: number) {
     try {
@@ -220,7 +217,87 @@ export class AuditLogService {
     });
   }
 
-  
+  /**
+   * 运营审核通过接口（核心逻辑）
+   * @param dto 审核通过参数
+   */
+  async pass(dto: any) {
+    const { auditId, operatorId } = dto;
+
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    // 1. 查询审核记录是否存在
+    const log = await queryRunner.manager.findOne(AuditLogEntity, {
+      where: { id: auditId },
+    });
+    if (!log) {
+      throw new NotFoundException('审核记录不存在');
+    }
+
+    // 2. 校验审核记录状态（仅待审核可操作）
+    if (log.status !== AuditLogStatusEnum.PENDING) {
+      throw new BadRequestException('只能审核【待审核】的记录');
+    }
+
+    // 3. 更新审核记录状态
+    log.status = AuditLogStatusEnum.APPROVED; // 改为审核通过
+    log.operatorId = operatorId; // 记录操作人ID
+    log.auditAt = new Date(); // 审核时间
+    log.reason = '门店通过审核';
+    await queryRunner.manager.save(AuditLogEntity,log);
+
+    // 4. 更新门店审核状态（同步afterData到门店表）
+    const store = await queryRunner.manager.findOne(StoreEntity, { where: { id: log.targetId } });
+    if (store) {
+      store.status = StoreStatusEnum.AUDIT_APPROVED; // 门店改为审核通过
+      store.updatedAt = new Date();
+
+      // 关键：同步审核记录中的 afterData 到门店表（你原有代码注释的逻辑）
+      if (log.afterData && typeof log.afterData === 'object') {
+        // 示例：根据你的afterData结构，同步门店字段（按需调整）
+        store.storeName = log.afterData.storeName || store.storeName;
+        store.detail_address = log.afterData.detail_address || store.detail_address;
+        store.district_code = log.afterData.district_code || store.district_code;
+        store.envPhoto = log.afterData.envPhoto || store.envPhoto;
+        store.doorPhoto = log.afterData.doorPhoto || store.doorPhoto;
+        store.latitude = log.afterData.latitude || store.latitude;
+        store.longitude = log.afterData.longitude || store.longitude;
+      }
+
+      await queryRunner.manager.save(StoreEntity,store);
+    }
+
+    const storeQualification = new StoreQualificationEntity();
+    storeQualification.storeId = log.targetId;
+    storeQualification.licenseType = log.afterData.licenseInfo.license_type;
+    storeQualification.licenseNo = log.afterData.licenseInfo.license_no;
+    storeQualification.companyName = log.afterData.licenseInfo.company_name;
+    storeQualification.legalPerson = log.afterData.licenseInfo.legal_person;
+    storeQualification.licensePic = log.afterData.licenseInfo.license_pic;
+    storeQualification.isLongTerm = log.afterData.licenseInfo.isLongTerm;
+    storeQualification.licensePlan = log.afterData.licenseInfo.license_plan;
+    storeQualification.licenseValidDate = log.afterData.licenseInfo.license_valid_date;
+
+
+    storeQualification.isRangDate = log.afterData.permitInfo.is_rang_date;
+    storeQualification.permitType = log.afterData.permitInfo.permit_type;
+    storeQualification.permitNo = log.afterData.permitInfo.permit_no;
+    storeQualification.permitName = log.afterData.permitInfo.permit_name;
+    storeQualification.permitPic = log.afterData.permitInfo.permit_pic;
+    storeQualification.permitExpireDate = log.afterData.permitInfo.permit_expireDate;
+    storeQualification.permitAddress = log.afterData.permitInfo.permit_address;
+    storeQualification.permitMainBusiness = log.afterData.permitInfo.permit_mainBusiness;
+    storeQualification.permitScope = log.afterData.permitInfo.permit_scope;
+    storeQualification.permitLegalPerson = log.afterData.permitInfo.permit_legalPerson;
+
+    await queryRunner.manager.save(StoreQualificationEntity, storeQualification);
+
+
+    // 5. 返回统一格式结果
+    return { code: 0, msg: '审核通过成功' };
+  }
+
   /**
    * 审核驳回接口（匹配前端调用参数）
    * @param dto 前端传入的auditId + rejectReason
@@ -233,7 +310,7 @@ export class AuditLogService {
     await queryRunner.startTransaction();
 
     try {
-      const { auditId, rejectReason } = dto;  
+      const { auditId, rejectReason } = dto;
 
       // 1. 查询审核记录，校验状态
       const auditLog = await queryRunner.manager.findOne(AuditLogEntity, {
@@ -245,8 +322,11 @@ export class AuditLogService {
       }
 
       // 只能驳回「审核中」的记录
-      if (auditLog.status !== 0) { // 假设auditLog的status：0=审核中，1=已通过，2=已驳回
-        throw new BadRequestException(`审核记录ID: ${auditId} 当前状态不是「审核中」，无法驳回`);
+      if (auditLog.status !== 0) {
+        // 假设auditLog的status：0=审核中，1=已通过，2=已驳回
+        throw new BadRequestException(
+          `审核记录ID: ${auditId} 当前状态不是「审核中」，无法驳回`,
+        );
       }
 
       // 2. 查询关联门店
@@ -255,7 +335,9 @@ export class AuditLogService {
       });
 
       if (!store) {
-        throw new NotFoundException(`审核记录关联的门店ID: ${auditLog.targetId} 不存在`);
+        throw new NotFoundException(
+          `审核记录关联的门店ID: ${auditLog.targetId} 不存在`,
+        );
       }
 
       // 3. 更新审核记录（标记驳回 + 存储结构化驳回原因）

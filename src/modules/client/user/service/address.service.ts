@@ -72,12 +72,13 @@ export class UserAddressService {
     // 先校验地址是否存在且属于当前用户
     await this.findOne(updateAddressDto.id, customerId);
 
+    console.log(updateAddressDto.isDefault);
     // 如果设置为默认地址，先把其他默认地址改为非默认
-    if (updateAddressDto.isDefault) {
+    if (updateAddressDto.isDefault==1) {
       await this.addressRepository.update(
         { 
           profileUserId:customerId, 
-          isDefault: 1, 
+          isDefault: updateAddressDto.isDefault, 
           deletedAt: null,
           id: Not(updateAddressDto.id), // 排除当前地址
         },
@@ -89,7 +90,7 @@ export class UserAddressService {
       { id: updateAddressDto.id, profileUserId:customerId },
       {
         ...updateAddressDto,
-        isDefault: updateAddressDto.isDefault ? 1 : 0,
+        isDefault: updateAddressDto.isDefault,
       },
     );
 
@@ -107,7 +108,7 @@ export class UserAddressService {
 
     // 1. 把所有地址改为非默认
     await this.addressRepository.update(
-      { profileUserId:customerId, isDefault: 1, deletedAt: null },
+      { profileUserId:customerId, isDefault: 1 },
       { isDefault: 0 },
     );
 
@@ -130,7 +131,7 @@ export class UserAddressService {
     const address = await this.findOne(idDto.id, customerId);
 
     // 软删除
-    await this.addressRepository.softDelete({ id: idDto.id, profileUserId:customerId });
+    await this.addressRepository.softDelete({ id: address.id, profileUserId:address.profileUserId });
 
     return { message: '删除地址成功' };
   }

@@ -1,6 +1,7 @@
 import {
   Entity,
   Column,
+  DeleteDateColumn,
 } from 'typeorm';
 import { ClientBaseEntity } from '../common/base.entity';
 
@@ -45,6 +46,6 @@ export class UserAddressEntity extends ClientBaseEntity{
   })
   isDefault: number;
 
-  @Column({name:'deleted_at', comment: '删除时间' })
+   @DeleteDateColumn({name:'deleted_at', comment: '删除时间', nullable: true })
   deletedAt: Date;  
 }
