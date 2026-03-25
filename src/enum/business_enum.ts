@@ -60,7 +60,13 @@ export enum StoreOnlineEnum{
     DOWNLINE = 0, // 门店已下线
 }
 
-
+/** 操作类型枚举（对应前端case 1-4） */
+export enum StoreOperationTypeEnum {
+  ONLINE_NOW = 1, // 立即上线/恢复营业
+  DELAY_PAUSE = 2, // 5分钟后关店（转为暂停营业）
+  PAUSE_NOW = 3, // 立即关店（转为暂停营业）
+  OFFLINE_MANUAL = 4, // 门店下线（转为已下线）
+}
 
 /****
  * 产品审核状态

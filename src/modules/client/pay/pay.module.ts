@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { userOrderController } from './controller/userOrder.controller';
-import { UserOrderService } from './service/userOrder.service';
 import { OrderEntity } from 'src/entities/business/order.entity';
 import { OrderItemEntity } from 'src/entities/business/order_item.entity';
 import { AuthModule } from '../user/auth/auth.module';
-import { WxPayService } from '../pay/service/wxpay.service';
+import { PayService } from './service/pay.service';
+import { PayController } from './controller/pay.controller';
+import { WxPayService } from './service/wxpay.service';
 @Module({
   imports: [
     AuthModule,
-    RouterModule.register([{ path: 'client', module: OrderModule }]),
+    RouterModule.register([{ path: 'client', module: PayModule }]),
     TypeOrmModule.forFeature([
         // CategoryEntity,
         OrderEntity,
@@ -18,12 +18,12 @@ import { WxPayService } from '../pay/service/wxpay.service';
     ]),
   ],
   controllers: [
-    userOrderController, 
+    PayController
   ],
   providers: [
-    UserOrderService,
+    PayService,
     WxPayService,
   ],
-  exports:[UserOrderService, WxPayService],
+  exports:[PayService, WxPayService],
 })
-export class OrderModule {}
+export class PayModule {}

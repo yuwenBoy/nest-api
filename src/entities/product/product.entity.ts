@@ -26,7 +26,7 @@ export class ProductEntity extends BusinessBaseEntity {
     status: ProductAuditStatusEnum;
 
     @Column({type:'enum',default:ProductSaleStatusEnum.DOWNSALE,enum:ProductSaleStatusEnum, name: 'is_active',comment:'产品状态'})
-    isActive: ProductSaleStatusEnum;
+    isActive: number;
 
     @Column({type:'int', name: 'category_id',comment:'商品所属的最末级分类ID'})
     categoryId:number;

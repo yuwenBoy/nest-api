@@ -7,6 +7,8 @@ import { UserInfoDto } from "../../system/dto/user/userInfo.dto";
 import { StoreService } from "../service/store.service";
 import { StoreEntity } from "src/entities/store/store.entity";
 import { UpdateStoreDTO } from "../dto/UpdateStoreDto";
+import { StoreOperationDto } from "../dto/store-operation.dto";
+import { StoreOperationTypeEnum, StoreStatusEnum } from "src/enum/business_enum";
 
 
 @ApiTags('门店管理')
@@ -70,6 +72,24 @@ export class StoreController {
     return this.storeService.updateStoreAndSubmitAudit(dto, userId);
   }
 
+   /**
+   * 门店头像修改
+   * @param storeId 门店ID
+   * @param dto 
+   * @param req 请求对象（含当前登录用户ID）
+   */
+  @HttpCode(HttpStatus.OK)
+  @Post('modifyShopAvatar')
+  async modifyShopAvatar(
+    @Body() dto: any,
+    @CurrentUser() userInfo: UserInfoDto,
+  ) {
+    const userId = userInfo.id; // 从token解析的用户ID
+    return this.storeService.modifyShopAvatar(dto, userId);
+  }
+
+  
+
   /**
    * 获取门店信息
    * @param dto 
@@ -79,5 +99,37 @@ export class StoreController {
     const storeId = dto.storeId;
     const result = await this.storeService.getStoreInfo(storeId);
     return result;
+  }
+
+   // case 1：立即上线
+  @Post('online')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '门店立即上线', description: '恢复门店营业状态' })
+  async onlineShop(@Body() dto: StoreOperationDto) {
+    return await this.storeService.handleStoreOperation(StoreOperationTypeEnum.ONLINE_NOW, dto);
+  }
+
+  // case 2：5分钟后关店
+  @Post('close-delay')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '门店延时关店', description: '设置门店N分钟后自动暂停营业' })
+  async closeShopDelay(@Body() dto: StoreOperationDto) {
+    return await this.storeService.handleStoreOperation(StoreOperationTypeEnum.DELAY_PAUSE, dto);
+  }
+
+  // case 3：立即关店
+  @Post('close-immediate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '门店立即关店', description: '立即暂停营业中的门店' })
+  async closeShopImmediate(@Body() dto: StoreOperationDto) {
+    return await this.storeService.handleStoreOperation(StoreOperationTypeEnum.PAUSE_NOW, dto);
+  }
+
+  // case 4：门店下线
+  @Post('offline')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '门店下线', description: '手动将门店转为已下线状态' })
+  async offlineShop(@Body() dto: StoreOperationDto) {
+    return await this.storeService.handleStoreOperation(StoreOperationTypeEnum.OFFLINE_MANUAL, dto);
   }
 }

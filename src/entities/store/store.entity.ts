@@ -13,8 +13,8 @@ export enum OfflineType {
 
 // 暂停原因枚举
 export enum PauseReason {
-  MERCHANT = 1, // 商家主动暂停
-  PLATFORM = 2, // 平台暂停
+  MERCHANT = '商家主动暂停', // 商家主动暂停
+  PLATFORM = '平台暂停', // 平台暂停
 }
 
 @Entity('store')

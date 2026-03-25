@@ -58,7 +58,7 @@ export class AuditLogService {
           // 动态判断关联的实体表
           parameter.targetType === 1
             ? BusinessEntity
-            : parameter.targetType === 2
+            : parameter.targetType === 2 || parameter.targetType === 3
             ? StoreEntity
             : UserEntity, // 替换为你的骑手实体类路径
           'target', // 统一别名：target
@@ -75,13 +75,13 @@ export class AuditLogService {
           'audit.store', // 门店数据映射到audit.store
           StoreEntity,
           'store',
-          'audit.targetType = 2 AND audit.targetId = store.id',
+          '(audit.targetType = 2 or audit.targetType = 3) AND audit.targetId = store.id',
         )
         .leftJoinAndMapOne(
           'audit.rider', // 骑手数据映射到audit.rider
           UserEntity,
           'rider',
-          'audit.targetType = 3 AND audit.targetId = rider.id',
+          'audit.targetType = 4 AND audit.targetId = rider.id',
         )
         // 原有商家分类关联（仅商家类型生效）
         .leftJoinAndMapMany(
@@ -227,75 +227,102 @@ export class AuditLogService {
     const queryRunner = this.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
-    // 1. 查询审核记录是否存在
-    const log = await queryRunner.manager.findOne(AuditLogEntity, {
-      where: { id: auditId },
-    });
-    if (!log) {
-      throw new NotFoundException('审核记录不存在');
-    }
-
-    // 2. 校验审核记录状态（仅待审核可操作）
-    if (log.status !== AuditLogStatusEnum.PENDING) {
-      throw new BadRequestException('只能审核【待审核】的记录');
-    }
-
-    // 3. 更新审核记录状态
-    log.status = AuditLogStatusEnum.APPROVED; // 改为审核通过
-    log.operatorId = operatorId; // 记录操作人ID
-    log.auditAt = new Date(); // 审核时间
-    log.reason = '门店通过审核';
-    await queryRunner.manager.save(AuditLogEntity,log);
-
-    // 4. 更新门店审核状态（同步afterData到门店表）
-    const store = await queryRunner.manager.findOne(StoreEntity, { where: { id: log.targetId } });
-    if (store) {
-      store.status = StoreStatusEnum.AUDIT_APPROVED; // 门店改为审核通过
-      store.updatedAt = new Date();
-
-      // 关键：同步审核记录中的 afterData 到门店表（你原有代码注释的逻辑）
-      if (log.afterData && typeof log.afterData === 'object') {
-        // 示例：根据你的afterData结构，同步门店字段（按需调整）
-        store.storeName = log.afterData.storeName || store.storeName;
-        store.detail_address = log.afterData.detail_address || store.detail_address;
-        store.district_code = log.afterData.district_code || store.district_code;
-        store.envPhoto = log.afterData.envPhoto || store.envPhoto;
-        store.doorPhoto = log.afterData.doorPhoto || store.doorPhoto;
-        store.latitude = log.afterData.latitude || store.latitude;
-        store.longitude = log.afterData.longitude || store.longitude;
+    try {
+      // 1. 查询审核记录是否存在
+      const log = await queryRunner.manager.findOne(AuditLogEntity, {
+        where: { id: auditId },
+      });
+      if (!log) {
+        throw new NotFoundException('审核记录不存在');
       }
 
-      await queryRunner.manager.save(StoreEntity,store);
+      // 2. 校验审核记录状态（仅待审核可操作）
+      if (log.status !== AuditLogStatusEnum.PENDING) {
+        throw new BadRequestException('只能审核【待审核】的记录');
+      }
+
+      // 3. 更新审核记录状态
+      log.status = AuditLogStatusEnum.APPROVED; // 改为审核通过
+      log.operatorId = operatorId; // 记录操作人ID
+      log.auditAt = new Date(); // 审核时间
+      log.reason = '门店通过审核';
+      await queryRunner.manager.save(AuditLogEntity, log);
+      const store = await queryRunner.manager.findOne(StoreEntity, {
+        where: { id: log.targetId },
+      });
+      if (log.targetType === 2) {
+        if (store) {
+          store.status = StoreStatusEnum.AUDIT_APPROVED; // 门店改为审核通过
+          store.updatedAt = new Date();
+
+          if (log.afterData && typeof log.afterData === 'object') {
+            // 示例：根据你的afterData结构，同步门店字段（按需调整）
+            store.storeName = log.afterData.store.storeName || store.storeName;
+            store.avatarImg = log.afterData.store.avatarUrl || store.avatarImg;
+            store.detail_address =
+              log.afterData.store.detail_address || store.detail_address;
+            store.district_code =
+              log.afterData.store.district_code || store.district_code;
+            store.envPhoto = log.afterData.store.envPhoto || store.envPhoto;
+            store.doorPhoto = log.afterData.store.doorPhoto || store.doorPhoto;
+            store.latitude = log.afterData.store.latitude || store.latitude;
+            store.longitude = log.afterData.store.longitude || store.longitude;
+          }
+
+          await queryRunner.manager.save(StoreEntity, store);
+        }
+
+        const storeQualification = new StoreQualificationEntity();
+        storeQualification.storeId = log.targetId;
+        storeQualification.licenseType = log.afterData.licenseInfo.license_type;
+        storeQualification.licenseNo = log.afterData.licenseInfo.license_no;
+        storeQualification.companyName = log.afterData.licenseInfo.company_name;
+        storeQualification.legalPerson = log.afterData.licenseInfo.legal_person;
+        storeQualification.licensePic = log.afterData.licenseInfo.license_pic;
+        storeQualification.isLongTerm = log.afterData.licenseInfo.isLongTerm;
+        storeQualification.licensePlan = log.afterData.licenseInfo.license_plan;
+        storeQualification.licenseValidDate =
+          log.afterData.licenseInfo.license_valid_date;
+        storeQualification.isRangDate = log.afterData.permitInfo.is_rang_date;
+        storeQualification.permitType = log.afterData.permitInfo.permit_type;
+        storeQualification.permitNo = log.afterData.permitInfo.permit_no;
+        storeQualification.permitName = log.afterData.permitInfo.permit_name;
+        storeQualification.permitPic = log.afterData.permitInfo.permit_pic;
+        storeQualification.permitExpireDate =
+          log.afterData.permitInfo.permit_expireDate;
+        storeQualification.permitAddress =
+          log.afterData.permitInfo.permit_address;
+        storeQualification.permitMainBusiness =
+          log.afterData.permitInfo.permit_mainBusiness;
+        storeQualification.permitScope = log.afterData.permitInfo.permit_scope;
+        storeQualification.permitLegalPerson =
+          log.afterData.permitInfo.permit_legalPerson;
+        await queryRunner.manager.save(
+          StoreQualificationEntity,
+          storeQualification,
+        );
+
+        // 修改门店头像
+      } else if (log.targetType === 3) {
+        if (store) {
+          Logger.log('门店头像修改成功');
+          store.updatedAt = new Date();
+          store.avatarImg = log.afterData.store.avatarUrl || store.avatarImg;
+          await queryRunner.manager.save(StoreEntity, store);
+        }
+      }
+      // 提交事务
+      await queryRunner.commitTransaction();
+      // 5. 返回统一格式结果
+      return { code: 0, msg: '审核通过成功' };
+    } catch (error) {
+      // 回滚事务
+      await queryRunner.rollbackTransaction();
+      throw error; // 抛出异常让全局过滤器处理
+    } finally {
+      // 释放连接
+      await queryRunner.release();
     }
-
-    const storeQualification = new StoreQualificationEntity();
-    storeQualification.storeId = log.targetId;
-    storeQualification.licenseType = log.afterData.licenseInfo.license_type;
-    storeQualification.licenseNo = log.afterData.licenseInfo.license_no;
-    storeQualification.companyName = log.afterData.licenseInfo.company_name;
-    storeQualification.legalPerson = log.afterData.licenseInfo.legal_person;
-    storeQualification.licensePic = log.afterData.licenseInfo.license_pic;
-    storeQualification.isLongTerm = log.afterData.licenseInfo.isLongTerm;
-    storeQualification.licensePlan = log.afterData.licenseInfo.license_plan;
-    storeQualification.licenseValidDate = log.afterData.licenseInfo.license_valid_date;
-
-
-    storeQualification.isRangDate = log.afterData.permitInfo.is_rang_date;
-    storeQualification.permitType = log.afterData.permitInfo.permit_type;
-    storeQualification.permitNo = log.afterData.permitInfo.permit_no;
-    storeQualification.permitName = log.afterData.permitInfo.permit_name;
-    storeQualification.permitPic = log.afterData.permitInfo.permit_pic;
-    storeQualification.permitExpireDate = log.afterData.permitInfo.permit_expireDate;
-    storeQualification.permitAddress = log.afterData.permitInfo.permit_address;
-    storeQualification.permitMainBusiness = log.afterData.permitInfo.permit_mainBusiness;
-    storeQualification.permitScope = log.afterData.permitInfo.permit_scope;
-    storeQualification.permitLegalPerson = log.afterData.permitInfo.permit_legalPerson;
-
-    await queryRunner.manager.save(StoreQualificationEntity, storeQualification);
-
-
-    // 5. 返回统一格式结果
-    return { code: 0, msg: '审核通过成功' };
   }
 
   /**

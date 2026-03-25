@@ -36,7 +36,7 @@ export class StoreQualificationEntity extends BusinessBaseEntity {
     nullable: true,
     comment: '许可证有效期',
   })
-  licenseValidDate: Date;
+  licenseValidDate: string;
 
   @Column({ name: 'is_long_term', default: 0, comment: '是否长期有效(0/1)' })
   isLongTerm: number;
@@ -49,13 +49,6 @@ export class StoreQualificationEntity extends BusinessBaseEntity {
 
   @Column({ name: 'permit_pic', nullable: true, comment: '资质证图片' })
   permitPic: string;
-
-  @Column({
-    name: 'permit_valid_date',
-    nullable: true,
-    comment: '资质证有效期',
-  })
-  permitValidDate: Date;
 
   @Column({ name: 'permit_address', nullable: true, comment: '资质证地址' })
   permitAddress: string;
@@ -71,7 +64,7 @@ export class StoreQualificationEntity extends BusinessBaseEntity {
     nullable: true,
     comment: '资质证过期时间',
   })
-  permitExpireDate: Date;
+  permitExpireDate: string;
 
   @Column({ name: 'permit_legalPerson', nullable: true, comment: '资质证法人' })
   permitLegalPerson: string;

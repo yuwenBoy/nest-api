@@ -135,5 +135,16 @@ export class UserAddressService {
 
     return { message: '删除地址成功' };
   }
- 
+
+  /**
+   * 获取当前用户默认地址
+   * @param customerId 顾客ID
+   * @returns 
+   */
+  async getDefaultAddress(customerId: number) {
+    const result = await this.addressRepository.findOne({
+      where: { profileUserId:customerId, isDefault: 1, deletedAt: null },
+    });
+    return {id:result.id, name: result.receiver, phone: result.phone, detail: result.detailAddress};
+  }
 }

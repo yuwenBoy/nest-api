@@ -226,8 +226,7 @@ export class HoursService {
       remark: '门店已下线',
       color: '#FA5555',
       bgColor: '#FDF6EA',
-      detailContent:
-        "<font><em style='font-weight: 500;font-style:normal'>您的门店已经下线，无法正常营业</em><br/></font>",
+      detailContent:"<font><em style='font-weight: 500;font-style:normal'>您的门店已经下线，无法正常营业</em><br/></font>",
       canOperate: true, // 可以上线
     };
   }
@@ -240,7 +239,7 @@ export class HoursService {
       remark: '审核中',
       color: '#FF9100',
       bgColor: '#FDF6EA',
-      detailContent: '<font>门店正在审核中，请耐心等待</font>',
+      detailContent:  "<font><em style='font-weight: 500;font-style:normal'>门店正在审核中，请耐心等待</em><br/></font>",
       canOperate: false, // 不可操作
     };
   }
@@ -253,7 +252,7 @@ export class HoursService {
       remark: '审核驳回',
       color: '#FA5555',
       bgColor: '#FDF6EA',
-      detailContent: '<font>门店审核驳回，请修改信息后重新提交审核</font>',
+      detailContent:  "<font><em style='font-weight: 500;font-style:normal'>门店审核驳回，请修改信息后重新提交审核</em><br/></font>",
       canOperate: false, // 不可直接操作，需先修改信息
     };
   }
@@ -266,7 +265,7 @@ export class HoursService {
       remark: '永久封禁',
       color: '#FA5555',
       bgColor: '#FDF6EA',
-      detailContent: '<font>门店被永久封禁，请联系平台客服</font>',
+      detailContent: "<font><em style='font-weight: 500;font-style:normal'>门店被永久封禁，请联系平台客服</em><br/></font>",
       canOperate: false, // 不可操作
     };
   }
@@ -292,7 +291,7 @@ export class HoursService {
       remark: '审核通过',
       color: '#07C160',
       bgColor: '#E6F7ED',
-      detailContent: '<font>门店审核通过，可随时上线营业</font>',
+      detailContent: "<font><em style='font-weight: 500;font-style:normal'>门店审核通过，可随时上线营业</em><br/></font>",
       canOperate: true, // 可以立即上线
     };
   }
@@ -313,7 +312,7 @@ export class HoursService {
         remark: '休息中',
         color: '#FF9100',
         bgColor: '#FDF6EA',
-        detailContent: '<font>今日未设置营业时间，客户可以预定</font>',
+        detailContent: "<font><em style='font-weight: 500;font-style:normal'>今日未设置营业时间，客户可以预定</em><br/></font>",
         canOperate: true, // 可以关店/下线
       };
     }
@@ -333,7 +332,7 @@ export class HoursService {
         remark: '营业中',
         color: '#07C160',
         bgColor: '#E6F7ED',
-        detailContent: '<font>当前在营业时间内，正常接单中</font>',
+        detailContent:"<font><em style='font-weight: 500;font-style:normal'>当前在营业时间内，正常接单中</em><br/></font>",
         canOperate: true, // 可以关店/下线
       };
     } else {
@@ -343,7 +342,7 @@ export class HoursService {
         remark: '休息中',
         color: '#FF9100',
         bgColor: '#FDF6EA',
-        detailContent: '<font>当前不在营业时间，客户可以预定</font>',
+        detailContent: "<font><em style='font-weight: 500;font-style:normal'>当前不在营业时间，客户可以预定</em><br/></font>",
         canOperate: true, // 可以关店/下线
       };
     }
@@ -356,7 +355,7 @@ export class HoursService {
     remark: '未知状态',
     color: '#999999',
     bgColor: '#F5F5F5',
-    detailContent: '<font>状态异常，请联系客服</font>',
+    detailContent:"<font><em style='font-weight: 500;font-style:normal'>状态异常，请联系客服</em><br/></font>",
     canOperate: false,
   };
 }
