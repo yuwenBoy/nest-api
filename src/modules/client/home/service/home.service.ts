@@ -1,11 +1,21 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductEntity } from 'src/entities/product/product.entity';
 import { ProductGroupEntity } from 'src/entities/product/product_group.entity';
 import { ProductGroupRelationEntity } from 'src/entities/product/product_group_relation.entity';
 import { ProductSpecEntity } from 'src/entities/product/product_spec.entity';
+import { ProductSpecAttrRelationEntity } from 'src/entities/product/product_spec_attr_relation.entity';
 import { StoreEntity } from 'src/entities/store/store.entity';
-import { ProductAuditStatusEnum, ProductSaleStatusEnum, StoreStatusEnum } from 'src/enum/business_enum';
+import {
+  ProductAuditStatusEnum,
+  ProductSaleStatusEnum,
+  StoreStatusEnum,
+} from 'src/enum/business_enum';
 import { PageListVo } from 'src/modules/common/page/pageList';
 import { In, MoreThan, Repository } from 'typeorm';
 
@@ -21,7 +31,10 @@ export class HomeService {
     @InjectRepository(ProductGroupEntity)
     private readonly productGroupRepo: Repository<ProductGroupEntity>,
     @InjectRepository(ProductGroupRelationEntity)
-    private readonly relationRepo: Repository<ProductGroupRelationEntity>,
+    private readonly productGroupRelationRepo: Repository<ProductGroupRelationEntity>,
+
+    @InjectRepository(ProductSpecAttrRelationEntity)
+    private readonly productSpecAttrRelationRepo: Repository<ProductSpecAttrRelationEntity>,
   ) {}
 
   /**
@@ -52,122 +65,192 @@ export class HomeService {
       );
     }
   }
-
-  /***
+  /**
    * 查询门店详情
    */
-  async getStoreDetail(storeId:any) :Promise<any> {
-// 步骤1：查询门店基础信息（先校验门店状态）
-  const store = await this.storeRepository.findOne({
-    where: { 
-      id: storeId,
-      status: In([StoreStatusEnum.ONLINE, StoreStatusEnum.PAUSE]) // 仅返回营业中/暂停的门店
-    },
-    // select: ['id', 'storeName'] // 仅查需要的字段
-  });
-
-  if (!store) {
-    throw new BadRequestException('门店不存在或已下线');
-  }
-
-  // 步骤2：查询该门店的所有商品分组（按分组排序）
-  const groups = await this.productGroupRepo.find({
-    where: { storeId },
-    order: { sort: 'ASC' }, // 按分组排序字段升序
-    select: ['id', 'name', 'sort']
-  });
-
-   // 3. 查询该门店的有效商品（仅上架状态）
-    const products = await this.productRepo.find({
+  /**
+   * 查询门店详情
+   */
+  /**
+   * 查询门店详情
+   */
+  /**
+   * 查询门店详情
+   */
+  async getStoreDetail(storeId: any): Promise<any> {
+    // 1. 查询门店
+    const store = await this.storeRepository.findOne({
       where: {
-        storeId,
-        isActive: ProductSaleStatusEnum.UPSALE, // 商品上架状态
-        status: ProductAuditStatusEnum.SUCCESS // 商品上架状态
+        id: storeId,
+        status: In([StoreStatusEnum.ONLINE, StoreStatusEnum.PAUSE]),
       },
     });
-    if (products.length === 0) {
-      return this.formatResult(store, [], groups);
+    if (!store) throw new BadRequestException('门店不存在或已下线');
+
+    // 2. 查询分组
+    const groups = await this.productGroupRepo.find({
+      where: { storeId },
+      order: { sort: 'ASC' },
+      select: ['id', 'name', 'sort'],
+    });
+
+    if (!groups.length) {
+      return this.formatResult(store, [], []);
     }
 
-    // 4. 查询商品规格（仅库存>0的规格）
-    const productIds = products.map(p => p.id);
+    const groupIds = groups.map((g) => g.id);
+
+    // 3. 查询商品关联关系
+    const groupRelations = await this.productGroupRelationRepo.find({
+      where: { groupId: In(groupIds) },
+      select: ['productId', 'groupId'],
+    });
+
+    if (!groupRelations.length) {
+      return this.formatResult(
+        store,
+        groups.map((g) => ({ ...g, goods: [] })),
+        groups,
+      );
+    }
+
+    const productIdToGroupId = new Map<number, number>();
+    groupRelations.forEach((r) => {
+      productIdToGroupId.set(r.productId, r.groupId);
+    });
+
+    const productIds = Array.from(productIdToGroupId.keys());
+
+    // 4. 查询商品
+    const products = await this.productRepo.find({
+      where: {
+        id: In(productIds),
+        storeId,
+        isActive: ProductSaleStatusEnum.UPSALE,
+        status: ProductAuditStatusEnum.SUCCESS,
+      },
+    });
+
+    if (!products.length) {
+      return this.formatResult(
+        store,
+        groups.map((g) => ({ ...g, goods: [] })),
+        groups,
+      );
+    }
+
+    // 5. 查询规格
     const specs = await this.productSpecRepo.find({
       where: {
         productId: In(productIds),
-        stock: MoreThan(0) // 过滤无库存规格
+        stock: MoreThan(0),
       },
-      select: ['id', 'productId', 'price', 'stock']
+      select: ['id', 'productId', 'name', 'price', 'stock'],
     });
 
-    // 5. 组装商品+规格数据（过滤无有效规格的商品）
-    const productWithSpecs = products.map(product => {
-      const productSpecList = specs.filter(s => s.productId === product.id);
-      // 无有效规格的商品直接过滤
-      if (productSpecList.length === 0) return null;
-
-      return {
-        productId: product.id,
-        name: product.productName,
-        img: product.imageUrl,
-        desc: product.description,
-        sales: 9999, // 商品销量
-        original: 9999, // 商品原价
-        specList: productSpecList.map(spec => ({
-          specId: spec.id,
-          specName: spec.name,
-          price: spec.price,
-          stock: spec.stock
-        })),
-        ...productSpecList[0], // 商品默认规格
-        defaultSpec: productSpecList[0] // 默认选中第一个规格
-      };
-    }).filter(Boolean); // 过滤null值
-
-    // 6. 查询商品-分组关联关系
-    const relations = await this.relationRepo.find({
-      where: { productId: In(productWithSpecs.map(p => p.productId)) },
-      select: ['groupId', 'productId']
-    });
-
-    // 7. 组装分组+商品（含规格）
-    const groupWithProducts = this.assembleGroupProducts(groups, productWithSpecs, relations);
-
-    // 8. 返回格式化结果
-    return this.formatResult(store, groupWithProducts, groups);
-  }
-
-  /**
-   * 组装分组+商品数据
-   */
-  private assembleGroupProducts(groups, productWithSpecs, relations) {
-    // 分组商品
-    const groupList = groups.map(group => {
-      const relateProductIds = relations
-        .filter(r => r.groupId === group.id)
-        .map(r => r.productId);
-      const groupProducts = productWithSpecs.filter(p => relateProductIds.includes(p.productId));
-      
-      return {
-        groupId: group.id,
-        name: group.name,
-        sort: group.sort,
-        goods: groupProducts
-      };
-    });
-
-    // 未分组商品
-    const groupedProductIds = relations.map(r => r.productId);
-    const ungroupedProducts = productWithSpecs.filter(p => !groupedProductIds.includes(p.productId));
-    if (ungroupedProducts.length > 0) {
-      groupList.push({
-        groupId: 0,
-        groupName: '未分组商品',
-        sort: 999,
-        productList: ungroupedProducts
-      });
+    if (!specs.length) {
+      return this.formatResult(
+        store,
+        groups.map((g) => ({ ...g, goods: [] })),
+        groups,
+      );
     }
 
-    return groupList;
+    const specIds = specs.map((s) => s.id);
+
+    // 6. 查询规格属性关联（带去重）
+    const relations = await this.productSpecAttrRelationRepo.find({
+      where: { productSpecId: In(specIds) },
+    });
+
+    // 按 productSpecId 收集属性，使用 Map 去重
+    const specAttrMap = new Map<number, Map<string, any>>();
+
+    for (const r of relations) {
+      let attrList = r.attributeOptionJson;
+
+      if (typeof attrList === 'string') {
+        try {
+          attrList = JSON.parse(attrList);
+        } catch (e) {
+          attrList = [];
+        }
+      }
+
+      if (!Array.isArray(attrList)) {
+        attrList = attrList ? [attrList] : [];
+      }
+
+      if (!specAttrMap.has(r.productSpecId)) {
+        specAttrMap.set(r.productSpecId, new Map());
+      }
+      const attrDedupMap = specAttrMap.get(r.productSpecId);
+
+      for (const attr of attrList) {
+        const attrId = attr.productSpecAttrId || attr.attrId;
+        const optionId = attr.id || attr.optionId;
+        const dedupKey = `${attrId}_${optionId}`;
+
+        if (!attrDedupMap.has(dedupKey)) {
+          attrDedupMap.set(dedupKey, {
+            attrId: attrId,
+            attrName: attr.name || attr.attrName || '',
+            optionId: optionId,
+            optionName: attr.name || attr.optionName || '',
+            saleStatus: attr.saleStatus,
+          });
+        }
+      }
+    }
+
+    // 转换回数组
+    const finalSpecAttrMap = new Map<number, any[]>();
+    specAttrMap.forEach((dedupMap, specId) => {
+      finalSpecAttrMap.set(specId, Array.from(dedupMap.values()));
+    });
+
+    // 7. 组装商品数据
+    const productWithProducts = products
+      .map((product) => {
+        const productSpecs = specs.filter((s) => s.productId === product.id);
+        if (!productSpecs.length) return null;
+
+        const specList = productSpecs.map((spec) => {
+          const attrs = finalSpecAttrMap.get(spec.id) || [];
+
+          return {
+            specId: spec.id,
+            specName: spec.name,
+            price: spec.price,
+            stock: spec.stock,
+            attrs: attrs,
+          };
+        });
+
+        return {
+          productId: product.id,
+          name: product.productName,
+          img: product.imageUrl,
+          desc: product.description,
+          sales: 9999,
+          original: specList[0]?.price || 0,
+          groupId: productIdToGroupId.get(product.id),
+          specList: specList,
+          defaultSpec: specList[0] || null,
+          hasManySpec: specList.length > 1,
+        };
+      })
+      .filter(Boolean);
+
+    // 8. 按分组组装
+    const groupWithProducts = groups.map((group) => ({
+      groupId: group.id,
+      name: group.name,
+      sort: group.sort,
+      goods: productWithProducts.filter((p) => p.groupId === group.id),
+    }));
+
+    return this.formatResult(store, groupWithProducts, groups);
   }
 
   /**
@@ -178,22 +261,22 @@ export class HomeService {
       storeInfo: {
         id: store.id,
         name: store.storeName,
-        logo: store.doorPhoto,
+        logo: store.avatarImg,
         phone: store.contactInfo,
-        address:store.detail_address,
-        notice:store.remark,
+        address: store.detail_address,
+        notice: store.remark,
         monthly_sales: 9999,
         delivery_time: 30,
-        delivery_fee: 5,
-        min_order_amount: 30,
+        delivery_fee: store.delivery_fee ?? 5,
+        min_order_amount: store.min_order_amount ?? 30,
         business_hours: '09:00-22:00',
-        deliveryScope: store.delivery_scope, // 配送范围(km)
-        deliveryFee: store.delivery_fee,     // 配送费(元)
-        minOrderAmount: store.min_order_amount, // 起送价(元)
+        deliveryScope: store.delivery_scope,
       },
-      categories: groupWithProducts,
-      isOpen: store.status === StoreStatusEnum.ONLINE, // 是否营业中（前端直接用）
-      emptyTip: groupWithProducts.length === 0 ? '该门店暂无在售商品' : ''
+      categories: groupWithProducts, // ✅ 不再有"未分组"
+      isOpen: store.status === StoreStatusEnum.ONLINE,
+      emptyTip: groupWithProducts.every((g) => g.goods.length === 0)
+        ? '该门店暂无在售商品'
+        : '',
     };
   }
 }
