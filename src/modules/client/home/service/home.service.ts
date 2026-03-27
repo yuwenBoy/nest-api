@@ -3,6 +3,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductEntity } from 'src/entities/product/product.entity';
@@ -18,6 +19,7 @@ import {
 } from 'src/enum/business_enum';
 import { PageListVo } from 'src/modules/common/page/pageList';
 import { In, MoreThan, Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class HomeService {
@@ -35,8 +37,14 @@ export class HomeService {
 
     @InjectRepository(ProductSpecAttrRelationEntity)
     private readonly productSpecAttrRelationRepo: Repository<ProductSpecAttrRelationEntity>,
+    private dataSource: DataSource, // ✅ 用于复杂查询
   ) {}
 
+  /**
+   * 查询分页列表
+   * @param parameter 查询条件
+   * @returns list
+   */
   /**
    * 查询分页列表
    * @param parameter 查询条件
@@ -45,35 +53,200 @@ export class HomeService {
   async pageQuery(parameter: any): Promise<PageListVo> {
     try {
       const [pageIndex, pageSize] = [parameter.page, parameter.size];
-      let qb = await this.storeRepository
+
+      const userLat = Number(parameter.lat); // 用户纬度
+      const userLng = Number(parameter.lng); // 用户经度
+
+      // 1. 查询门店列表
+      let qb = this.storeRepository
         .createQueryBuilder('store')
-        // .orderBy(`business.created_at`, 'DESC')
         .skip((pageIndex - 1) * Number(pageSize))
         .take(pageSize);
-      const [data, count] = await qb.getManyAndCount();
+
+      // 添加筛选条件
+      if (parameter.name) {
+        qb.andWhere('store.storeName LIKE :name', {
+          name: `%${parameter.name}%`,
+        });
+      }
+
+      const [stores, count] = await qb.getManyAndCount();
+
+      if (stores.length === 0) {
+        return {
+          content: [],
+          page: pageIndex,
+          size: pageSize,
+          totalElements: 0,
+          totalPage: 0,
+        };
+      }
+
+      // 2. 查询营业时间
+      const storeIds = stores.map((s) => s.id);
+      const hoursList = await this.dataSource
+        .createQueryBuilder()
+        .select('h')
+        .from('store_hours', 'h')
+        .where('h.store_id IN (:...storeIds)', { storeIds })
+        .getRawMany();
+
+      console.log('hoursList', hoursList);
+
+      // 3. 构建 hoursMap（兼容 h_ 前缀 + 类型转换）
+      const hoursMap = new Map();
+      hoursList.forEach((h) => {
+        const storeId = h.store_id ?? h.h_store_id;
+        const dayOfWeek = h.day_of_week ?? h.h_day_of_week;
+        const startTime = h.start_time ?? h.h_start_time;
+        const endTime = h.end_time ?? h.h_end_time;
+
+        if (!hoursMap.has(storeId)) {
+          hoursMap.set(storeId, []);
+        }
+        hoursMap.get(storeId).push({
+          dayOfWeek: Number(dayOfWeek),
+          startTime,
+          endTime,
+        });
+      });
+
+      console.log('hoursMap', hoursMap);
+
+      // 4. 计算营业状态
+      const now = new Date();
+      const jsDay = now.getDay();
+      const currentDay = jsDay === 0 ? 7 : jsDay;
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+
+      const enrichedData = stores.map((store) => {
+        const storeHours = hoursMap.get(store.id) || [];
+        const todayHours = storeHours.find((h) => h.dayOfWeek === currentDay);
+
+        let status = '未设置';
+        let nextOpenTime = null;
+        let todayHoursStr = null;
+
+        if (storeHours.length > 0 && todayHours) {
+          const startMinutes = this.timeToMinutes(todayHours.startTime);
+          const endMinutes = this.timeToMinutes(todayHours.endTime);
+          todayHoursStr = `${todayHours.startTime.slice(
+            0,
+            5,
+          )}-${todayHours.endTime.slice(0, 5)}`;
+
+          if (endMinutes < startMinutes) {
+            if (currentTime >= startMinutes || currentTime <= endMinutes) {
+              status = '营业中';
+            } else if (currentTime < startMinutes) {
+              status = '休息中';
+              nextOpenTime = todayHours.startTime.slice(0, 5);
+            } else {
+              status = '已打烊';
+              nextOpenTime = this.getNextOpenTime(storeHours, currentDay);
+            }
+          } else {
+            if (currentTime >= startMinutes && currentTime <= endMinutes) {
+              status = '营业中';
+            } else if (currentTime < startMinutes) {
+              status = '休息中';
+              nextOpenTime = todayHours.startTime.slice(0, 5);
+            } else {
+              status = '已打烊';
+              nextOpenTime = this.getNextOpenTime(storeHours, currentDay);
+            }
+          }
+        } else if (storeHours.length > 0) {
+          status = '今日休息';
+          nextOpenTime = this.getNextOpenTime(storeHours, currentDay);
+        }
+
+        // ====================== 距离计算 ======================
+        let distance = 0;
+        let distanceText = '未知距离';
+        if (userLat && userLng && store.latitude && store.longitude) {
+          distance = this.calculateDistance(
+            userLat,
+            userLng,
+            store.latitude,
+            store.longitude,
+          );
+          distanceText = distance < 1000  ? `${Math.round(distance)}米`  : `${(distance / 1000).toFixed(1)}公里`;
+        }
+        // ======================================================
+
+        return {
+          ...store,
+          business_status: status,
+          next_open_time: nextOpenTime,
+          today_hours: todayHoursStr,
+          dayWeek: currentDay,
+          distance: Math.round(distance),
+          distanceText,
+        };
+      });
+
       return {
-        ...{ content: data },
+        content: enrichedData,
         page: pageIndex,
         size: pageSize,
         totalElements: count,
         totalPage: Math.ceil(count / pageSize),
       };
     } catch (error) {
+      console.error('查询失败:', error);
       throw new HttpException(
         '查询分页列表失败',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
-  /**
-   * 查询门店详情
-   */
-  /**
-   * 查询门店详情
-   */
-  /**
-   * 查询门店详情
-   */
+
+  private calculateDistance(
+    lat1: number,
+    lng1: number,
+    lat2: any,
+    lng2: any,
+  ): number {
+    const rad = (d: number) => (d * Math.PI) / 180;
+    const R = 6371; // 地球半径 km
+    const dLat = rad(lat2 - lat1);
+    const dLng = rad(lng2 - lng1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(rad(lat1)) *
+        Math.cos(rad(lat2)) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+    const s = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return s * R * 1000; // 返回 米
+  }
+
+  private timeToMinutes(timeStr: string): number {
+    if (!timeStr) return 0;
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  private getNextOpenTime(hours: any[], currentDay: number): string {
+    for (let i = 1; i <= 7; i++) {
+      const nextDay = currentDay + i > 7 ? currentDay + i - 7 : currentDay + i;
+      const nextHours = hours.find((h) => h.dayOfWeek === nextDay);
+      if (nextHours) {
+        const dayNames = {
+          1: '周一',
+          2: '周二',
+          3: '周三',
+          4: '周四',
+          5: '周五',
+          6: '周六',
+          7: '周日',
+        };
+        return `${dayNames[nextDay]} ${nextHours.startTime.slice(0, 5)}`;
+      }
+    }
+    return '暂无排班';
+  }
   /**
    * 查询门店详情
    */
@@ -91,7 +264,7 @@ export class HomeService {
     const groups = await this.productGroupRepo.find({
       where: { storeId },
       order: { sort: 'ASC' },
-      select: ['id', 'name', 'sort'],
+      select: ['id', 'name','description', 'sort'],
     });
 
     if (!groups.length) {
@@ -246,6 +419,7 @@ export class HomeService {
     const groupWithProducts = groups.map((group) => ({
       groupId: group.id,
       name: group.name,
+      description: group.description,
       sort: group.sort,
       goods: productWithProducts.filter((p) => p.groupId === group.id),
     }));
@@ -274,9 +448,7 @@ export class HomeService {
       },
       categories: groupWithProducts, // ✅ 不再有"未分组"
       isOpen: store.status === StoreStatusEnum.ONLINE,
-      emptyTip: groupWithProducts.every((g) => g.goods.length === 0)
-        ? '该门店暂无在售商品'
-        : '',
+      emptyTip: groupWithProducts.every((g) => g.goods.length === 0) ? '该门店暂无在售商品' : '',
     };
   }
 }

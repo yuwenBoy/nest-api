@@ -39,10 +39,6 @@ pause / 4	暂停营业	临时停止运营	1. 商家主动暂停（如装修）�
 forbidden / 5	永久封禁	平台强制下线且不可恢复	商家严重违规（如售假），平台永久封禁
  */
 export enum StoreStatusEnum{
-    // APPLYIN = 0, // 审核中
-    // ACTIVE = 1, // 营业中
-    // END = 2, //暂停营业
-    // SYSTENEND = 3, // 被平台暂停
     OFFLINE = 0, // 已下线
     PENDING_AUDIT = 1, // 审核中
     AUDIT_APPROVED = 2, // 审核通过

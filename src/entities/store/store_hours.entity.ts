@@ -1,5 +1,6 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { BusinessBaseEntity } from '../common/base.entity';
+import { StoreEntity } from './store.entity';
 /**
  * description:门店营业时间表
  * @createTime:2025-2-21 15:45:22

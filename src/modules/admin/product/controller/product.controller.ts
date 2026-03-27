@@ -37,8 +37,8 @@ export class ProductController {
     @SkipLog()
     @ApiOperation({ summary: '查询商家所属信息' })
     @Get('/fetch_properties')
-    fetchProperties(@CurrentUser() userInfo: UserInfoDto):Promise<any> {
-      return this.productService.fetchProperties(userInfo.business_id);
+    fetchProperties(@Request() req):Promise<any> {
+      return this.productService.fetchProperties(req.queryParams.store_id);
     }
 
    /**
