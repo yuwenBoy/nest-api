@@ -7,9 +7,11 @@ import { AuthModule } from '../user/auth/auth.module';
 import { PayService } from './service/pay.service';
 import { PayController } from './controller/pay.controller';
 import { WxPayService } from './service/wxpay.service';
+import { MessageModule } from 'src/modules/chat/service/message.module';
 @Module({
   imports: [
     AuthModule,
+    MessageModule, // 👈 导入聊天模块
     RouterModule.register([{ path: 'client', module: PayModule }]),
     TypeOrmModule.forFeature([
         // CategoryEntity,

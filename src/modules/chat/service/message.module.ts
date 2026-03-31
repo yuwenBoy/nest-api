@@ -22,6 +22,7 @@ import { MessageController } from './message.controller';
   exports: [
     // 如果其他模块需要用到 MessageService，可以在这里导出
     MessageService,
+    ChatGateway
   ],
 })
 export class MessageModule {}

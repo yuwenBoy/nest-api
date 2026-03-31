@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
 import { Connection, Repository } from 'typeorm';
 import { OrderEntity } from 'src/entities/business/order.entity';
-import { OrderItemEntity } from 'src/entities/business/order_item.entity';
 import { WxPayService } from './wxpay.service';
+import { ChatGateway } from 'src/gateway/chat.gateway';
 
 @Injectable()
 export class PayService {
@@ -11,6 +11,7 @@ export class PayService {
     @InjectRepository(OrderEntity)
     private orderRepo: Repository<OrderEntity>,
     private readonly wxPayService: WxPayService,
+     private chatGateway: ChatGateway,
   ) {}
 
   // 统一支付
@@ -93,9 +94,15 @@ export class PayService {
     // 3. 支付成功 → 修改订单状态
     await this.orderRepo.update(orderId, {
       orderStatus: 1, // 1 = 待配送 / 已支付
+      payStatus:1, // 1 = 已支付
       payMethod: payType,
       payTime: new Date(),
     });
+
+    this.chatGateway.sendOrderToMerchant(
+      199,    // 商家用户ID
+      order,               // 订单数据
+    );
 
     return {
       success: true,

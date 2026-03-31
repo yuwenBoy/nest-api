@@ -35,7 +35,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private AuthService: AuthService,
     private dataSource: DataSource, // ✅ 用于复杂查询
   ) {}
-
   /**
    *
    * @param client 客户端连接
@@ -116,7 +115,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // 监听私聊消息
   @SubscribeMessage('private_message')
   async handlePrivateMessage(client: Socket, payload: any) {
-    const { receiverId, content,targetId,targetType } = payload;
+    const { receiverId, content, targetId, targetType } = payload;
     const senderId = client.data.userId;
     // 1. 保存消息
     const message = await this.messageService.create({
@@ -152,10 +151,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       senderId: message.senderId,
       targetId: message.targetId,
       lastMessage: message.content,
-      lastTime: message.createdAt
-    }
+      lastTime: message.createdAt,
+    };
     // ✅ 推送给发送方，更新他的会话列表
-    client.emit('message_update',updatePayload);
+    client.emit('message_update', updatePayload);
 
     // ✅ 打印广播结果
     const socketsInRoom = await this.server.in(receiverRoom).fetchSockets();
@@ -271,4 +270,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       status,
     });
   }
+
+  // ==============================
+// 🔥 【唯一正确】给商家推送新订单
+// ==============================
+sendOrderToMerchant(merchantUserId: number, orderData: any) {
+  const room = `user_${merchantUserId}`;
+  console.log("✅ 真正的 chat 命名空间 server 推送：", room);
+  // 👉 这里的 this.server 100% 存在！
+  this.server.to(room).emit("new_shop_order", orderData);
+  // 👇 强制全房间广播（测试！前端一定能收到！）
+//   this.server.emit('new_shop_order', orderData);
+    // this.server.to(room).emit('new_shop_order', orderData);
+}
 }
