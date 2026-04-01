@@ -272,15 +272,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   // ==============================
-// 🔥 【唯一正确】给商家推送新订单
-// ==============================
-sendOrderToMerchant(merchantUserId: number, orderData: any) {
-  const room = `user_${merchantUserId}`;
-  console.log("✅ 真正的 chat 命名空间 server 推送：", room);
-  // 👉 这里的 this.server 100% 存在！
-  this.server.to(room).emit("new_shop_order", orderData);
-  // 👇 强制全房间广播（测试！前端一定能收到！）
-//   this.server.emit('new_shop_order', orderData);
-    // this.server.to(room).emit('new_shop_order', orderData);
-}
+  // 🔥 【唯一正确】给商家推送新订单
+  // ==============================
+  sendOrderToMerchant(merchantUserId: number, orderData: any) {
+    const room = `user_${merchantUserId}`;
+    console.log('✅ 真正的 chat 命名空间 server 推送：', room);
+    // 👉 这里的 this.server 100% 存在！
+    this.server.to(room).emit('new_shop_order', orderData);
+  }
 }

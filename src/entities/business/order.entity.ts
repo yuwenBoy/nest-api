@@ -1,23 +1,45 @@
 import {
   Entity,
   Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
   Index,
   Unique,
-  BaseEntity,
 } from 'typeorm';
 import { BusinessBaseEntity } from '../common/base.entity';
 
 // 订单状态枚举（便于代码提示）
 export enum OrderStatus {
   UNPAID = 0, // 待支付
-  PENDING = 1, // 待接单
-  DELIVERING = 2, // 配送中
-  COMPLETED = 3, // 已完成
-  CANCELLED = 4, // 已取消
+  PENDING_ACCEPT = 1, // 待接单
+  ACCEPTED_PREPARE = 2, // 待出餐（已接单/备货中）
+  DAIPEISONG = 3, // 待配送
+  PEISONGZHONG = 4, // 配送中
+  YIWANCHENG = 5, // 已完成
+  CANCELED_MANUAL = 6, // 人工取消
+  CANCELED_TIMEOUT = 7, // 超时关闭
+  REFUND_ALL_PART = 8, // 全额/部分退款
+
+  // 0 待支付（用户没付钱，超时自动关单）
+  // 1 待接单（已付款，等商家接单）
+  // 2 已接单/备货中（商家确认接单、打包、拣货）
+  // 3 配送中（骑手取货/发货）
+  // 4 已完成（正常履约结束）
+  // 5 已取消（用户主动取消/商家拒单）👉 区分主动
+  // 6 已超时关闭（未支付超时/接单超时系统关单）
+  // 7 已退款/部分退款（售后、原路退）👉 
 }
+
+// 状态转中文文案
+export const OrderStatusText: Record<OrderStatus, string> = {
+  [OrderStatus.UNPAID]: '待支付',
+  [OrderStatus.PENDING_ACCEPT]: '待接单',
+  [OrderStatus.ACCEPTED_PREPARE]: '备货中',
+  [OrderStatus.DAIPEISONG]: '待配送',
+  [OrderStatus.PEISONGZHONG]: '配送中',
+  [OrderStatus.YIWANCHENG]: '已完成',
+  [OrderStatus.CANCELED_MANUAL]: '已取消',
+  [OrderStatus.CANCELED_TIMEOUT]: '超时关闭',
+  [OrderStatus.REFUND_ALL_PART]: '已退款',
+};
 
 // 支付状态枚举
 export enum PayStatus {
@@ -34,7 +56,6 @@ export enum PayMethod {
 @Entity('order') // 对应数据库表名
 @Unique(['orderNo']) // 对应 uk_order_no 唯一索引
 export class OrderEntity extends BusinessBaseEntity {
-
   // 订单编号（唯一索引）
   @Column({
     name: 'order_no',
