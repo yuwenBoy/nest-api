@@ -13,6 +13,13 @@ import { UserEntity } from 'src/entities/admin/t_user.entity';
 import { DataSource } from 'typeorm';
 import { MessageStatusEnum } from 'src/enum/chat_enum';
 
+// 用户状态枚举
+export enum UserStatusEnum {
+  ONLINE = 'online',    // 在线
+  BUSY = 'busy',        // 忙碌
+  OFFLINE = 'offline',  // 关闭/离线
+}
+
 /**
  * WebSocket 聊天模块
  */
@@ -29,6 +36,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   private logger: Logger = new Logger('ChatGateway');
+
+  // 在线用户状态管理: key = userId, value = { socketId, status }
+  private onlineUsers: Map<number, { socketId: string; status: UserStatusEnum }> = new Map();
 
   constructor(
     private messageService: MessageService,
@@ -93,22 +103,41 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       client.data.userId = userInfo.id; // 将用户ID挂载到socket
       //    client.data.username = userInfo.username; // 将用户名挂载到socket
+      
+      // 添加到在线用户列表，初始状态为在线
+      this.onlineUsers.set(userInfo.id, { socketId: client.id, status: UserStatusEnum.ONLINE });
+      this.logger.log(`用户 ${userInfo.id} 上线，状态: ${UserStatusEnum.ONLINE}，当前在线用户数: ${this.onlineUsers.size}`);
+      
+      // 广播用户上线状态
+      this.broadcastUserStatus(userInfo.id, UserStatusEnum.ONLINE);
+      
       // 4. 发送欢迎消息
       client.emit('connected', {
         message: 'WebSocket 连接成功！',
         userId: userInfo.id,
+        status: UserStatusEnum.ONLINE,
       });
     } catch (error) {
       this.logger.error('WebSocket 认证失败');
       client.disconnect();
     }
   }
-
+ 
   /**
    *
    * @param client
    */
   handleDisconnect(client: Socket) {
+    const userId = client.data.userId;
+    if (userId) {
+      const userInfo = this.onlineUsers.get(userId);
+      if (userInfo) {
+        this.onlineUsers.delete(userId);
+        this.logger.log(`用户 ${userId} 下线，当前在线用户数: ${this.onlineUsers.size}`);
+        // 广播用户下线状态
+        this.broadcastUserStatus(userId, UserStatusEnum.OFFLINE);
+      }
+    }
     this.logger.log(`客户端断开连接: ${client.id}`);
   }
 
@@ -132,11 +161,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       select: ['id', 'username', 'avatar', 'cname'],
     });
 
+    // 检查接收者状态
+    const receiverStatus = this.getUserStatus(receiverId);
+    
     const messageWithUser = {
       ...message,
       senderUsername: sender?.username || `用户${senderId}`,
       senderCname: sender?.cname,
       senderAvatar: sender?.avatar,
+      receiverStatus, // 包含接收者状态
     };
 
     // 3. ✅ 广播给接收者（关键：发送给接收者的房间）
@@ -280,4 +313,96 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // 👉 这里的 this.server 100% 存在！
     this.server.to(room).emit('new_shop_order', orderData);
   }
+
+  // ==============================
+  // 用户状态管理
+  // ==============================
+
+  /**
+   * 广播用户状态变化
+   * @param userId 用户ID
+   * @param status 新状态
+   */
+  private broadcastUserStatus(userId: number, status: UserStatusEnum) {
+    this.server.emit('user_status_changed', {
+      userId,
+      status,
+      timestamp: new Date(),
+    });
+  }
+
+  /**
+   * 处理用户状态更新
+   */
+  @SubscribeMessage('update_status')
+  async handleUpdateStatus(client: Socket, payload: { status: UserStatusEnum }) {
+    const userId = client.data.userId;
+    if (userId) {
+      const userInfo = this.onlineUsers.get(userId);
+      if (userInfo) {
+        // 更新状态
+        userInfo.status = payload.status;
+        this.onlineUsers.set(userId, userInfo);
+        this.logger.log(`用户 ${userId} 状态更新为: ${payload.status}`);
+        
+        // 广播状态变化
+        this.broadcastUserStatus(userId, payload.status);
+        
+        // 确认状态更新
+        client.emit('status_updated', {
+          userId,
+          status: payload.status,
+          timestamp: new Date(),
+        });
+      }
+    }
+  }
+
+  /**
+   * 获取用户在线状态
+   */
+  @SubscribeMessage('get_user_status')
+  async handleGetUserStatus(client: Socket, payload: { userId: number }) {
+    const userInfo = this.onlineUsers.get(payload.userId);
+    const status = userInfo ? userInfo.status : UserStatusEnum.OFFLINE;
+    
+    client.emit('user_status_response', {
+      userId: payload.userId,
+      status,
+    });
+  }
+
+  /**
+   * 获取所有在线用户
+   */
+  @SubscribeMessage('get_online_users')
+  handleGetOnlineUsers(client: Socket) {
+    const onlineUsers = [];
+    this.onlineUsers.forEach((userInfo, userId) => {
+      onlineUsers.push({
+        userId,
+        status: userInfo.status,
+      });
+    });
+    
+    client.emit('online_users_response', {
+      onlineUsers,
+    });
+  }
+
+  /**
+   * 检查用户是否在线
+   */
+  isUserOnline(userId: number): boolean {
+    return this.onlineUsers.has(userId);
+  }
+
+  /**
+   * 获取用户状态
+   */
+  getUserStatus(userId: number): UserStatusEnum {
+    const userInfo = this.onlineUsers.get(userId);
+    return userInfo ? userInfo.status : UserStatusEnum.OFFLINE;
+  }
 }
+

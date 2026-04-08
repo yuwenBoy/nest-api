@@ -16,8 +16,8 @@ import { AuthModule } from './auth/auth.module';
     RouterModule.register([{ path: 'client', module: UserModule }]),
     TypeOrmModule.forFeature([UserEntity, UserProfileEntity, UserAddressEntity]),
   ],
-  controllers: [UserController,UserAddressController],
-  providers: [UserService, RedisService,UserAddressService],
-  exports: [UserService, RedisService,UserAddressService],
+  controllers: [UserController, UserAddressController],
+  providers: [UserService, RedisService, UserAddressService],
+  exports: [UserService, RedisService, UserAddressService],
 })
 export class UserModule {}
