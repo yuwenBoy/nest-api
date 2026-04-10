@@ -7,6 +7,8 @@ import { ProductDynamicAttributeEntity } from 'src/entities/product/product_dyna
 import { DynamicAttributeEntity } from 'src/entities/admin/dynamic_attribute.entity';
 import { DynamicAttributeValueEntity } from 'src/entities/admin/dynamic_attribute_value.entity';
 import { productCategoryDynamicAttributeRelationEntity } from 'src/entities/admin/product_category_dynamic_attribute_relation.entity';
+import { ProductSpecEntity } from 'src/entities/product/product_spec.entity';
+import { ProductSpecAttrRelationEntity } from 'src/entities/product/product_spec_attr_relation.entity';
 import { GoodsController } from './controller/goods.controller';
 import { GoodsService } from './service/goods.service';
 @Module({
@@ -19,6 +21,8 @@ import { GoodsService } from './service/goods.service';
         DynamicAttributeEntity,
         DynamicAttributeValueEntity,
         productCategoryDynamicAttributeRelationEntity,
+        ProductSpecEntity,
+        ProductSpecAttrRelationEntity,
     ]),
   ],
   controllers: [
