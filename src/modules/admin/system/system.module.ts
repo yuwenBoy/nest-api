@@ -23,6 +23,7 @@ import { UserRoleService } from './service/userRole.service';
 import { ModuleController } from './controller/module.controller';
 import { OssController } from './controller/oss.controller';
 import { OssService } from './service/oss.service';
+import { QiniuService } from './service/qiniu.service';
 import { AuthModule } from './auth/auth.module';
 import { DynamicAttributeEntity } from 'src/entities/admin/dynamic_attribute.entity';
 import { dynamicAttributeController } from './controller/dynamicAttribute.controller';
@@ -73,6 +74,7 @@ import { ProductDynamicAttributeEntity } from 'src/entities/product/product_dyna
     DeptService,
     ModuleService,
     OssService,
+    QiniuService,
     DynamicAttributeService,
     DynamicAttributeValueService,
   ],
