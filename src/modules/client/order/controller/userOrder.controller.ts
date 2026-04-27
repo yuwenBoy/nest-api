@@ -53,12 +53,73 @@ export class userOrderController {
    */
   @HttpCode(HttpStatus.OK)
   @Post('cancel')
-  async orderCancel(@Body() body, @CurrentUser() userInfo: any) {
+  async orderCancel(
+    @Body() body: { orderId: number; cancelReason?: string },
+    @CurrentUser() userInfo: any,
+  ) {
     const userId = userInfo.userId;
-    const order = await this.orderService.cancel(userId);
-    return {
-      success: true,
-      result: order,
-    };
+    const result = await this.orderService.cancel(
+      body.orderId,
+      userId,
+      body.cancelReason,
+    );
+    return result;
+  }
+
+  /**
+   * 确认收货
+   */
+  @HttpCode(HttpStatus.OK)
+  @Post('confirm-receipt')
+  async confirmReceipt(
+    @Body() body: { orderId: number },
+    @CurrentUser() userInfo: any,
+  ) {
+    const userId = userInfo.userId;
+    return await this.orderService.confirmReceipt(body.orderId, userId);
+  }
+
+  /**
+   * 申请退款
+   */
+  @HttpCode(HttpStatus.OK)
+  @Post('apply-refund')
+  async applyRefund(
+    @Body()
+    body: { orderId: number; reason: string; refundAmount?: number },
+    @CurrentUser() userInfo: any,
+  ) {
+    const userId = userInfo.userId;
+    return await this.orderService.applyRefund(body.orderId, userId, {
+      reason: body.reason,
+      refundAmount: body.refundAmount,
+    });
+  }
+
+  /**
+   * 获取配送信息
+   */
+  @HttpCode(HttpStatus.OK)
+  @Post('delivery-info')
+  async getDeliveryInfo(
+    @Body() body: { orderId: number },
+    @CurrentUser() userInfo: any,
+  ) {
+    const userId = userInfo.userId;
+    return await this.orderService.getDeliveryInfo(body.orderId, userId);
+  }
+
+  /**
+   * 获取订单详情
+   */
+  @HttpCode(HttpStatus.OK)
+  @Post('detail')
+  async getOrderDetail(
+    @Body() body: { orderId: number },
+    @CurrentUser() userInfo: any,
+  ) {
+    const userId = userInfo.userId;
+    const result = await this.orderService.getOrderDetail(body.orderId, userId);
+    return result
   }
 }

@@ -10,14 +10,6 @@ import { BusinessBaseEntity } from '../common/base.entity';
 
 @Entity('order_item') // 对应数据库表名
 export class OrderItemEntity extends BusinessBaseEntity {
-  // 主键ID
-  @PrimaryGeneratedColumn({ 
-    type: 'bigint',
-    unsigned: true,
-    comment: '订单项主键ID',
-  })  
-  id: number;
-
   // 关联订单ID（索引）
   @Index('idx_order_id') // 对应 idx_order_id 索引
   @Column({

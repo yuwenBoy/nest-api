@@ -93,6 +93,14 @@ export class GoodsService {
           if (productAttr) {
             // 查找对应的显示值
             const valueObj = this.findAttributeValue(attr.values, productAttr.attributeValueId);
+            
+            // 级联类型特殊处理：如果选中的值有子选项，显示子选项
+            let displayValueObj = valueObj;
+            if (attr.attributeType === attributeTypeEnum.CASCADER && valueObj && valueObj.children && valueObj.children.length > 0) {
+              // 如果父选项有子选项，取第一个子选项作为显示值
+              displayValueObj = valueObj.children[0];
+            }
+            
             return {
               id: attr.id,
               attributeName: attr.attributeName,
@@ -102,8 +110,8 @@ export class GoodsService {
               description: attr.description,
               values: attr.values || [],
               value: {
-                id: productAttr.attributeValueId,
-                value: valueObj ? valueObj.value : null
+                id: displayValueObj ? displayValueObj.id : productAttr.attributeValueId,
+                value: displayValueObj ? displayValueObj.value : null
               },
             };
           } else {
@@ -119,18 +127,57 @@ export class GoodsService {
             };
           }
         } else {
-          // 对于其他类型，只获取第一个匹配的值
+          // 对于数字类型（attributeType=2），区分处理
           const productAttr = productAttributes.find(p => p.attributeId === attr.id);
-          return {
-            id: attr.id,
-            attributeName: attr.attributeName,
-            attributeType: attr.attributeType,
-            isRequired: attr.isRequired,
-            isStar: attr.isStar,
-            description: attr.description,
-            values: attr.values || [],
-            value: productAttr ? productAttr.attributeValueId : null,
-          };
+          if (productAttr) {
+            // 如果有values选项列表（级联/选择类型），查找显示文本
+            if (attr.values && attr.values.length > 0) {
+              const valueObj = this.findAttributeValue(attr.values, productAttr.attributeValueId);
+              // 如果找到子选项，返回子选项的值；否则返回原值
+              let displayValue = valueObj ? valueObj.value : null;
+              // 如果找到的是父选项且有子选项，显示子选项
+              if (valueObj && valueObj.children && valueObj.children.length > 0) {
+                const childValues = valueObj.children.map(c => c.value).filter(Boolean).join('、');
+                if (childValues) displayValue = childValues;
+              }
+              return {
+                id: attr.id,
+                attributeName: attr.attributeName,
+                attributeType: attr.attributeType,
+                isRequired: attr.isRequired,
+                isStar: attr.isStar,
+                description: attr.description,
+                values: attr.values || [],
+                value: {
+                  id: productAttr.attributeValueId,
+                  value: displayValue
+                },
+              };
+            } else {
+              // 没有values，直接返回存储的文本值（如主料、辅料）
+              return {
+                id: attr.id,
+                attributeName: attr.attributeName,
+                attributeType: attr.attributeType,
+                isRequired: attr.isRequired,
+                isStar: attr.isStar,
+                description: attr.description,
+                values: [],
+                value: productAttr.attributeValueId, // 直接返回文本值
+              };
+            }
+          } else {
+            return {
+              id: attr.id,
+              attributeName: attr.attributeName,
+              attributeType: attr.attributeType,
+              isRequired: attr.isRequired,
+              isStar: attr.isStar,
+              description: attr.description,
+              values: attr.values || [],
+              value: null,
+            };
+          }
         }
       }),
       productSpecs: productSpecs,

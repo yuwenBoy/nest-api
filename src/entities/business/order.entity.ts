@@ -239,4 +239,89 @@ export class OrderEntity extends BusinessBaseEntity {
     comment: '支付时间',
   })
   payTime: Date;
+
+  // 取消原因
+  @Column({
+    name: 'cancel_reason',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    comment: '取消原因',
+  })
+  cancelReason: string;
+
+  // 取消时间
+  @Column({
+    name: 'cancel_time',
+    type: 'datetime',
+    nullable: true,
+    comment: '取消时间',
+  })
+  cancelTime: Date;
+
+  // 配送开始时间
+  @Column({
+    name: 'delivery_start_time',
+    type: 'datetime',
+    nullable: true,
+    comment: '配送开始时间',
+  })
+  deliveryStartTime: Date;
+
+  // 配送结束时间
+  @Column({
+    name: 'delivery_end_time',
+    type: 'datetime',
+    nullable: true,
+    comment: '配送结束时间',
+  })
+  deliveryEndTime: Date;
+
+  // 骑手ID
+  @Column({
+    name: 'rider_id',
+    type: 'bigint',
+    unsigned: true,
+    nullable: true,
+    comment: '骑手ID',
+  })
+  riderId: number;
+
+  // 骑手姓名
+  @Column({
+    name: 'rider_name',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+    comment: '骑手姓名',
+  })
+  riderName: string;
+
+  // 骑手电话
+  @Column({
+    name: 'rider_phone',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+    comment: '骑手电话',
+  })
+  riderPhone: string;
+
+  // 商家接单时间
+  @Column({
+    name: 'accept_time',
+    type: 'datetime',
+    nullable: true,
+    comment: '商家接单时间',
+  })
+  acceptTime: Date;
+
+  // 备货完成时间
+  @Column({
+    name: 'prepare_time',
+    type: 'datetime',
+    nullable: true,
+    comment: '备货完成时间',
+  })
+  prepareTime: Date;
 }

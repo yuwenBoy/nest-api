@@ -315,6 +315,76 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   // ==============================
+  // 【新订单通知】支付成功后推送给商家（带弹窗）
+  // ==============================
+  sendNewOrderNotification(storeId: number, notificationData: {
+    type: string;
+    orderId: number;
+    orderNo: string;
+    storeId: number;
+    storeName: string;
+    finalTotal: number;
+    orderStatus: number;
+    statusText: string;
+    payTime: Date;
+    autoAccepted: boolean;
+    message: string;
+    timestamp: Date;
+  }) {
+    // 推送给商家的房间
+    const merchantRoom = `store_${storeId}`;
+    const adminRoom = 'admin_orders'; // 管理员可以监听所有订单
+
+    console.log('📦 推送新订单通知到商家:', merchantRoom);
+
+    // 推送到商家专用房间
+    this.server.to(merchantRoom).emit('new_order_notification', notificationData);
+
+    // 同时推送到管理员房间
+    this.server.to(adminRoom).emit('new_order_notification', notificationData);
+
+    // 播放提示音给商家
+    this.server.to(merchantRoom).emit('play_notification_sound', {
+      type: 'new_order',
+      orderNo: notificationData.orderNo,
+    });
+
+    // 广播给所有在线管理员
+    this.server.emit('order_created', {
+      orderId: notificationData.orderId,
+      orderNo: notificationData.orderNo,
+      storeId: notificationData.storeId,
+      storeName: notificationData.storeName,
+      finalTotal: notificationData.finalTotal,
+      timestamp: notificationData.timestamp,
+    });
+  }
+
+  // ==============================
+  // 【订单状态推送】主动推送给用户/商家
+  // ==============================
+  sendOrderStatusUpdate(
+    targetType: 'user' | 'merchant',
+    targetId: number,
+    orderData: {
+      orderId: number;
+      orderNo: string;
+      status: number;
+      statusText: string;
+      message?: string;
+      extra?: any;
+    },
+  ) {
+    const room = `${targetType}_${targetId}`;
+    console.log(`📢 推送订单状态更新到 ${room}:`, orderData.statusText);
+
+    this.server.to(room).emit('order_status_changed', {
+      ...orderData,
+      timestamp: new Date(),
+    });
+  }
+
+  // ==============================
   // 用户状态管理
   // ==============================
 
