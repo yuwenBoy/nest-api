@@ -118,10 +118,6 @@ export class UserService {
         .take(pageSize);
 
       const [data, count] = await qb.getManyAndCount();
-      let defaultAvatar = this.config.get('admin.file.domain') +'/'
-      data.forEach(item=>{
-        item.avatar = item.avatar? defaultAvatar + item.avatar : '';
-      })
       return {
         ...{ content: data },
         page: pageIndex,
@@ -397,7 +393,6 @@ let result = await this.userRepository.query(sql);
 let imageBaseUrl = this.config.get('admin.file.domain') + '/';
 
 result.forEach(item => {
-    item.avatar = item.avatar ? imageBaseUrl + item.avatar : '';
     if (item.user_type == 2) {
         item.name = item.store_name;
     }
@@ -547,5 +542,17 @@ return result;
       },
     );
     return result;
+  }
+
+
+  /**
+   * 更新用户头像
+   */
+  async updateUserAvatar(userId: number, avatar: string): Promise<any> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (user) {
+      user.avatar = avatar;
+      await this.userRepository.save(user);
+    }
   }
 }

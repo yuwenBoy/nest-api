@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { BusinessEntity } from 'src/entities/business/business.entity';
-import { BusinessAuditEntity } from 'src/entities/business/business_audit.entity';
 import {
   Brackets,
   EntityManager,
@@ -18,7 +17,6 @@ import {
 } from 'typeorm';
 import { CreateMerchantApplicationDto } from '../dto/CreateMerchantApplicationDto';
 import {
-  BusinessAuditStatusEnum,
   BusinessStatusEnum,
   StoreOnlineEnum,
   StoreStatusEnum,
@@ -36,22 +34,18 @@ import { compareSync, hashSync } from 'bcryptjs';
 import { UserTypeEnum } from 'src/enum/admin_enum';
 import { StoreEntity } from 'src/entities/store/store.entity';
 import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
+import { AuditStatusEnum, AuditTargetType } from 'src/enum/audit_enum';
 
 @Injectable()
 export class BusinessService {
   constructor(
     @InjectRepository(BusinessEntity)
     private merchantRepository: Repository<BusinessEntity>,
-    @InjectRepository(BusinessAuditEntity)
-    private readonly businessAuditRepository: Repository<BusinessAuditEntity>,
-
     @InjectRepository(AuditLogEntity)
     private readonly auditLogRepository: Repository<AuditLogEntity>,
-
     @InjectRepository(BusinessEntity)
     private readonly businessRepository: Repository<BusinessEntity>,
     private readonly config: ConfigService,
-
     private readonly emailService: EmailService,
   ) {}
 
@@ -135,28 +129,29 @@ export class BusinessService {
   }
 
   /**
-   * 查询分页列表
+   * 查询分页列表（商家审核）
    * @param parameter 查询条件
    * @returns list
    */
   async pageQuery(parameter: any): Promise<PageListVo> {
     try {
       const [pageIndex, pageSize] = [parameter.page, parameter.size];
-      let qb = await this.businessAuditRepository
+      let qb = this.auditLogRepository
         .createQueryBuilder('audit')
         .innerJoinAndMapOne(
           'audit.business',
           BusinessEntity,
           'business',
-          'audit.business_id=business.id',
+          'audit.targetId=business.id',
         )
         .innerJoinAndMapMany(
           'audit.businessCategoryRelation',
           BusinessCategoryRelationEntity,
           'bc',
-          'audit.business_id=bc.business_id',
+          'audit.targetId=bc.business_id',
         )
-        .where('audit.status = :status', { status: 0 })
+        .where('audit.targetType = :targetType', { targetType: AuditTargetType.BUSINESS })
+        .andWhere('audit.status = :status', { status: AuditStatusEnum.PENDING })
         .andWhere(
           new Brackets((qb) => {
             if (parameter.title) {
@@ -191,7 +186,7 @@ export class BusinessService {
   }
 
   /**
-   * 审核管理列表
+   * 审核管理列表（统一查询所有类型的审核记录）
    * @param parameter 
    * @returns 
    */
@@ -212,72 +207,84 @@ export class BusinessService {
           'user1',
           'audit.operatorId = user1.id', 
         )
-        // 2. 根据目标类型（1=商家/2=门店/3=骑手）动态关联目标表
+        // 根据目标类型动态关联目标表
         .leftJoin(
-          // 动态判断关联的实体表
-          parameter.targetType === 1
+          parameter.targetType === AuditTargetType.BUSINESS
             ? BusinessEntity
-            : parameter.targetType === 2
+            : parameter.targetType === AuditTargetType.STORE_MODIFY || parameter.targetType === AuditTargetType.STORE_AVATAR
             ? StoreEntity
-            : UserEntity, // 替换为你的骑手实体类路径
-          'target', // 统一别名：target
-          'audit.targetId = target.id', // 目标ID关联：audit.target_id = 目标表.id
+            : UserEntity,
+          'target',
+          'audit.targetId = target.id',
         )
-        // 3. 映射目标数据到audit对象（区分类型）
+        // 映射目标数据到audit对象（区分类型）
         .leftJoinAndMapOne(
-          'audit.business', // 商家数据映射到audit.business
+          'audit.business',
           BusinessEntity,
           'business',
-          'audit.targetType = 1 AND audit.targetId = business.id',
+          'audit.targetType = :businessType AND audit.targetId = business.id',
+          { businessType: AuditTargetType.BUSINESS },
         )
         .leftJoinAndMapOne(
-          'audit.store', // 门店数据映射到audit.store
+          'audit.store',
           StoreEntity,
           'store',
-          'audit.targetType = 2 AND audit.targetId = store.id',
+          '(audit.targetType = :storeModifyType OR audit.targetType = :storeAvatarType) AND audit.targetId = store.id',
+          { 
+            storeModifyType: AuditTargetType.STORE_MODIFY,
+            storeAvatarType: AuditTargetType.STORE_AVATAR,
+          },
         )
         .leftJoinAndMapOne(
-          'audit.rider', // 骑手数据映射到audit.rider
+          'audit.rider',
           UserEntity,
           'rider',
-          'audit.targetType = 3 AND audit.targetId = rider.id',
+          'audit.targetType = :riderType AND audit.targetId = rider.id',
+          { riderType: AuditTargetType.RIDER },
         )
-        // 原有商家分类关联（仅商家类型生效）
+        // 商家分类关联（仅商家类型生效）
         .leftJoinAndMapMany(
           'audit.businessCategoryRelation',
           BusinessCategoryRelationEntity,
           'bc',
-          'audit.targetType = 1 AND audit.targetId = bc.business_id',
+          'audit.targetType = :businessType AND audit.targetId = bc.business_id',
+          { businessType: AuditTargetType.BUSINESS },
         )
-        // 4. 基础条件：状态筛选（保留原有status=0，如需动态传参可改为parameter.status）
-        .where('audit.status = :status', { status: parameter.status || 0 })
-        // 新增：目标类型筛选
+        // 基础条件：状态筛选
+        .where('audit.status = :status', { status: parameter.status || AuditStatusEnum.PENDING })
+        // 目标类型筛选
         .andWhere(
           parameter.targetType ? 'audit.targetType = :targetType' : '1=1',
           {
             targetType: parameter.targetType,
           },
         )
-        // 新增：申请人ID筛选
+        // 申请人ID筛选
         .andWhere(
           parameter.applicantId ? 'audit.applicantId = :applicantId' : '1=1',
           {
             applicantId: parameter.applicantId,
           },
         )
-        // 原有商家名称模糊查询（适配目标类型）
-        // .andWhere(
-        //   new Brackets((qb) => {
-        //     if (parameter.title) {
-        //       // 商家/门店名称分别匹配
-        //       return qb
-        //         .orWhere('audit.target_type = 1 AND business.title LIKE :title', { title: `%${parameter.title}%` })
-        //         .orWhere('audit.target_type = 2 AND store.name LIKE :title', { title: `%${parameter.title}%` });
-        //     } else {
-        //       return qb;
-        //     }
-        //   }),
-        // )
+        // 商家/门店名称模糊查询
+        .andWhere(
+          new Brackets((qb) => {
+            if (parameter.title) {
+              return qb
+                .orWhere('audit.targetType = :businessType AND business.title LIKE :title', { 
+                  businessType: AuditTargetType.BUSINESS,
+                  title: `%${parameter.title}%` 
+                })
+                .orWhere('(audit.targetType = :storeModifyType OR audit.targetType = :storeAvatarType) AND store.storeName LIKE :title', { 
+                  storeModifyType: AuditTargetType.STORE_MODIFY,
+                  storeAvatarType: AuditTargetType.STORE_AVATAR,
+                  title: `%${parameter.title}%` 
+                });
+            } else {
+              return qb;
+            }
+          }),
+        )
         .skip((pageIndex - 1) * Number(pageSize))
         .take(pageSize);
 
@@ -306,7 +313,7 @@ export class BusinessService {
    */
   async create(
     dto: CreateMerchantApplicationDto,
-  ): Promise<BusinessAuditEntity> {
+  ): Promise<AuditLogEntity> {
     return this.merchantRepository.manager.transaction(
       async (transactionalEntityManager) => {
         try {
@@ -327,20 +334,29 @@ export class BusinessService {
           // 保存商家表
           const savedMerchant = await transactionalEntityManager.save(merchant);
 
-          // 创建商家审核表
-          const application = transactionalEntityManager.create(
-            BusinessAuditEntity,
-            {
-              business_id: savedMerchant.id, // 明确设置外键字段
-              status: BusinessAuditStatusEnum.APPLYIN,
-              reason: '',
+          // 创建审核记录（使用统一的审核日志表）
+          const auditLog = transactionalEntityManager.create(AuditLogEntity, {
+            targetId: savedMerchant.id,
+            targetType: AuditTargetType.BUSINESS,
+            status: AuditStatusEnum.PENDING,
+            beforeData: null,
+            afterData: {
+              title: dto.title,
+              contactName: dto.contactName,
+              contactPhone: dto.contactPhone,
+              email: dto.email,
+              address: dto.address,
+              businessLicense: dto.businessLicense,
+              healthLicense: dto.healthLicense,
+              logoUrl: dto.logoUrl,
+              coverUrl: dto.coverUrl,
+              description: dto.description,
             },
-          );
+            applicantId: null, // 商家入驻时暂无申请人ID
+          });
 
-          // 保存商家审核
-          const savedApplication = await transactionalEntityManager.save(
-            application,
-          );
+          // 保存审核记录
+          const savedAuditLog = await transactionalEntityManager.save(auditLog);
 
           // 创建首个门店
           const firstStore = transactionalEntityManager.create(StoreEntity, {
@@ -360,7 +376,7 @@ export class BusinessService {
 
           await transactionalEntityManager.save(firstStore);
 
-          Logger.log('保存商家审核', savedApplication);
+          Logger.log('保存商家审核', savedAuditLog);
 
           // 如果提供了分类 ID，则创建关联
           if (dto.categories && dto.categories.length > 0) {
@@ -394,7 +410,7 @@ export class BusinessService {
             }
           }
 
-          return savedApplication;
+          return savedAuditLog;
         } catch (error) {
           console.error('审核失败', error);
           throw new Error('审核失败');
@@ -429,18 +445,18 @@ export class BusinessService {
   async apply(
     dto: CreateMerchantAuditApplicationDto,
     username: string,
-  ): Promise<BusinessAuditEntity> {
+  ): Promise<AuditLogEntity> {
     return this.merchantRepository.manager.transaction(
       async (transactionalEntityManager) => {
         try {
-          // 查询审核记录
-          const audit = await this.businessAuditRepository.findOneOrFail({
+          // 查询审核记录（使用统一的审核日志表）
+          const audit = await this.auditLogRepository.findOneOrFail({
             where: { id: parseInt(dto.id) },
           });
 
           // 查询商家信息
           const merchant = await this.merchantRepository.findOneOrFail({
-            where: { id: audit.business_id },
+            where: { id: audit.targetId },
           });
           const password = this.config.get<string>('business.initialPassword');
           const account = this.config.get<string>('business.account');
@@ -508,32 +524,30 @@ export class BusinessService {
             );
           }
 
-          // 更新审核记录
-          const businessAudit = transactionalEntityManager.create(
-            BusinessAuditEntity,
-            {
-              id: audit.id, // 使用已存在的审核记录 ID
-              status:
-                parseInt(dto.status) == 1
-                  ? BusinessAuditStatusEnum.SUCCESS
-                  : BusinessAuditStatusEnum.ERROR,
-              reason: dto.reason,
-            },
-          );
-          const savedApplication = await transactionalEntityManager.save(
-            businessAudit,
-          );
+          // 更新审核记录（使用统一的审核日志表）
+          const auditLog = transactionalEntityManager.create(AuditLogEntity, {
+            id: audit.id, // 使用已存在的审核记录 ID
+            status: parseInt(dto.status) == 1
+              ? AuditStatusEnum.APPROVED
+              : AuditStatusEnum.REJECTED,
+            reason: dto.reason,
+            operatorId: null, // 可以后续添加审核人ID
+            auditAt: new Date(),
+          });
+          const savedAuditLog = await transactionalEntityManager.save(auditLog);
 
-          // // 更新门店状态
-          // const stores = await transactionalEntityManager.find(StoreEntity, {
-          //     where: { business_id: merchant.id },
-          // });
-          // for (const store of stores) {
-          //     store.status = parseInt(dto.status) === 1? StoreStatusEnum.ACTIVE : StoreStatusEnum.END;
-          //     await transactionalEntityManager.save(store);
-          // }
+          // 更新门店状态（审核通过时自动上线门店）
+          if (parseInt(dto.status) === 1) {
+            const stores = await transactionalEntityManager.find(StoreEntity, {
+              where: { business_id: merchant.id },
+            });
+            for (const store of stores) {
+              store.status = StoreStatusEnum.AUDIT_APPROVED;
+              await transactionalEntityManager.save(store);
+            }
+          }
 
-          return savedApplication;
+          return savedAuditLog;
         } catch (error) {
           console.error('审核失败', error);
           throw new Error('审核失败');

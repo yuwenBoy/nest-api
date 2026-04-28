@@ -19,6 +19,7 @@ import {
   StoreStatusEnum,
 } from 'src/enum/business_enum';
 import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
+import { AuditStatusEnum, AuditTargetType } from 'src/enum/audit_enum';
 
 @Injectable()
 export class StoreService {
@@ -215,10 +216,9 @@ export class StoreService {
 
     // 6. 创建审核记录
     const auditLog = this.auditRepo.create({
-      //   bizType: 'store_modify', // 门店修改
-      targetType: 2, // 门店修改
+      targetType: AuditTargetType.STORE_MODIFY,
       targetId: storeId,
-      status: 0, // 待审核
+      status: AuditStatusEnum.PENDING,
       beforeData,
       afterData,
       applicantId: userId,
@@ -264,10 +264,9 @@ export class StoreService {
 
     // 6. 创建审核记录
     const auditLog = this.auditRepo.create({
-      //   bizType: 'store_modify', // 门店修改
-      targetType: 3, // 门店修改
+      targetType: AuditTargetType.STORE_AVATAR,
       targetId: storeId,
-      status: 0, // 待审核
+      status: AuditStatusEnum.PENDING,
       beforeData,
       afterData,
       applicantId: userId,
@@ -289,9 +288,9 @@ export class StoreService {
         where: { id: storeId },
       });
       const auditLog = await this.auditRepo.findOne({
-        where: { targetType: 2, targetId: storeId },
-        order: { createdAt: 'DESC' },
-      });
+      where: { targetType: AuditTargetType.STORE_MODIFY, targetId: storeId },
+      order: { createdAt: 'DESC' },
+    });
 
       if (!store) {
         throw new NotFoundException('门店不存在');

@@ -140,8 +140,6 @@ export class AuthService {
         roles: [],
       };
       const userInfo = await this.userService.getUserById(userId);
-      let imageBaseUrl = this.config.get('admin.file.domain') + '/';
-      userInfo.avatar = userInfo.avatar ? imageBaseUrl + userInfo.avatar : '';
       res.user = userInfo;
       const roles = await this.userRoleService.getRoleIds(userId);
       if (roles.length > 0) {

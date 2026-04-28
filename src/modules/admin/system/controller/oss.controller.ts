@@ -16,6 +16,9 @@ import { AuthGuard } from 'src/modules/common/auth/auth.guard';
 import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
 import { SkipLog } from 'src/common/decorators/skip-log.decorator';
 import { QiniuService } from '../service/qiniu.service';
+import { UserEntity } from 'src/entities/admin/t_user.entity';
+import { getManager } from 'typeorm';
+import { UserService } from '../service/user.service';
 
 @SkipLog() // 标记该不需控制器不需要记录日志
 @ApiTags('文件存储')
@@ -26,6 +29,7 @@ export class OssController {
   constructor(
     private readonly ossService: OssService,
     private readonly qiniuService: QiniuService,
+    private readonly userService:UserService,
   ) {}
 
   @Post('/updateAvatar')
@@ -35,7 +39,14 @@ export class OssController {
     @Body() params: { business: string },
     @CurrentUser() user: UserInfoDto,
   ): Promise<any> {
-    return await this.ossService.updateAvatar([avatar], user);
+    // return await this.ossService.updateAvatar([avatar], user);
+      const url = await this.qiniuService.uploadFile(avatar);
+      const userEntity = await this.userService.updateUserAvatar(user.id, url);
+    return {
+      code: 200,
+      data: url,
+      msg: '上传成功',
+    };
   }
 
   //   /***

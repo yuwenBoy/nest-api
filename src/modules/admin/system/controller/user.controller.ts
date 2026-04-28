@@ -63,7 +63,6 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   @Post('/getByCondition')
   list(@Body() query,@CurrentUser() userInfo: UserInfoDto): Promise<PageListVo> {
-    Logger.log(`分页查询接受参数：${JSON.stringify(query)}`);
     return this.UserService.pageQuery(query,userInfo);
   }
 
@@ -76,7 +75,6 @@ export class UserController {
     @Body() addUserDto: [],
     @CurrentUser() userInfo: UserInfoDto,
   ): Promise<boolean> {
-    Logger.log(`增加用户接收参数：${JSON.stringify(addUserDto)}`);
     return this.UserService.save(addUserDto, userInfo.username);
   }
 
@@ -89,7 +87,6 @@ export class UserController {
     @Body() updateUserDto: [],
     @CurrentUser() userInfo: UserInfoDto,
   ): Promise<boolean> {
-    Logger.log(`编辑用户接收参数：${JSON.stringify(updateUserDto)}`);
     return this.UserService.save(updateUserDto, userInfo.username);
   }
 
@@ -99,7 +96,6 @@ export class UserController {
   @ApiOperation({ summary: '删除用户' })
   @Post('/delete')
   deleteUser(@Body() deleteUserDto: []): Promise<boolean> {
-    Logger.log(`删除用户接收参数：${JSON.stringify(deleteUserDto)}`);
     return this.UserService.delete(deleteUserDto);
   }
 
@@ -112,7 +108,6 @@ export class UserController {
     @Body() disabledDto: DisabledDto,
     @CurrentUser() userInfo: UserInfoDto,
   ): Promise<boolean> {
-    Logger.log(`设置用户状态接收参数：${JSON.stringify(disabledDto)}`);
     return this.UserService.updateDisabledById(disabledDto, userInfo.username);
   }
 
@@ -125,7 +120,6 @@ export class UserController {
     @Body() updateUserPwdDto: UpdateUserPwdDto,
     @CurrentUser() userInfo: UserInfoDto,
   ): Promise<boolean> {
-    Logger.log(`修改密码接收参数：${JSON.stringify(updateUserPwdDto)}`);
     return this.UserService.updateUserPwd(updateUserPwdDto, userInfo);
   }
 
@@ -204,7 +198,6 @@ export class UserController {
   @HttpCode(200)
   @Post('getChatContactList')
   async getChatContactList(@CurrentUser() userInfo: UserInfoDto,@Body() body):Promise<any[]>{
-     console.log('获取即时通讯联系人列表接收参数：',body)
      return await this.UserService.getChatContactList(userInfo,body.type);
   }
 }

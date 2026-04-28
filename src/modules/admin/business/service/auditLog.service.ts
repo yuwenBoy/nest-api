@@ -13,7 +13,8 @@ import {
 } from '@nestjs/typeorm';
 import { BusinessEntity } from 'src/entities/business/business.entity';
 import { Connection, Repository } from 'typeorm';
-import { AuditLogStatusEnum, StoreStatusEnum } from 'src/enum/business_enum';
+import { StoreStatusEnum } from 'src/enum/business_enum';
+import { AuditStatusEnum, AuditTargetType } from 'src/enum/audit_enum';
 import { BusinessCategoryRelationEntity } from 'src/entities/business/business_category_relation.entity';
 import { PageListVo } from 'src/modules/common/page/pageList';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
@@ -237,12 +238,12 @@ export class AuditLogService {
       }
 
       // 2. 校验审核记录状态（仅待审核可操作）
-      if (log.status !== AuditLogStatusEnum.PENDING) {
+      if (log.status !== AuditStatusEnum.PENDING) {
         throw new BadRequestException('只能审核【待审核】的记录');
       }
 
       // 3. 更新审核记录状态
-      log.status = AuditLogStatusEnum.APPROVED; // 改为审核通过
+      log.status = AuditStatusEnum.APPROVED; // 改为审核通过
       log.operatorId = operatorId; // 记录操作人ID
       log.auditAt = new Date(); // 审核时间
       log.reason = '门店通过审核';
@@ -368,7 +369,7 @@ export class AuditLogService {
       }
 
       // 3. 更新审核记录（标记驳回 + 存储结构化驳回原因）
-      auditLog.status = AuditLogStatusEnum.REJECTED; // 审核驳回
+      auditLog.status = AuditStatusEnum.REJECTED; // 审核驳回
       auditLog.reason = JSON.stringify(rejectReason); // 存储前端传入的结构化驳回原因
       auditLog.operatorId = operatorId; // 操作人ID
       auditLog.auditAt = new Date(); // 审核时间

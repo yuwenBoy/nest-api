@@ -69,7 +69,7 @@ export class AuthController {
   @ApiOperation({ summary: '获取用户信息' })
   @ApiBearerAuth() // swagger文档设置token
   @UseGuards(AuthGuard) // 需要jwt鉴权认证
-  @Get('/getUserInfo')
+  @Get('getUserInfo')
   async getUserInfo(@Request() req) {
     try {
       console.log(`通过携带token请求用户信息 用户id为：${req.user.id}`);

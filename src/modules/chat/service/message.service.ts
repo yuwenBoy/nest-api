@@ -69,7 +69,7 @@ export class MessageService {
         ...msg,
         senderUsername:userMap.get(msg.senderId)?.username || `用户${msg.senderId}`,
         senderCname: userMap.get(msg.senderId)?.cname,
-        senderAvatar:userMap.get(msg.senderId)?.avatar && this.config.get('admin.file.domain') +'/'+ userMap.get(msg.senderId)?.avatar,
+        senderAvatar:userMap.get(msg.senderId)?.avatar || '',
       }))
       .reverse();
     return result;

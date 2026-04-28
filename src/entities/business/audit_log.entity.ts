@@ -1,6 +1,6 @@
 import { Column, Entity } from 'typeorm';
 import { BusinessBaseEntity } from '../common/base.entity';
-import { AuditLogStatusEnum } from 'src/enum/business_enum';
+import { AuditStatusEnum, AuditTargetType } from 'src/enum/audit_enum';
 import { Transform, TransformFnParams } from 'class-transformer';
 import { formatTime } from 'src/utils/date';
 /**
@@ -10,19 +10,25 @@ import { formatTime } from 'src/utils/date';
  */
 @Entity('audit_log')
 export class AuditLogEntity extends BusinessBaseEntity {
-  @Column({ name: 'targetId', comment: '目标ID（门店ID）' })
+  @Column({ name: 'targetId', comment: '目标ID（商家ID/门店ID/骑手ID等）' })
   targetId: number;
 
-  @Column({ name: 'targetType', comment: '目标类型' })
-  targetType: number;
+  @Column({ 
+    name: 'targetType', 
+    type: 'int',
+    enum: AuditTargetType,
+    comment: '目标类型（1=商家，2=门店信息修改，3=门店头像修改，4=商品，5=骑手）' 
+  })
+  targetType: AuditTargetType;
 
   @Column({
     name: 'status',
-    default: AuditLogStatusEnum.PENDING,
-    enum: AuditLogStatusEnum,
-    comment: '审核状态',
+    type: 'int',
+    default: AuditStatusEnum.PENDING,
+    enum: AuditStatusEnum,
+    comment: '审核状态（0=待审核，1=审核通过，2=审核驳回）',
   })
-  status: number;
+  status: AuditStatusEnum;
 
   @Column({ type: 'json', name: 'reason', comment: '审核不通过原因' })
   reason?: String;
