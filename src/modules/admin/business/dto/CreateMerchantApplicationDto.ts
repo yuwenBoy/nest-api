@@ -1,6 +1,11 @@
-import { IsNotEmpty, IsString, IsEmail, IsPhoneNumber, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsEmail, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateMerchantApplicationDto {
+  /** 申请人ID（当前操作用户ID） */
+  @IsOptional()
+  @IsNumber({}, { message: '申请人ID必须为数字' })
+  applicantId?: number;
+
   @IsNotEmpty()
   @IsString()
   title: string;

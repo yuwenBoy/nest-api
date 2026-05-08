@@ -6,6 +6,7 @@ export enum BusinessStatusEnum{
     ACTIVE = 1, // 活跃
     APPLYIN = 0, // 审核中
     END = 2, //停用
+    REJECTED = 3, // 审核拒绝
 }
 
 /**

@@ -8,7 +8,6 @@ import { CategoryService } from './service/category.service';
 import { BusinessController } from './controller/business.controller';
 import { BusinessService } from './service/business.service';
 import { BusinessEntity } from 'src/entities/business/business.entity';
-import { BusinessAuditEntity } from 'src/entities/business/business_audit.entity';
 import { BusinessCategoryRelationEntity } from 'src/entities/business/business_category_relation.entity';
 import { EmailService } from 'src/modules/common/services/email/email.service';
 import { BusinessAccountEntity } from 'src/entities/business/business_account.entity';
@@ -30,18 +29,20 @@ import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
 import { AuditLogController } from './controller/auditLog.controller';
 import { AuditLogService } from './service/auditLog.service';
 import { StoreQualificationEntity } from 'src/entities/store/store_qualification.entity';
+
 /**
  * 商家管理模块
+ * @deprecated BusinessAuditEntity 已废弃，请使用 AuditLogEntity 进行审核记录管理
  */
-@Module({  
+@Module({
   imports: [
     AuthModule,
     RouterModule.register([{ path: '', module: BusinessModule, }]),
     TypeOrmModule.forFeature([
         BusinessCategoryEntity, // 商家分类表
         BusinessEntity,// 商家表
-        BusinessAccountEntity, // 商家账户信息表
-        BusinessAuditEntity,
+        BusinessAccountEntity, // 商家账户信息表（用于存储商家收款账户）
+        // BusinessAuditEntity, // 已废弃，使用 AuditLogEntity 替代
         BusinessCategoryRelationEntity, // 商家分类关联表
         StoreHoursEntity, // 门店营业时间表
         StoreDeliveryAreaEntity, // 商家配送表
@@ -51,10 +52,10 @@ import { StoreQualificationEntity } from 'src/entities/store/store_qualification
         EmployeeEntity, // 员工表
         RoleEntity,
         AuditLogEntity, // 审核日志表
-    ]),  
+    ]),
   ],
   controllers: [
-    CategoryController, 
+    CategoryController,
     BusinessController,
     AccountController,
     HoursController,
@@ -71,8 +72,8 @@ import { StoreQualificationEntity } from 'src/entities/store/store_qualification
     StoreService,
     EmployeeService,
     AuditLogService,
-  ],    
-})  
+  ],
+})
 export class BusinessModule {}
 
 

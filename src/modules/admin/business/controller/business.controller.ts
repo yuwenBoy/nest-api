@@ -32,7 +32,7 @@ export class BusinessController {
       @Post('/apply')
       async apply(@Body() dto: CreateMerchantAuditApplicationDto,@CurrentUser() userInfo: UserInfoDto) {
         console.log('平台审核入驻申请参数'+JSON.stringify(dto));
-        return this.businessService.apply(dto,userInfo.username);
+        return this.businessService.apply(dto, userInfo.username, userInfo.id);
       }
 
       

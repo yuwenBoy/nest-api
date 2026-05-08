@@ -352,7 +352,7 @@ export class BusinessService {
               coverUrl: dto.coverUrl,
               description: dto.description,
             },
-            applicantId: null, // 商家入驻时暂无申请人ID
+            applicantId: dto.applicantId || null, // 记录申请人ID
           });
 
           // 保存审核记录
@@ -439,12 +439,15 @@ export class BusinessService {
 
   /**
    * 平台审核入驻申请
-   * @param dto
+   * @param dto 审核参数
+   * @param username 操作人用户名
+   * @param operatorId 操作人ID
    * @returns
    */
   async apply(
     dto: CreateMerchantAuditApplicationDto,
     username: string,
+    operatorId?: number,
   ): Promise<AuditLogEntity> {
     return this.merchantRepository.manager.transaction(
       async (transactionalEntityManager) => {
@@ -531,10 +534,16 @@ export class BusinessService {
               ? AuditStatusEnum.APPROVED
               : AuditStatusEnum.REJECTED,
             reason: dto.reason,
-            operatorId: null, // 可以后续添加审核人ID
+            operatorId: operatorId || null, // 记录操作人ID
             auditAt: new Date(),
           });
           const savedAuditLog = await transactionalEntityManager.save(auditLog);
+
+          // 审核拒绝时更新商家状态为 REJECTED
+          if (parseInt(dto.status) !== 1) {
+            merchant.status = BusinessStatusEnum.REJECTED;
+            await transactionalEntityManager.save(merchant);
+          }
 
           // 更新门店状态（审核通过时自动上线门店）
           if (parseInt(dto.status) === 1) {
