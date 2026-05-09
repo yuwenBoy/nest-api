@@ -88,6 +88,18 @@ import { Response } from 'express';
     }
 
     /***
+     * 获取在线统计数据
+     */
+    @ApiOperation({ summary: '获取在线统计数据', description: '获取在线人数、今日登录、总记录数、历史峰值等统计数据' })
+    @ApiOkResponse({ description: '在线统计数据' })
+    @HttpCode(HttpStatus.OK)
+    @Get('/online/stats')
+    getOnlineStats(): Promise<any> {
+      Logger.log('获取在线统计数据');
+      return this.operationLogService.getOnlineStats();
+    }
+
+    /***
      * 获取在线用户列表
      */
     @ApiOperation({ summary: '获取在线用户列表', description: '获取当前在线的所有用户列表' })
@@ -114,8 +126,9 @@ import { Response } from 'express';
      * 获取用户操作日志
      */
     @ApiOperation({ summary: '获取用户操作日志', description: '获取指定用户的操作日志记录' })
-    @Get('/online/operLog')
-    getUserOperLog(@Query() query): Promise<any> {
+    @HttpCode(HttpStatus.OK)
+    @Post('/online/operLog')
+    getUserOperLog(@Body() query): Promise<any> {
       Logger.log(`获取用户操作日志，参数：${JSON.stringify(query)}`);
       return this.operationLogService.getUserOperLog(query);
     }

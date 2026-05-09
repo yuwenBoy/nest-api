@@ -51,6 +51,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       location: string;
       browser: string;
       os: string;
+      loginTime: Date;
+      lastActiveTime: Date;
     }
   > = new Map();
 
@@ -141,6 +143,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       // 添加到在线用户列表，初始状态为在线
+      const now = new Date();
       ChatGateway.onlineUsers.set(userInfo.id, {
         socketId: client.id,
         status: UserStatusEnum.ONLINE,
@@ -150,6 +153,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         location: location,
         browser,
         os,
+        loginTime: now,
+        lastActiveTime: now,
       });
       this.logger.log(
         `用户 ${userInfo.id} 上线，状态: ${UserStatusEnum.ONLINE}，当前在线用户数: ${ChatGateway.onlineUsers.size}`,
@@ -194,6 +199,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handlePrivateMessage(client: Socket, payload: any) {
     const { receiverId, content, targetId, targetType } = payload;
     const senderId = client.data.userId;
+    
+    // 更新发送者最后活跃时间
+    this.updateLastActiveTime(senderId);
+    
     // 1. 保存消息
     const message = await this.messageService.create({
       senderId,
@@ -455,6 +464,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
+   * 更新用户最后活跃时间
+   * @param userId 用户ID
+   */
+  private updateLastActiveTime(userId: number) {
+    const userInfo = ChatGateway.onlineUsers.get(userId);
+    if (userInfo) {
+      userInfo.lastActiveTime = new Date();
+      ChatGateway.onlineUsers.set(userId, userInfo);
+    }
+  }
+
+  /**
    * 处理用户状态更新
    */
   @SubscribeMessage('update_status')
@@ -469,6 +490,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         // 更新状态
         userInfo.status = payload.status;
         ChatGateway.onlineUsers.set(userId, userInfo);
+        
+        // 更新最后活跃时间
+        this.updateLastActiveTime(userId);
+        
         this.logger.log(`用户 ${userId} 状态更新为: ${payload.status}`);
 
         // 广播状态变化

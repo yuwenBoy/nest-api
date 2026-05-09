@@ -246,8 +246,24 @@ export class OperationLogService {
         qb.andWhere('log.appType = :appType', { appType: parameter.appType });
       }
 
+      // 添加在线状态过滤
+      if (parameter.status) {
+        qb.andWhere('log.status = :status', { status: parameter.status });
+      }
+
+      // 添加用户名过滤
+      if (parameter.username) {
+        qb.andWhere('log.username LIKE :username', {
+          username: `%${parameter.username}%`,
+        });
+      }
+
+      // 排序处理
+      const sortField = parameter.sort || 'operationTime';
+      const sortColumn = sortField === 'id' ? 'log.id' : `log.${sortField}`;
+
       const [data, count] = await qb
-        .orderBy('log.operationTime', 'DESC')
+        .orderBy(sortColumn, 'DESC')
         .skip((pageIndex - 1) * Number(pageSize))
         .take(pageSize)
         .getManyAndCount();
@@ -384,10 +400,12 @@ export class OperationLogService {
           location: string;
           browser: string;
           os: string;
+          loginTime: Date;
+          lastActiveTime: Date;
         }
       > = ChatGateway.onlineUsers;
 
-      const userList = [];
+      let userList = [];
       onlineUsers.forEach((userInfo, userId) => {
         userList.push({
           userId,
@@ -399,10 +417,32 @@ export class OperationLogService {
           location: userInfo.location,
           browser: userInfo.browser,
           os: userInfo.os,
-          loginTime: formatDate(new Date()),
-          lastActiveTime:formatDate(new Date()),
+          loginTime: userInfo.loginTime ? formatDate(userInfo.loginTime) : formatDate(new Date()),
+          lastActiveTime: userInfo.lastActiveTime ? formatDate(userInfo.lastActiveTime) : formatDate(new Date()),
         });
       });
+
+      // 根据状态过滤
+      if (parameter.status) {
+        userList = userList.filter(item => item.status === parameter.status);
+      }
+
+      // 根据用户名过滤（模糊匹配）
+      if (parameter.username) {
+        const username = parameter.username.toLowerCase();
+        userList = userList.filter(item => 
+          item.username.toLowerCase().includes(username) || 
+          item.cname.toLowerCase().includes(username)
+        );
+      }
+
+      // 根据IP地址过滤（模糊匹配）
+      if (parameter.ip) {
+        const ip = parameter.ip.toLowerCase();
+        userList = userList.filter(item => 
+          item.ip.toLowerCase().includes(ip)
+        );
+      }
 
       // 分页
       const pageIndex = parameter.page || 1;
@@ -635,6 +675,57 @@ export class OperationLogService {
       Logger.error(`删除异常日志失败，原因：${JSON.stringify(error)}`);
       throw new HttpException(
         '删除异常日志失败',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * 获取在线统计数据
+   * @returns 统计数据
+   */
+  async getOnlineStats(): Promise<any> {
+    try {
+      // 获取在线人数
+      const ChatGateway = require('../gateway/chat.gateway').ChatGateway;
+      const onlineUsers: Map<number, any> = ChatGateway.onlineUsers || new Map();
+      const onlineCount = onlineUsers.size;
+
+      // 获取今日登录用户数（根据请求路径判断登录操作，按用户ID去重）
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayLoginResult = await this.logRepository
+        .createQueryBuilder('log')
+        .select('COUNT(DISTINCT log.userId)', 'count')
+        .where('log.operationTime >= :today', { today })
+        .andWhere(
+          '(log.requestPath LIKE :login OR log.requestPath LIKE :auth)',
+          { 
+            login: '%/login%', 
+            auth: '%/auth%' 
+          }
+        )
+        .getRawOne();
+      const todayLoginCount = parseInt(todayLoginResult?.count || '0', 10);
+
+      // 获取总记录数
+      const totalCount = await this.logRepository.count();
+
+      // 获取历史峰值（从在线日志中统计最大在线人数）
+      // 这里简化处理，直接取在线人数作为参考值
+      // 如果需要真实的历史峰值，需要额外存储峰值记录
+      const historyPeak = onlineCount; // 实际项目中应该从历史记录中查询
+
+      return {
+        onlineCount,
+        todayLoginCount,
+        totalCount,
+        historyPeak,
+      };
+    } catch (error) {
+      Logger.error(`获取在线统计数据失败，原因：${JSON.stringify(error)}`);
+      throw new HttpException(
+        '获取在线统计数据失败',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

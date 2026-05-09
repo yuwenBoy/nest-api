@@ -26,19 +26,30 @@ export function getClientIp(client: Socket): string {
  */
 export async function getIpLocation(ip: string): Promise<string> {
    try {
+    // 处理空IP或无效IP
+    if (!ip || ip.trim() === '') {
+      return '未知位置';
+    }
+
+    // 提取真实IP（处理IPv6映射的IPv4地址）
+    let realIp = ip;
+    if (realIp.startsWith('::ffff:')) {
+      realIp = realIp.substring(7); // 去掉 "::ffff:" 前缀
+    }
+
     // 局域网本地IP直接返回
     if (
-      ip.startsWith('127.') 
-      || ip.startsWith('192.168') 
-      || ip.startsWith('10.') 
-      || ip === '::1' 
-      || ip === '::ffff:'
+      realIp.startsWith('127.') 
+      || realIp.startsWith('192.168') 
+      || realIp.startsWith('10.') 
+      || realIp === '::1'
+      || realIp === 'localhost'
     ) {
       return '局域网';
     }
 
     // 👉 用这个稳定接口
-    const res = await axios.get(`https://api.vore.top/api/IPdata?ip=${ip}`);
+    const res = await axios.get(`https://api.vore.top/api/IPdata?ip=${realIp}`);
     
     const data = res.data;
     if (data.code === 200) {

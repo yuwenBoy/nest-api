@@ -30,4 +30,16 @@ export class OnlineLogQueryDto {
 
   @ApiProperty({ description: '端类型', required: false })
   appType?: number;
+
+  @ApiProperty({ description: '排序字段', required: false, example: 'id' })
+  sort?: string;
+
+  @ApiProperty({ description: '在线状态', required: false, example: 'online' })
+  status?: string;
+
+  @ApiProperty({ description: '用户名', required: false })
+  username?: string;
+
+  @ApiProperty({ description: 'IP地址', required: false })
+  ip?: string;
 }

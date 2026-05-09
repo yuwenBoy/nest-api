@@ -15,7 +15,6 @@ export class AuthController {
     private readonly authService: AuthService
   ) {}
 
-  @SkipLog()
   // 1.先进行登录验证，执行local.strategy.ts 文件中的calidate方法
   @UseGuards(LocalAuthGuard) // 无需token验证
   @Post('/login')

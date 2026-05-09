@@ -1,4 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { Transform, TransformFnParams } from 'class-transformer';
+import { formatTime } from 'src/utils/date';
 
 @Entity('t_operation_log')
 export class OperationLogEntity {
@@ -33,6 +35,10 @@ export class OperationLogEntity {
   responseData: any;
 
   @CreateDateColumn({ comment: '操作时间' })
+  @Transform((row: TransformFnParams) => {
+    let timestamp: any = new Date(row.value);
+    return formatTime(timestamp / 1000);
+  })
   operationTime: any;
 
   @Column('int', { nullable: true, comment: '记录执行时间' })
