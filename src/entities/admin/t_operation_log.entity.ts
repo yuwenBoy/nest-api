@@ -33,7 +33,7 @@ export class OperationLogEntity {
   responseData: any;
 
   @CreateDateColumn({ comment: '操作时间' })
-  operationTime: Date;
+  operationTime: any;
 
   @Column('int', { nullable: true, comment: '记录执行时间' })
   duration:number;

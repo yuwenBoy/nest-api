@@ -13,12 +13,12 @@ import { OperationLogEntity } from 'src/entities/admin/t_operation_log.entity';
 import { User } from 'src/common/types/user.type';
 import { SKIP_LOG_METADATA } from 'src/common/decorators/skip-log.decorator';
 import { Reflector } from '@nestjs/core';
-import { IpGeolocationService } from 'src/common/services/ip-geolocation.service';
+import { formatDate } from 'src/utils/date';
+import { getIpLocation } from 'src/utils';
   
   @Injectable()
   export class OperationLogInterceptor implements NestInterceptor {
     constructor(private readonly logService: OperationLogService,
-        private readonly geolocationService: IpGeolocationService,
         private reflector: Reflector,
     ) {}
   
@@ -48,7 +48,8 @@ import { IpGeolocationService } from 'src/common/services/ip-geolocation.service
       }
 
     // 获取地理位置信息
-    const geolocation = await this.geolocationService.getGeolocation(clientIp);
+    const geolocation = await getIpLocation(clientIp)
+    // this.geolocationService.getGeolocation(clientIp);
     console.log('geolocation',geolocation)
   
       return next.handle().pipe(
@@ -72,7 +73,7 @@ import { IpGeolocationService } from 'src/common/services/ip-geolocation.service
           log.clientIp = clientIp;
           log.userAgent = headers['user-agent'];
           log.responseData = JSON.stringify(response || {}); // 假设响应体中包含操作后数据
-          log.operationTime = new Date();
+          log.operationTime = formatDate(new Date());
           log.duration = duration; // 记录执行时间
           log.statusCode = response?.code ?? 200; // 记录响应状态码
           log.requestHeaders = JSON.stringify(headers || {}); // 记录请求头

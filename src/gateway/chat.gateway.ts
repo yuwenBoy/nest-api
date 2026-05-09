@@ -12,12 +12,13 @@ import { MessageService } from '../modules/chat/service/message.service';
 import { UserEntity } from 'src/entities/admin/t_user.entity';
 import { DataSource } from 'typeorm';
 import { MessageStatusEnum } from 'src/enum/chat_enum';
+import { getClientIp, getIpLocation } from 'src/utils/index';
 
 // 用户状态枚举
 export enum UserStatusEnum {
-  ONLINE = 'online',    // 在线
-  BUSY = 'busy',        // 忙碌
-  OFFLINE = 'offline',  // 关闭/离线
+  ONLINE = 'online', // 在线
+  BUSY = 'busy', // 忙碌
+  OFFLINE = 'offline', // 关闭/离线
 }
 
 /**
@@ -37,8 +38,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private logger: Logger = new Logger('ChatGateway');
 
-  // 在线用户状态管理: key = userId, value = { socketId, status }
-  private onlineUsers: Map<number, { socketId: string; status: UserStatusEnum }> = new Map();
+  // 在线用户状态管理: key = userId, value = { socketId, status } (静态属性，可被类直接访问)
+
+  public static onlineUsers: Map<
+    number,
+    {
+      socketId: string;
+      status: UserStatusEnum;
+      ip: string;
+      username: string;
+      cname: string;
+      location: string;
+      browser: string;
+      os: string;
+    }
+  > = new Map();
 
   constructor(
     private messageService: MessageService,
@@ -83,6 +97,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
+      // 3. 解析浏览器 + 操作系统
+      const UAParserModule = require('ua-parser-js');
+      const ua = new UAParserModule(client.handshake.headers['user-agent']);
+      const browser = ua.getBrowser().name || '未知浏览器';
+      const os = ua.getOS().name || '未知系统';
+
+      // 4. 获取真实IP
+      const ip = getClientIp(client);
+
+      // 5. 获取IP所在城市（登录地点）
+      const location = await getIpLocation(ip);
+
       // 加入房间
       const roomName = `user_${userInfo.id}`;
 
@@ -103,14 +129,35 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       client.data.userId = userInfo.id; // 将用户ID挂载到socket
       //    client.data.username = userInfo.username; // 将用户名挂载到socket
-      
+      // 2. 👇 新增：查用户名、昵称
+      const user = await this.dataSource.getRepository(UserEntity).findOne({
+        where: { id: userInfo.id },
+        select: ['id', 'username', 'cname'],
+      });
+
+      if (!user) {
+        client.disconnect(true);
+        return;
+      }
+
       // 添加到在线用户列表，初始状态为在线
-      this.onlineUsers.set(userInfo.id, { socketId: client.id, status: UserStatusEnum.ONLINE });
-      this.logger.log(`用户 ${userInfo.id} 上线，状态: ${UserStatusEnum.ONLINE}，当前在线用户数: ${this.onlineUsers.size}`);
-      
+      ChatGateway.onlineUsers.set(userInfo.id, {
+        socketId: client.id,
+        status: UserStatusEnum.ONLINE,
+        ip: client.request.connection.remoteAddress,
+        username: user.username,
+        cname: user.cname,
+        location: location,
+        browser,
+        os,
+      });
+      this.logger.log(
+        `用户 ${userInfo.id} 上线，状态: ${UserStatusEnum.ONLINE}，当前在线用户数: ${ChatGateway.onlineUsers.size}`,
+      );
+
       // 广播用户上线状态
       this.broadcastUserStatus(userInfo.id, UserStatusEnum.ONLINE);
-      
+
       // 4. 发送欢迎消息
       client.emit('connected', {
         message: 'WebSocket 连接成功！',
@@ -122,7 +169,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.disconnect();
     }
   }
- 
   /**
    *
    * @param client
@@ -130,10 +176,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleDisconnect(client: Socket) {
     const userId = client.data.userId;
     if (userId) {
-      const userInfo = this.onlineUsers.get(userId);
+      const userInfo = ChatGateway.onlineUsers.get(userId);
       if (userInfo) {
-        this.onlineUsers.delete(userId);
-        this.logger.log(`用户 ${userId} 下线，当前在线用户数: ${this.onlineUsers.size}`);
+        ChatGateway.onlineUsers.delete(userId);
+        this.logger.log(
+          `用户 ${userId} 下线，当前在线用户数: ${ChatGateway.onlineUsers.size}`,
+        );
         // 广播用户下线状态
         this.broadcastUserStatus(userId, UserStatusEnum.OFFLINE);
       }
@@ -163,7 +211,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // 检查接收者状态
     const receiverStatus = this.getUserStatus(receiverId);
-    
+
     const messageWithUser = {
       ...message,
       senderUsername: sender?.username || `用户${senderId}`,
@@ -317,20 +365,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ==============================
   // 【新订单通知】支付成功后推送给商家（带弹窗）
   // ==============================
-  sendNewOrderNotification(storeId: number, notificationData: {
-    type: string;
-    orderId: number;
-    orderNo: string;
-    storeId: number;
-    storeName: string;
-    finalTotal: number;
-    orderStatus: number;
-    statusText: string;
-    payTime: Date;
-    autoAccepted: boolean;
-    message: string;
-    timestamp: Date;
-  }) {
+  sendNewOrderNotification(
+    storeId: number,
+    notificationData: {
+      type: string;
+      orderId: number;
+      orderNo: string;
+      storeId: number;
+      storeName: string;
+      finalTotal: number;
+      orderStatus: number;
+      statusText: string;
+      payTime: Date;
+      autoAccepted: boolean;
+      message: string;
+      timestamp: Date;
+    },
+  ) {
     // 推送给商家的房间
     const merchantRoom = `store_${storeId}`;
     const adminRoom = 'admin_orders'; // 管理员可以监听所有订单
@@ -338,7 +389,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('📦 推送新订单通知到商家:', merchantRoom);
 
     // 推送到商家专用房间
-    this.server.to(merchantRoom).emit('new_order_notification', notificationData);
+    this.server
+      .to(merchantRoom)
+      .emit('new_order_notification', notificationData);
 
     // 同时推送到管理员房间
     this.server.to(adminRoom).emit('new_order_notification', notificationData);
@@ -405,19 +458,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * 处理用户状态更新
    */
   @SubscribeMessage('update_status')
-  async handleUpdateStatus(client: Socket, payload: { status: UserStatusEnum }) {
+  async handleUpdateStatus(
+    client: Socket,
+    payload: { status: UserStatusEnum },
+  ) {
     const userId = client.data.userId;
     if (userId) {
-      const userInfo = this.onlineUsers.get(userId);
+      const userInfo = ChatGateway.onlineUsers.get(userId);
       if (userInfo) {
         // 更新状态
         userInfo.status = payload.status;
-        this.onlineUsers.set(userId, userInfo);
+        ChatGateway.onlineUsers.set(userId, userInfo);
         this.logger.log(`用户 ${userId} 状态更新为: ${payload.status}`);
-        
+
         // 广播状态变化
         this.broadcastUserStatus(userId, payload.status);
-        
+
         // 确认状态更新
         client.emit('status_updated', {
           userId,
@@ -433,9 +489,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    */
   @SubscribeMessage('get_user_status')
   async handleGetUserStatus(client: Socket, payload: { userId: number }) {
-    const userInfo = this.onlineUsers.get(payload.userId);
+    const userInfo = ChatGateway.onlineUsers.get(payload.userId);
     const status = userInfo ? userInfo.status : UserStatusEnum.OFFLINE;
-    
+
     client.emit('user_status_response', {
       userId: payload.userId,
       status,
@@ -448,13 +504,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('get_online_users')
   handleGetOnlineUsers(client: Socket) {
     const onlineUsers = [];
-    this.onlineUsers.forEach((userInfo, userId) => {
+    ChatGateway.onlineUsers.forEach((userInfo, userId) => {
       onlineUsers.push({
         userId,
         status: userInfo.status,
       });
     });
-    
+
     client.emit('online_users_response', {
       onlineUsers,
     });
@@ -464,15 +520,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * 检查用户是否在线
    */
   isUserOnline(userId: number): boolean {
-    return this.onlineUsers.has(userId);
+    return ChatGateway.onlineUsers.has(userId);
   }
 
   /**
    * 获取用户状态
    */
   getUserStatus(userId: number): UserStatusEnum {
-    const userInfo = this.onlineUsers.get(userId);
+    const userInfo = ChatGateway.onlineUsers.get(userId);
     return userInfo ? userInfo.status : UserStatusEnum.OFFLINE;
   }
 }
-

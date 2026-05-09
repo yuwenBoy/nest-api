@@ -64,17 +64,13 @@ export class StoreEntity extends BusinessBaseEntity {
 
     @Column({type:'varchar',name:'avatar_img',comment:'门店头像'})
     avatarImg:string;
-    
-    @ManyToOne(() => BusinessEntity, business => business.audit, {
-        eager: false,
-        cascade: false,
-      })
+        
       @JoinColumn({ name: 'business_id' }) // 明确指定外键字段名
-      business: BusinessEntity; 
+      business: BusinessEntity;   
 
    @Column({type:'int', name: 'is_default',comment:'是否默认门店'})
-   isDefault:number;
-
+   isDefault:number;  
+  
 
   // 新增：下线类型
   @Column({ 

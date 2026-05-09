@@ -9,7 +9,6 @@ import { MessageModule } from  './modules/chat/service/message.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { OperationLogModule } from './operation-log/operation-log.module';
 import { OperationLogInterceptor } from './operation-log/operation-log.interceptor';
-import { IpGeolocationService } from './common/services/ip-geolocation.service';
 import { ClientModule } from './modules/client/client.modules';
 @Module({
   imports: [  
@@ -54,7 +53,6 @@ import { ClientModule } from './modules/client/client.modules';
       provide: APP_INTERCEPTOR,
       useClass: OperationLogInterceptor,
     },
-    IpGeolocationService, // 提供 IpGeolocationService
   ],
 })
 export class AppModule {}
