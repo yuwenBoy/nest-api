@@ -33,6 +33,9 @@ export class UserEntity extends ZJBaseEntity {
   @Column({type:'enum',default:UserStatusEnum.DISABLED,enum:UserStatusEnum, name: 'disabled',comment:'状态'})
   disabled: UserStatusEnum;
 
+  @Column({type:'varchar', name: 'online_status', length: 20, default: 'online', comment:'在线状态(online/busy/offline)'})
+  onlineStatus: string;
+
   @Column({type:'varchar', name: 'phone',length:11})
   phone?: string;
 

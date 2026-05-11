@@ -142,11 +142,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
-      // 添加到在线用户列表，初始状态为在线
+      // 从数据库读取用户的在线状态，如果没有则默认为在线
+      const userRepository = this.dataSource.getRepository(UserEntity);
+      const dbUser = await userRepository.findOne({ where: { id: userInfo.id } });
+      const savedStatus = (dbUser?.onlineStatus as UserStatusEnum) || UserStatusEnum.ONLINE;
+      
+      // 添加到在线用户列表
       const now = new Date();
       ChatGateway.onlineUsers.set(userInfo.id, {
         socketId: client.id,
-        status: UserStatusEnum.ONLINE,
+        status: savedStatus,
         ip: client.request.connection.remoteAddress,
         username: user.username,
         cname: user.cname,
@@ -160,14 +165,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         `用户 ${userInfo.id} 上线，状态: ${UserStatusEnum.ONLINE}，当前在线用户数: ${ChatGateway.onlineUsers.size}`,
       );
 
-      // 广播用户上线状态
-      this.broadcastUserStatus(userInfo.id, UserStatusEnum.ONLINE);
+      // 广播用户上线状态（使用数据库中的状态）
+      this.broadcastUserStatus(userInfo.id, savedStatus);
 
-      // 4. 发送欢迎消息
+      // 4. 发送欢迎消息（使用数据库中的状态）
       client.emit('connected', {
         message: 'WebSocket 连接成功！',
         userId: userInfo.id,
-        status: UserStatusEnum.ONLINE,
+        status: savedStatus,
       });
     } catch (error) {
       this.logger.error('WebSocket 认证失败');
@@ -483,6 +488,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client: Socket,
     payload: { status: UserStatusEnum },
   ) {
+    this.logger.log(`收到状态更新请求: userId=${client.data.userId}, status=${payload.status}`);
     const userId = client.data.userId;
     if (userId) {
       const userInfo = ChatGateway.onlineUsers.get(userId);
@@ -493,6 +499,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         
         // 更新最后活跃时间
         this.updateLastActiveTime(userId);
+        
+        // 保存状态到数据库
+        const userRepository = this.dataSource.getRepository(UserEntity);
+        try {
+          const result = await userRepository.update(userId, { onlineStatus: payload.status });
+          this.logger.log(`用户 ${userId} 状态更新到数据库: ${payload.status}, 影响行数: ${result.affected}`);
+        } catch (error) {
+          this.logger.error(`用户 ${userId} 状态保存失败: ${error.message}`);
+        }
         
         this.logger.log(`用户 ${userId} 状态更新为: ${payload.status}`);
 
@@ -521,6 +536,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       userId: payload.userId,
       status,
     });
+  }
+
+  /**
+   * 标记消息为已读（匹配前端的 mark_as_read 事件）
+   */
+  @SubscribeMessage('mark_as_read')
+  async handleMarkMessagesRead(client: Socket, payload: { messageIds: number[] }) {
+    const messageIds = payload.messageIds;
+    
+    this.logger.log(`收到标记已读请求: messageIds=${messageIds}`);
+    
+    if (messageIds && messageIds.length > 0) {
+      try {
+        await this.messageService.markAsReadByMessageIds(messageIds);
+        this.logger.log(`消息已成功标记为已读: messageIds=${messageIds}`);
+        
+        client.emit('messages_marked_read', {
+          messageIds,
+          timestamp: new Date(),
+        });
+      } catch (error) {
+        this.logger.error(`标记消息已读失败: ${error.message}`);
+      }
+    }
   }
 
   /**

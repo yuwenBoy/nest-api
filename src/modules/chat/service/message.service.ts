@@ -21,6 +21,21 @@ export class MessageService {
     const message = this.messageRepository.create(messageData);
     return await this.messageRepository.save(message);
   }
+
+  /**
+   * 标记消息为已读（根据消息ID列表）
+   * @param messageIds 消息ID列表
+   */
+  async markAsReadByMessageIds(messageIds: number[]): Promise<void> {
+    console.log(`🔹 标记消息已读: messageIds=${messageIds}`);
+    await this.messageRepository
+      .createQueryBuilder()
+      .update(MessageEntity)
+      .set({ readAt: new Date() })
+      .where('id IN (:...messageIds)', { messageIds })
+      .andWhere('read_at IS NULL')
+      .execute();
+  }
   /**
    * 获取私聊历史（包含用户名）
    */
@@ -70,6 +85,7 @@ export class MessageService {
         senderUsername:userMap.get(msg.senderId)?.username || `用户${msg.senderId}`,
         senderCname: userMap.get(msg.senderId)?.cname,
         senderAvatar:userMap.get(msg.senderId)?.avatar || '',
+        isRead: msg.readAt !== null && msg.readAt !== undefined, // ✅ 添加 isRead 字段
       }))
       .reverse();
     return result;
@@ -106,6 +122,7 @@ export class MessageService {
         ...msg,
         senderUsername:
           userMap.get(msg.senderId)?.username || `用户${msg.senderId}`,
+        isRead: msg.readAt !== null && msg.readAt !== undefined, // ✅ 添加 isRead 字段
       }))
       .reverse();
   }
