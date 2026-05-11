@@ -36,6 +36,24 @@ export class MessageService {
       .andWhere('read_at IS NULL')
       .execute();
   }
+
+  /**
+   * 标记整个会话的消息为已读（根据目标ID和类型）
+   * @param userId 当前用户ID（接收者）
+   * @param targetId 目标ID（发送者）
+   * @param targetType 目标类型
+   */
+  async markConversationRead(userId: number, targetId: number, targetType: number): Promise<void> {
+    console.log(`🔹 标记会话已读: userId=${userId}, targetId=${targetId}, targetType=${targetType}`);
+    await this.messageRepository
+      .createQueryBuilder()
+      .update(MessageEntity)
+      .set({ readAt: new Date() })
+      .where('receiver_id = :userId', { userId })
+      .andWhere('sender_id = :targetId', { targetId })
+      .andWhere('read_at IS NULL')
+      .execute();
+  }
   /**
    * 获取私聊历史（包含用户名）
    */

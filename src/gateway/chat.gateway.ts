@@ -563,6 +563,33 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
+   * 标记整个会话的消息为已读（匹配前端的 mark_conversation_read 事件）
+   */
+  @SubscribeMessage('mark_conversation_read')
+  async handleMarkConversationRead(client: Socket, payload: { targetId: number; targetType: number }) {
+    const userId = client.data.userId;
+    const { targetId, targetType } = payload;
+    
+    this.logger.log(`收到标记会话已读请求: userId=${userId}, targetId=${targetId}, targetType=${targetType}`);
+    
+    if (userId && targetId) {
+      try {
+        await this.messageService.markConversationRead(userId, targetId, targetType);
+        this.logger.log(`会话已成功标记为已读: userId=${userId}, targetId=${targetId}`);
+        
+        client.emit('conversation_marked_read', {
+          userId,
+          targetId,
+          targetType,
+          timestamp: new Date(),
+        });
+      } catch (error) {
+        this.logger.error(`标记会话已读失败: ${error.message}`);
+      }
+    }
+  }
+
+  /**
    * 获取所有在线用户
    */
   @SubscribeMessage('get_online_users')
