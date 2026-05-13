@@ -35,4 +35,15 @@ export class HomeController {
     }
     return this.homeService.getStoreDetail(storeId);
   }
+
+  /**
+   * 获取 IP 定位信息（高德地图API）
+   * @param ip 用户IP地址（可选）
+   */
+  @Get('/api/get-ip-location')
+  @HttpCode(HttpStatus.OK)
+  async getIpLocation(@Body() body?: { ip?: string }) {
+    const ip = body?.ip;
+    return this.homeService.getIpLocation(ip);
+  }
 }

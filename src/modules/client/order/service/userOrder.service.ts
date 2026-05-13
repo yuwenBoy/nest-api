@@ -119,6 +119,9 @@ export class UserOrderService {
         'order.order_status as orderStatus',
         'order.final_total as finalTotal',
         'order.created_at as createTime',
+        'order.rider_id as riderId',
+        'order.rider_name as riderName',
+        'order.rider_phone as riderPhone',
 
         'store.store_name as storeName',
         'store.avatar_img as storeLogo',
@@ -143,27 +146,29 @@ export class UserOrderService {
       if (!map[orderId]) {
         map[orderId] = {
           id: orderId,
-          orderNo: row.orderNo,
-          storeName: row.storeName,
-          storeLogo: row.storeLogo,
-          orderStatus: row.orderStatus,
-          finalTotal: row.finalTotal,
-          createTime: row.createTime,
+          orderNo: row.orderNo || row.order_no,
+          storeName: row.storeName || row.store_name,
+          storeLogo: row.storeLogo || row.store_logo,
+          orderStatus: row.orderStatus !== undefined ? row.orderStatus : row.order_status,
+          finalTotal: row.finalTotal || row.final_total,
+          createTime: row.createTime || row.created_at,
+          riderId: row.riderId || row.rider_id,
+          riderName: row.riderName || row.rider_name,
+          riderPhone: row.riderPhone || row.rider_phone,
           items: [],
         };
       }
 
-      if (row.itemId) {
-        console.info('看下row',row);
+      if (row.itemId || row.item_id) {
         map[orderId].items.push({
-          goodsName: row.productName,
-          productName: row.productName,
-          specName: row.specName || '',
+          goodsName: row.productName || row.product_name,
+          productName: row.productName || row.product_name,
+          specName: (row.specName || row.spec_name) || '',
           unitPrice: row.unitPrice || '0.00',
           price: row.unitPrice || '0.00',
           quantity: row.quantity || 1,
           count: row.quantity || 1,
-          goodsImg: row.img, // 订单项快照中没有存储图片，后续可从product表扩展
+          goodsImg: row.img,
         });
       }
     }

@@ -5,6 +5,7 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
+import axios from 'axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductEntity } from 'src/entities/product/product.entity';
 import { ProductGroupEntity } from 'src/entities/product/product_group.entity';
@@ -171,7 +172,14 @@ export class HomeService {
             store.latitude,
             store.longitude,
           );
-          distanceText = distance < 1000  ? `${Math.round(distance)}米`  : `${(distance / 1000).toFixed(1)}公里`;
+          // 距离显示格式：<100m、344m、1.5km
+          if (distance < 100) {
+            distanceText = '<100m';
+          } else if (distance < 1000) {
+            distanceText = `${Math.round(distance)}m`;
+          } else {
+            distanceText = `${(distance / 1000).toFixed(1)}km`;
+          }
         }
         // ======================================================
 
@@ -450,5 +458,44 @@ export class HomeService {
       isOpen: store.status === StoreStatusEnum.ONLINE,
       emptyTip: groupWithProducts.every((g) => g.goods.length === 0) ? '该门店暂无在售商品' : '',
     };
+  }
+
+  /**
+   * 获取 IP 定位信息（高德地图API）
+   * @param ip 用户IP地址（可选，不传则使用请求来源IP）
+   */
+  async getIpLocation(ip?: string): Promise<any> {
+    try {
+      const GAODE_KEY = 'ab12bbcc48266078eb07384768c2e5c2';
+      const url = 'https://restapi.amap.com/v3/ip';
+      
+      const params: any = {
+        key: GAODE_KEY,
+        output: 'json',
+      };
+      
+      if (ip) {
+        params.ip = ip;
+      }
+      
+      const response = await axios.get(url, { params });
+      const data = response.data;
+      
+      if (data.status === '1') {
+        return {
+          success: true,
+          province: data.province,
+          city: data.city,
+          district: data.district,
+          adcode: data.adcode,
+          rectangle: data.rectangle,
+        };
+      } else {
+        throw new HttpException(`IP定位失败: ${data.info}`, HttpStatus.BAD_REQUEST);
+      }
+    } catch (error) {
+      console.error('IP定位请求失败:', error);
+      throw new HttpException('IP定位服务异常', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }

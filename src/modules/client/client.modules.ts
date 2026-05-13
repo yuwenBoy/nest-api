@@ -4,6 +4,7 @@ import { HomeModule } from "./home/home.module";
 import { OrderModule } from "./order/order.module";
 import { PayModule } from "./pay/pay.module";
 import { GoodsModule } from "./goods/goods.module";
+import { MessageModule } from "./message/message.module";
 @Module({
     imports:[
         UserModule, // 客户端用户模块
@@ -11,6 +12,7 @@ import { GoodsModule } from "./goods/goods.module";
         GoodsModule, // 客户端商品模块
         OrderModule, // 客户端订单模块
         PayModule, // 客户端支付模块
+        MessageModule, // 客户端消息模块
     ]
 })
 export class ClientModule{}

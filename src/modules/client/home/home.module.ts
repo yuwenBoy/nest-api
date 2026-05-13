@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { HomeController } from "./controller/home.controller";
+import { IpLocationController } from "./controller/ip-location.controller";
 import { HomeService } from "./service/home.service";
 import { RouterModule } from "@nestjs/core";
 import { StoreEntity } from 'src/entities/store/store.entity';
@@ -17,7 +18,7 @@ import { ProductSpecAttrRelationEntity } from 'src/entities/product/product_spec
     TypeOrmModule.forFeature([StoreEntity,ProductGroupEntity,ProductGroupRelationEntity,ProductEntity,
         ProductSpecEntity,ProductSpecAttrRelationEntity,OrderEntity,OrderItemEntity]),
   ],
-  controllers: [HomeController],
+  controllers: [HomeController, IpLocationController],
   providers: [HomeService],
   exports: [HomeService],
 })

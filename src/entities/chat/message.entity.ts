@@ -20,7 +20,7 @@ export class MessageEntity extends BusinessBaseEntity{
   content: string;
 
   @Column({ name: 'message_type', comment:'消息类型', default: 'text' })
-  messageType: number
+  messageType: string
  
   @Column({type:'enum',default:UserTypeEnum.SYSTEMUSER,enum:UserTypeEnum, name: 'target_type',comment:'目标类型'})
   targetType: number // ✅ 目标类型
