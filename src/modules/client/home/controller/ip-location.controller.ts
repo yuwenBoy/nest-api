@@ -175,4 +175,73 @@ export class IpLocationController {
       };
     }
   }
+
+  /**
+   * 地址搜索接口
+   * @param keyword 搜索关键词
+   * @param city 城市名
+   */
+  @Post('searchAddress')
+  @HttpCode(HttpStatus.OK)
+  async searchAddress(@Body() body: { keyword: string; city?: string }) {
+    const { keyword, city } = body;
+    
+    if (!keyword || keyword.trim().length < 2) {
+      return {
+        success: false,
+        message: '关键词长度不能少于2个字符',
+      };
+    }
+    
+    try {
+      const url = 'https://restapi.amap.com/v3/place/text';
+      const params: any = {
+        key: this.GAODE_KEY,
+        keywords: keyword.trim(),
+        output: 'json',
+        page: 1,
+        offset: 20,
+      };
+      
+      if (city) {
+        params.city = city;
+      }
+      
+      const response = await axios.get(url, { params });
+      const data = response.data;
+      
+      if (data.status === '1' && data.pois && data.pois.length > 0) {
+        const results = data.pois.map((poi: any) => ({
+          name: poi.name || '',
+          address: poi.address || '',
+          formatted_address: poi.address || '',
+          type: poi.type || 'community',
+          lat: parseFloat(poi.location?.split(',')[1]) || null,
+          lng: parseFloat(poi.location?.split(',')[0]) || null,
+          latitude: parseFloat(poi.location?.split(',')[1]) || null,
+          longitude: parseFloat(poi.location?.split(',')[0]) || null,
+          adcode: poi.adcode || '',
+          cityname: poi.cityname || '',
+          adname: poi.adname || '',
+        }));
+        
+        return {
+          success: true,
+           ...results,
+        };
+      } else {
+        return {
+          success: true,
+          ...[],
+          message: data.info || '未找到匹配的地址',
+        };
+      }
+    } catch (error) {
+      console.error('地址搜索失败:', error);
+      return {
+        success: false,
+        message: '地址搜索服务异常',
+      };
+    }
+  }
 }
