@@ -15,20 +15,22 @@ admin:
     serveRoot: '/static'
 # 数据库配置
 db:
-  mysql:
-    host: 'localhost'
-    username: 'root'
-    password: '123456'
-    database: 'zj_db_system'
-    port: 3306
+  postgres:
+    host: 'db.usaunarzresehtjqgzce.supabase.co'
+    username: 'postgres'
+    password: 'SyerIYosUwSjsWJK'
+    database: 'postgres'
+    port: 5432
     charset: 'utf8mb4'
     logger: 'advanced-console'
     logging: false
     multipleStatements: true
     dropSchema: false
-    synchronize: false
-    supportBigNumbers: true
-    bigNumberStrings: true
+    synchronize: true
+    ssl: true
+    extra:
+      ssl:
+        rejectUnauthorized: false
 
 # redis 配置
 redis:
