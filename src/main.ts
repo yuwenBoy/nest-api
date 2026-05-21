@@ -33,8 +33,8 @@ async function bootstrap() {
 
   let config = app.get(ConfigService);
 
-  const prefix = config.get<string>('admin.prefix') || 8080
-  const port = config.get<string>('admin.port') || 8080
+  const prefix = config.get<string>('admin.prefix') || 'basic-api'
+  const port = config.get<string>('admin.port') || 9000
 
   // 设置socket.io 服务
   app.useWebSocketAdapter(new IoAdapter(app))
@@ -87,11 +87,15 @@ async function bootstrap() {
     customSiteTitle: 'nest-api API Docs',
   })
 
-  await app.listen(port, () => {
-    Logger.log(`服务已经启动,接口请访问http://localhost:${port}${prefix}`);
-    Logger.log(
-      `服务已经启动,接口文档请访问http://localhost:${port}${prefix}/docs`,
-    );
-  });
+  await app.listen(port,'0.0.0.0'
+    //  () => {
+    // Logger.log(`服务已经启动,接口请访问http://localhost:${port}${prefix}`);
+    // Logger.log(
+    //   `服务已经启动,接口文档请访问http://localhost:${port}${prefix}/docs`,
+    // );
+//   }
+);
+Logger.log(`服务已经启动,接口请访问http://localhost:${port}${prefix}`);
+ console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();

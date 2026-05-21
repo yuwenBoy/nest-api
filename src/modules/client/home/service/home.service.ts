@@ -459,43 +459,4 @@ export class HomeService {
       emptyTip: groupWithProducts.every((g) => g.goods.length === 0) ? '该门店暂无在售商品' : '',
     };
   }
-
-  /**
-   * 获取 IP 定位信息（高德地图API）
-   * @param ip 用户IP地址（可选，不传则使用请求来源IP）
-   */
-  async getIpLocation(ip?: string): Promise<any> {
-    try {
-      const GAODE_KEY = 'ab12bbcc48266078eb07384768c2e5c2';
-      const url = 'https://restapi.amap.com/v3/ip';
-      
-      const params: any = {
-        key: GAODE_KEY,
-        output: 'json',
-      };
-      
-      if (ip) {
-        params.ip = ip;
-      }
-      
-      const response = await axios.get(url, { params });
-      const data = response.data;
-      
-      if (data.status === '1') {
-        return {
-          success: true,
-          province: data.province,
-          city: data.city,
-          district: data.district,
-          adcode: data.adcode,
-          rectangle: data.rectangle,
-        };
-      } else {
-        throw new HttpException(`IP定位失败: ${data.info}`, HttpStatus.BAD_REQUEST);
-      }
-    } catch (error) {
-      console.error('IP定位请求失败:', error);
-      throw new HttpException('IP定位服务异常', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
 }
