@@ -1,19 +1,15 @@
-# 开发环境配置
+ # 线上 Vercel 生产环境配置（已修复所有坑）
 admin:
   prefix: '/basic-api'
-  port: 9000
+  port: ${PORT}          # 这里必须改！Vercel 自动分配端口
   logger:
-    # 项目日志存储路径，相对路径（相对本项目根目录）或绝对路径
     dir: '../logs'
-  # 文件相关
   file:
-    # location 文件上传后存储目录，相对路径（相对本项目根目录）或绝对路径
     location: '../upload'
-    # 文件服务器地址，开发环境
-    domain: 'http://localhost:9000'
-    # 文件虚拟路径, 必须以 / 开头， 如 http://localhost:9000/static/****.jpg  , 如果不需要则 设置 ''
+    domain: 'https://nest-api-client-pre.vercel.app'  # 你的线上域名
     serveRoot: '/static'
-# 数据库配置
+
+# 数据库配置（你的 Supabase 没问题，保留）
 db:
   postgres:
     host: 'db.usaunarzresehtjqgzce.supabase.co'
@@ -32,19 +28,25 @@ db:
       ssl:
         rejectUnauthorized: false
 
-# redis 配置
-redis:
-  host: 'localhost'
-  port: 6379
-  db: 0
-  keyPrefix: 'nest:'
+# --------------------------
+# Redis 必须注释！！！
+# Vercel 没有本地 Redis，开启会直接启动失败
+# --------------------------
+# redis:
+#   host: 'localhost'
+#   port: 6379
+#   db: 0
+#   keyPrefix: 'nest:'
 
-# 权限 白名单配置
+# 权限白名单（不变）
 perm:
   router:
-    whitelist: [{ path: '/basic-api/auth/login', method: 'POST'  }, { path: '/basic-api/auth/logout', method: 'GET' }, { path: '/basic-api/auth/authcode', method: 'GET' }]
+    whitelist: [
+      { path: '/basic-api/auth/login', method: 'POST' },
+      { path: '/basic-api/auth/logout', method: 'GET' },
+      { path: '/basic-api/auth/authcode', method: 'GET' }
+    ]
 
-# 用户相关
-# 初始密码， 重置密码
+# 用户默认密码（不变）
 user:
   initialPassword: 'jxxqz123'
