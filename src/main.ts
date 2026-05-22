@@ -12,7 +12,7 @@ import { ConfigService } from '@nestjs/config';
 import rateLimit from 'express-rate-limit';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-
+let server:any;
 async function bootstrap() {
   const logger: Logger = new Logger('main.ts');
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -64,10 +64,13 @@ async function bootstrap() {
   });
 
   // ---------------- 强制监听 0.0.0.0 ----------------
-  await app.listen(port, '0.0.0.0');
-  console.log(`✅ 服务启动成功：${await app.getUrl()}`);
+//   await app.listen(port, '0.0.0.0');
+ // 把 server 赋值
+  server = app.getHttpServer();
+//   console.log(`✅ 服务启动成功：${await app.getUrl()}`);
 }
 bootstrap();  
+export default server;
 
 //   Inspect     https://vercel.com/test-client-app/nest-api-client-pre/2YK56eHMe5g
 // xZeRr234GjV3xEqim
