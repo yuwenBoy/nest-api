@@ -2,7 +2,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './core/filter/HttpException.filter';
-import { IoAdapter } from '@nestjs/platform-socket.io';
+// import { IoAdapter } from '@nestjs/platform-socket.io';
 import { TransformInterceptor } from './core/filter/TransformInterceptor.filter';
 
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -35,7 +35,7 @@ async function bootstrap() {
   // ---------------- 修复这里 ----------------
   const port = process.env.PORT || config.get<number>('admin.port') || 9000;
 
-  app.useWebSocketAdapter(new IoAdapter(app));
+//   app.useWebSocketAdapter(new IoAdapter(app));
   app.use(new XMLMiddleware().use);
   app.useGlobalPipes(new ValidationPipe());
 
@@ -67,4 +67,9 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
   console.log(`✅ 服务启动成功：${await app.getUrl()}`);
 }
-bootstrap();
+bootstrap();  
+
+//   Inspect     https://vercel.com/test-client-app/nest-api-client-pre/2YK56eHMe5g
+// xZeRr234GjV3xEqim
+// ▲ Production  https://nest-api-client-2ga27v4me-test-client-app.vercel.app
+// ▲ Aliased     https://nest-api-client-pre.vercel.app
