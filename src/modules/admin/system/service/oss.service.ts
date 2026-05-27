@@ -6,7 +6,7 @@ import * as fs from 'fs';
 let path = require("path");
 let mime = require('mime-types')
 import { ConfigService } from "@nestjs/config";
-import { UserEntity } from "src/entities/admin/t_user.entity";
+import { UserEntity } from '../../../../entities/admin/t_user.entity';
 import { getManager, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 @Injectable()

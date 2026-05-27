@@ -8,7 +8,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { AuthGuard } from '../../../common/auth/auth.guard';
 import {
   ApiBearerAuth,
   ApiTags,
@@ -19,10 +19,10 @@ import {
   ApiAuth,
   CurrentUser,
   PermissionModule,
-} from 'src/modules/common/collections-permission/decorators';
+} from '../../../common/collections-permission/decorators';
 import { AuditLogService } from '../service/auditLog.service';
-import { PageListVo } from 'src/modules/common/page/pageList';
-import { SkipLog } from 'src/common/decorators/skip-log.decorator';
+import { PageListVo } from '../../../common/page/pageList';
+import { SkipLog } from '../../../../common/decorators/skip-log.decorator';
 import { AuditRejectDto } from '../dto/AuditRejectDto';
 import { UserInfoDto } from '../../system/dto/user/userInfo.dto';
 

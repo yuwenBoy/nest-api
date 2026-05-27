@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { HomeService } from '../service/home.service';
-import { PageListVo } from 'src/modules/common/page/pageList';
+import { PageListVo } from '../../../common/page/pageList';
 @ApiTags('客户端首页模块')
 @Controller('home')
 export class HomeController {

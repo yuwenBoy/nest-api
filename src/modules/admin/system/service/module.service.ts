@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
-import { ModuleEntity } from 'src/entities/admin/t_module.entity';
+import { ModuleEntity } from '../../../../entities/admin/t_module.entity';
 import { RoleModuleService } from './roleModule.service';
 import { menuDto, menuList, menuMeta } from '../dto/menu.dto';
 import { EntityManager } from 'typeorm/entity-manager/EntityManager';
-import { toTableTree } from 'src/utils';
+import { toTableTree } from '../../../../utils';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
-import { ModuleInheritAuthorizationEnum, ModuleIsAuthorizedEnum, UserTypeEnum } from 'src/enum/admin_enum';
+import { ModuleInheritAuthorizationEnum, ModuleIsAuthorizedEnum, UserTypeEnum } from '../../../../enum/admin_enum';
 
 @Injectable()
 export class ModuleService {

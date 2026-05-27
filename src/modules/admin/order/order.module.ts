@@ -5,10 +5,10 @@ import { userOrderController } from './controller/userOrder.controller';
 import { UserOrderService } from './service/userOrder.service';
 import { MerchantOrderController } from './controller/merchantOrder.controller';
 import { MerchantOrderService } from './service/merchantOrder.service';
-import { OrderEntity } from 'src/entities/business/order.entity';
-import { OrderItemEntity } from 'src/entities/business/order_item.entity';
-import { MessageModule } from 'src/modules/chat/service/message.module';
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { OrderEntity } from '../../../entities/business/order.entity';
+import { OrderItemEntity } from '../../../entities/business/order_item.entity';
+import { MessageModule } from '../../chat/service/message.module';
+import { AuthGuard } from '../../common/auth/auth.guard';
 
 @Module({
   imports: [

@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
 import { Connection, In, MoreThan, Repository } from 'typeorm';
-import { ProductEntity } from 'src/entities/product/product.entity';
-import { ProductDynamicAttributeEntity } from 'src/entities/product/product_dynamic_attribute.entity';
-import { DynamicAttributeEntity } from 'src/entities/admin/dynamic_attribute.entity';
-import { DynamicAttributeValueEntity } from 'src/entities/admin/dynamic_attribute_value.entity';
-import { productCategoryDynamicAttributeRelationEntity } from 'src/entities/admin/product_category_dynamic_attribute_relation.entity';
-import { ProductSpecEntity } from 'src/entities/product/product_spec.entity';
-import { ProductSpecAttrRelationEntity } from 'src/entities/product/product_spec_attr_relation.entity';
-import { attributeTypeEnum } from 'src/enum/admin_enum';
+import { ProductEntity } from '../../../../entities/product/product.entity';
+import { ProductDynamicAttributeEntity } from '../../../../entities/product/product_dynamic_attribute.entity';
+import { DynamicAttributeEntity } from '../../../../entities/admin/dynamic_attribute.entity';
+import { DynamicAttributeValueEntity } from '../../../../entities/admin/dynamic_attribute_value.entity';
+import { productCategoryDynamicAttributeRelationEntity } from '../../../../entities/admin/product_category_dynamic_attribute_relation.entity';
+import { ProductSpecEntity } from '../../../../entities/product/product_spec.entity';
+import { ProductSpecAttrRelationEntity } from '../../../../entities/product/product_spec_attr_relation.entity';
+import { attributeTypeEnum } from '../../../../enum/admin_enum';
 
 @Injectable()
 export class GoodsService {

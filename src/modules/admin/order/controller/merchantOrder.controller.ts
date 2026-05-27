@@ -7,8 +7,8 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { MerchantOrderService } from '../service/merchantOrder.service';
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
-import { CurrentUser } from 'src/modules/common/collections-permission/decorators';
+import { AuthGuard } from '../../../common/auth/auth.guard';
+import { CurrentUser } from '../../../common/collections-permission/decorators';
 
 @UseGuards(AuthGuard)
 @Controller('merchant/order')

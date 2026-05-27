@@ -1,16 +1,16 @@
 import { Controller, Get, UseGuards, Request, Logger } from '@nestjs/common';
 import { Body, Post, Query } from '@nestjs/common/decorators';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from 'src/modules/common/collections-permission/decorators/current.user';
-import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
+import { CurrentUser } from '../../../common/collections-permission/decorators/current.user';
+import { PermissionModule } from '../../../common/collections-permission/decorators';
 import { RoleModuleService } from '../service/roleModule.service';
 import { UserRoleService } from '../service/userRole.service';
 
 import { ModuleService } from '../service/module.service';
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
-import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
+import { AuthGuard } from '../../../common/auth/auth.guard';
+import { ApiAuth } from '../../../common/collections-permission/decorators/api.auth';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
-import { SkipLog } from 'src/common/decorators/skip-log.decorator';
+import { SkipLog } from '../../../../common/decorators/skip-log.decorator';
 
 /***
  * author：zhao.jian

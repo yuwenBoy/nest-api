@@ -1,22 +1,22 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { DeptEntity } from 'src/entities/admin/dept.entity';
-import { PositionEntity } from 'src/entities/admin/position.entity';
+import { DeptEntity } from '../../../../entities/admin/dept.entity';
+import { PositionEntity } from '../../../../entities/admin/position.entity';
 import { Brackets, EntityManager, In, Repository } from 'typeorm';
 import { UserRoleService } from './userRole.service';
 import { compareSync, hashSync } from 'bcryptjs';
-import { UserEntity } from 'src/entities/admin/t_user.entity';
-import { PageListVo } from 'src/modules/common/page/pageList';
+import { UserEntity } from '../../../../entities/admin/t_user.entity';
+import { PageListVo } from '../../../common/page/pageList';
 import { DisabledDto } from '../dto/user/disabled.dto';
 import { UpdateUserPwdDto } from '../dto/user/updateUserPwd.dto';
 import { ConfigService } from '@nestjs/config';
 
 import xlsx from 'node-xlsx';
 import { plainToInstance } from 'class-transformer';
-import { BusinessEntity } from 'src/entities/business/business.entity';
-import { StoreEntity } from 'src/entities/store/store.entity';
+import { BusinessEntity } from '../../../../entities/business/business.entity';
+import { StoreEntity } from '../../../../entities/store/store.entity';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
-import { UserTypeEnum } from 'src/enum/admin_enum';
+import { UserTypeEnum } from '../../../../enum/admin_enum';
 
 @Injectable()
 export class UserService {
@@ -28,16 +28,14 @@ export class UserService {
     private readonly userManager: EntityManager,
     private readonly userRoleService: UserRoleService,
     private readonly config: ConfigService,
-  ) {
-     
-  }
+  ) {}
 
   /**
    * 查询用户分页列表
    * @param parameter 查询条件
    * @returns list
    */
-  async pageQuery(parameter: any,userInfo: UserInfoDto): Promise<PageListVo> {
+  async pageQuery(parameter: any, userInfo: UserInfoDto): Promise<PageListVo> {
     try {
       const [pageIndex, pageSize] = [parameter.page, parameter.size];
       let qb = await this.userRepository
@@ -53,7 +51,8 @@ export class UserService {
           PositionEntity,
           'posi',
           'user.position_id=posi.id',
-        ).where(
+        )
+        .where(
           new Brackets((qb) => {
             if (parameter.cname) {
               return qb.where(
@@ -90,17 +89,18 @@ export class UserService {
               return qb;
             }
           }),
-        ).andWhere(
-            new Brackets((qb) => {
-              if (userInfo.userType===UserTypeEnum.BUSINESSUSER) {
-                return qb.where('user.business_id=:business_id', {
-                    business_id: userInfo.business_id,
-                  });
-              } else {
-                return qb;
-              }
-            }),
-          )
+        )
+        .andWhere(
+          new Brackets((qb) => {
+            if (userInfo.userType === UserTypeEnum.BUSINESSUSER) {
+              return qb.where('user.business_id=:business_id', {
+                business_id: userInfo.business_id,
+              });
+            } else {
+              return qb;
+            }
+          }),
+        )
         //   .andWhere(
         //     new Brackets((qb) => {
         //       if (userInfo.userType===UserTypeEnum.BUSINESSUSER) {
@@ -222,12 +222,18 @@ export class UserService {
    * @returns 布尔类型
    */
   async save(parameter: any, userName: string): Promise<any> {
-    Logger.log(`用户管理服务层【save】方法接受参数:${JSON.stringify(parameter)}`);
+    Logger.log(
+      `用户管理服务层【save】方法接受参数:${JSON.stringify(parameter)}`,
+    );
     try {
       if (!parameter.id) {
         const { username } = parameter;
-        const existUser = await this.userRepository.exist({ where: { username } });
-        if (existUser) { return '用户账号已存在'; }
+        const existUser = await this.userRepository.exist({
+          where: { username },
+        });
+        if (existUser) {
+          return '用户账号已存在';
+        }
         parameter.create_by = userName;
       } else {
         parameter.update_by = userName;
@@ -291,43 +297,43 @@ export class UserService {
   }
 
   /**
-   * 
+   *
    * 获取即时通讯联系人列表
    */
-  async getChatContactList(currentUser:any,type:string):Promise<any[]>{
-     let  currentUserId = currentUser.id
-     let  currentUserType = currentUser.userType
-     let platformUserId = 200; // 商家端平台用户ID，默认值
-     let whereCondition: string;
-     let needReplyFilter: string = ''; // 需回复过滤条件
+  async getChatContactList(currentUser: any, type: string): Promise<any[]> {
+    let currentUserId = currentUser.id;
+    let currentUserType = currentUser.userType;
+    let platformUserId = 200; // 商家端平台用户ID，默认值
+    let whereCondition: string;
+    let needReplyFilter: string = ''; // 需回复过滤条件
 
     // 平台端
-    if(currentUserType ===1){
-       if(type==='CUSTMSG'){
-            whereCondition = `WHERE a.user_type = 3 `;
-            needReplyFilter = ``;
-       }else if(type ==='NEEDED'){
-            whereCondition = `WHERE a.user_type in (2,3,4) `;
-            needReplyFilter = `AND (unread_stats.unread_count > 0 OR last_msg.rn = 1)`;
-       }else{
-            whereCondition = `WHERE a.user_type = 2 `;
-       }
+    if (currentUserType === 1) {
+      if (type === 'CUSTMSG') {
+        whereCondition = `WHERE a.user_type = 3 `;
+        needReplyFilter = ``;
+      } else if (type === 'NEEDED') {
+        whereCondition = `WHERE a.user_type in (2,3,4) `;
+        needReplyFilter = `AND (unread_stats.unread_count > 0 OR last_msg.rn = 1)`;
+      } else {
+        whereCondition = `WHERE a.user_type = 2 `;
+      }
     }
     // 商家端
-    else if(currentUserType ===2){
-        if(type==='ADMIN'){
-            whereCondition = `WHERE a.id=${platformUserId}`;
-            needReplyFilter = ``;
-        }else if(type==='CUSTMSG'){
-            whereCondition = `WHERE a.user_type = 3 `;
-            needReplyFilter = ``;
-        }else if(type ==='NEEDED'){
-             // 商家端：只看顾客发给我的需回复
-            whereCondition = `WHERE a.user_type in (1,3,4) `;
-            needReplyFilter = `AND (unread_stats.unread_count > 0 OR last_msg.rn = 1)`;
-        }
+    else if (currentUserType === 2) {
+      if (type === 'ADMIN') {
+        whereCondition = `WHERE a.id=${platformUserId}`;
+        needReplyFilter = ``;
+      } else if (type === 'CUSTMSG') {
+        whereCondition = `WHERE a.user_type = 3 `;
+        needReplyFilter = ``;
+      } else if (type === 'NEEDED') {
+        // 商家端：只看顾客发给我的需回复
+        whereCondition = `WHERE a.user_type in (1,3,4) `;
+        needReplyFilter = `AND (unread_stats.unread_count > 0 OR last_msg.rn = 1)`;
+      }
     }
-let sql = `WITH base_msgs AS (
+    let sql = `WITH base_msgs AS (
     SELECT 
         sender_id,
         receiver_id,
@@ -389,18 +395,18 @@ AND a.username != ''
 ${needReplyFilter}
 -- 排序优先级（未读多的排前面）
 ORDER BY unread_stats.unread_count DESC, last_msg.created_at DESC`;
-let result = await this.userRepository.query(sql);
-let imageBaseUrl = this.config.get('admin.file.domain') + '/';
+    let result = await this.userRepository.query(sql);
+    let imageBaseUrl = this.config.get('admin.file.domain') + '/';
 
-result.forEach(item => {
-    if (item.user_type == 2) {
+    result.forEach((item) => {
+      if (item.user_type == 2) {
         item.name = item.store_name;
-    }
-    // 标记是否需回复
-    item.needReply = item.need_reply_count > 0 || item.last_msg_from_me === 0;
-});
+      }
+      // 标记是否需回复
+      item.needReply = item.need_reply_count > 0 || item.last_msg_from_me === 0;
+    });
 
-return result;
+    return result;
   }
 
   /**
@@ -408,9 +414,9 @@ return result;
    * @param userId 用户id
    */
   async getUserById(userId: number): Promise<any> {
-    const user = await this.userRepository.findOne({ where: { id:userId } });
-    if(user.userType>1){
-        return await this.userRepository
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (user.userType > 1) {
+      return await this.userRepository
         .createQueryBuilder('user')
         .innerJoinAndMapOne(
           'user.dept_id',
@@ -439,8 +445,8 @@ return result;
         .where('user.id = :userId')
         .setParameter('userId', userId)
         .getOne();
-    }else{
-        return await this.userRepository
+    } else {
+      return await this.userRepository
         .createQueryBuilder('user')
         .innerJoinAndMapOne(
           'user.dept_id',
@@ -463,8 +469,9 @@ return result;
   /**
    * 导入用户
    */
-  async import(file: Express.Multer.File,username:string): Promise<any> {
-    const acceptFileType = 'application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  async import(file: Express.Multer.File, username: string): Promise<any> {
+    const acceptFileType =
+      'application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     if (!acceptFileType.indexOf(file.mimetype))
       return '文件类型错误，请上传.xls 或.xlsx 文件';
     if (file.size > 5 * 1024 * 1024) return '文件大小超过，最大支持 5M';
@@ -482,13 +489,19 @@ return result;
       if (dataArr.length === 0) break;
 
       // 定义excel表格的列需一致
-      const [username,cname,phone,sex,dept_id,position_id] = dataArr;
+      const [username, cname, phone, sex, dept_id, position_id] = dataArr;
 
       // excel列数据对应实体字段
-      userArr.push({ username,cname,phone,sex,dept_id,position_id });
+      userArr.push({ username, cname, phone, sex, dept_id, position_id });
 
       // 验证excel表数据非空
-      if (username && !usernameMap.has(username) && cname && dept_id && position_id) {
+      if (
+        username &&
+        !usernameMap.has(username) &&
+        cname &&
+        dept_id &&
+        position_id
+      ) {
         usernameMap.set(username, []);
       } else if (username && cname && dept_id && position_id) {
         usernameMap.get(username).push(i + 1);
@@ -523,7 +536,7 @@ return result;
     }
 
     if (usernameErrArr.length > 0) {
-        return '导入 Excel数据在系统中已存在相同的用户名，请修改调整后重新导入';
+      return '导入 Excel数据在系统中已存在相同的用户名，请修改调整后重新导入';
     }
 
     // excel 与数据库无重复，准备入库
@@ -543,7 +556,6 @@ return result;
     );
     return result;
   }
-
 
   /**
    * 更新用户头像

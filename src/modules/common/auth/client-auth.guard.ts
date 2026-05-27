@@ -9,9 +9,9 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { getUrlQuery } from 'src/utils/url';
-import { API_AUTH_KEY } from 'src/modules/common/collections-permission/constants/api.auth';
-import { UserService } from 'src/modules/client/user/service/user.service';
+import { getUrlQuery } from '../../../utils/url';
+import { API_AUTH_KEY } from '../collections-permission/constants/api.auth';
+import { UserService } from '../../client/user/service/user.service';
 @Injectable()
 // 全局权限守卫
 export class ClientAuthGuard implements CanActivate {

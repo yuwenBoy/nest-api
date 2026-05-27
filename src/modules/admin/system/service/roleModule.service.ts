@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Logger } from '@nestjs/common/services';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
-import { RoleModuleEntity } from 'src/entities/admin/t_role_module.entity';
+import { RoleModuleEntity } from '../../../../entities/admin/t_role_module.entity';
 import { RoleModuleDto } from '../dto/roleModule.dto';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
 import { plainToInstance } from 'class-transformer';

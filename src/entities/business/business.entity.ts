@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany } from 'typeorm';
 import { BusinessBaseEntity } from '../common/base.entity';
-import { BusinessStatusEnum } from 'src/enum/business_enum';
+import { BusinessStatusEnum } from '../../enum/business_enum';
 import { BusinessCategoryRelationEntity } from './business_category_relation.entity';
 
 /**

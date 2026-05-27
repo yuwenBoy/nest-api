@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert } from 'typeorm';
 import { ZJBaseEntity } from '../common/base.entity';
-import { RoleTypeEnum } from 'src/enum/admin_enum';
+import { RoleTypeEnum } from '../../enum/admin_enum';
 
 /**
  * description:角色表

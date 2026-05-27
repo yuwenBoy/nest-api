@@ -1,14 +1,14 @@
 import { Controller, Get, Post, Body, UseGuards, Request, Logger } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from 'src/modules/common/collections-permission/decorators/current.user';
-import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
+import { CurrentUser } from '../../../common/collections-permission/decorators/current.user';
+import { PermissionModule } from '../../../common/collections-permission/decorators';
 import { RoleModuleDto } from '../dto/roleModule.dto';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
 
 import { RoleModuleService } from '../service/roleModule.service';
-import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
-import { SkipLog } from 'src/common/decorators/skip-log.decorator';
+import { ApiAuth } from '../../../common/collections-permission/decorators/api.auth';
+import { AuthGuard } from '../../../common/auth/auth.guard';
+import { SkipLog } from '../../../../common/decorators/skip-log.decorator';
 
 /***
  * author：zhao.jian

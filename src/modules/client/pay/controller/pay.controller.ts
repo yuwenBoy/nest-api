@@ -7,8 +7,8 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ClientAuthGuard } from 'src/modules/common/auth/client-auth.guard';
-import { CurrentUser } from 'src/modules/common/collections-permission/decorators';
+import { ClientAuthGuard } from '../../../common/auth/client-auth.guard';
+import { CurrentUser } from '../../../common/collections-permission/decorators';
 import { PayService } from '../service/pay.service';
 
 @UseGuards(ClientAuthGuard)

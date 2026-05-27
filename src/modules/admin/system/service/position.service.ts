@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { PositionEntity } from 'src/entities/admin/position.entity';
-import { PageListVo } from 'src/modules/common/page/pageList';
+import { PositionEntity } from '../../../../entities/admin/position.entity';
+import { PageListVo } from '../../../common/page/pageList';
 import { Like, Repository } from 'typeorm';
 
 @Injectable()

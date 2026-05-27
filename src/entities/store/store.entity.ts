@@ -2,7 +2,7 @@ import { Column, Double, Entity, JoinColumn, ManyToOne, OneToMany } from "typeor
 import { BusinessBaseEntity } from "../common/base.entity";
 import { EmployeeEntity } from "./employee.entity";
 import { BusinessEntity } from "../business/business.entity";
-import { StoreOnlineEnum, StoreStatusEnum } from "src/enum/business_enum";
+import { StoreOnlineEnum, StoreStatusEnum } from '../../enum/business_enum';
 
 // 下线类型枚举
 export enum OfflineType {

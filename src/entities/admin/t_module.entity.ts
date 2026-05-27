@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert } from 'typeorm';
 import { ZJBaseEntity } from '../common/base.entity';
-import { MenuHiddenEnum, ModuleInheritAuthorizationEnum, ModuleIsAuthorizedEnum } from 'src/enum/admin_enum';
+import { MenuHiddenEnum, ModuleInheritAuthorizationEnum, ModuleIsAuthorizedEnum } from '../../enum/admin_enum';
 
 /**
  * description:菜单表

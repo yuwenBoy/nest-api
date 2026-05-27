@@ -8,8 +8,8 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { UserOrderService } from '../service/userOrder.service';
-import { ClientAuthGuard } from 'src/modules/common/auth/client-auth.guard';
-import { CurrentUser } from 'src/modules/common/collections-permission/decorators';
+import { ClientAuthGuard } from '../../../common/auth/client-auth.guard';
+import { CurrentUser } from '../../../common/collections-permission/decorators';
 
 @UseGuards(ClientAuthGuard)
 @Controller('order')

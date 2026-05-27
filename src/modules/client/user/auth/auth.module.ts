@@ -3,18 +3,18 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config'; // 新增ConfigModule导入
-import { clientJwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
+import { clientJwtContants } from '../../../common/collections-permission/constants/jwtContants';
 import { JwtStrategy } from './jwt.strategy';
 
 // 鉴权模块只保留核心依赖，业务控制器/服务移到UserModule
-import { UserProfileEntity } from 'src/entities/client/t_user_profile.entity';
-import { UserEntity } from 'src/entities/admin/t_user.entity';
+import { UserProfileEntity } from '../../../../entities/client/t_user_profile.entity';
+import { UserEntity } from '../../../../entities/admin/t_user.entity';
 import { UserService } from '../service/user.service';
 import { UserController } from '../controller/user.controller';
 import { LocalStorage } from './local.strategy';
 import { UserAddressService } from '../service/address.service';
-import { RedisService } from 'src/common/libs/redis/redis.service';
-import { UserAddressEntity } from 'src/entities/client/user_address.entity';
+import { RedisService } from '../../../../common/libs/redis/redis.service';
+import { UserAddressEntity } from '../../../../entities/client/user_address.entity';
 
 /**
  * 顾客端权限验证模块（非全局，专注鉴权核心逻辑）

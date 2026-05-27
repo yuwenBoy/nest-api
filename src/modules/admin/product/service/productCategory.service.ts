@@ -1,9 +1,9 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { productCategoryDynamicAttributeRelationEntity } from 'src/entities/admin/product_category_dynamic_attribute_relation.entity';
-import { ProductCategoryEntity } from 'src/entities/product/product_category.entity';
-import { PageListVo } from 'src/modules/common/page/pageList';
-import { toTableTree } from 'src/utils';
+import { productCategoryDynamicAttributeRelationEntity } from '../../../../entities/admin/product_category_dynamic_attribute_relation.entity';
+import { ProductCategoryEntity } from '../../../../entities/product/product_category.entity';
+import { PageListVo } from '../../../common/page/pageList';
+import { toTableTree } from '../../../../utils';
 import { Brackets, EntityManager, getRepository, Repository } from 'typeorm';
 
 @Injectable()

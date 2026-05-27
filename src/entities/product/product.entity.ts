@@ -1,7 +1,7 @@
 import { Transform, TransformFnParams } from 'class-transformer';
 import { Column, Entity, PrimaryGeneratedColumn, BaseEntity, BeforeInsert, OneToOne } from 'typeorm';
 import { BusinessBaseEntity } from '../common/base.entity';
-import { ProductAuditStatusEnum, ProductSaleStatusEnum } from 'src/enum/business_enum';
+import { ProductAuditStatusEnum, ProductSaleStatusEnum } from '../../enum/business_enum';
 
 /**
  * description:产品表

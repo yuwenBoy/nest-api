@@ -3,7 +3,7 @@ import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import * as path from 'path';
 // import { IS_DEV } from '@src/main';
-import { isObject } from 'src/utils/data-type';
+import { isObject } from '../../../../utils/data-type';
 // eslint-disable-next-line
 type ObjectType = Record<string, any>;
 

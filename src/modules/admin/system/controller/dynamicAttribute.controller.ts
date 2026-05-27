@@ -11,12 +11,12 @@ import {
   Res,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
-import { PageListVo } from 'src/modules/common/page/pageList';
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
-import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
+import { PermissionModule } from '../../../common/collections-permission/decorators';
+import { PageListVo } from '../../../common/page/pageList';
+import { AuthGuard } from '../../../common/auth/auth.guard';
+import { ApiAuth } from '../../../common/collections-permission/decorators/api.auth';
 import { DynamicAttributeService } from '../service/dynamicAttribute.service';
-import { SkipLog } from 'src/common/decorators/skip-log.decorator';
+import { SkipLog } from '../../../../common/decorators/skip-log.decorator';
 // import { Transaction, TransactionManager, EntityManager } from 'typeorm';// 开启事务
 
 /***

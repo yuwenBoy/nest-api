@@ -10,15 +10,15 @@ import {
   Request,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from 'src/modules/common/collections-permission/decorators/current.user';
-import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
-import { PageListVo } from 'src/modules/common/page/pageList';
+import { CurrentUser } from '../../../common/collections-permission/decorators/current.user';
+import { PermissionModule } from '../../../common/collections-permission/decorators';
+import { PageListVo } from '../../../common/page/pageList';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
 import { UserRoleDto } from '../dto/userRole.dto';
 import { RoleService } from '../service/role.service';
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
-import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
-import { SkipLog } from 'src/common/decorators/skip-log.decorator';
+import { AuthGuard } from '../../../common/auth/auth.guard';
+import { ApiAuth } from '../../../common/collections-permission/decorators/api.auth';
+import { SkipLog } from '../../../../common/decorators/skip-log.decorator';
 // import { Transaction, TransactionManager, EntityManager } from 'typeorm';// 开启事务
 
 /***

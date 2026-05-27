@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjsx/crud/lib/crud";
-import { PaginationVo } from "src/modules/common/page/paging.dto";
+import { PaginationVo } from './paging.dto';
 
 /**
  * 返回分页列表

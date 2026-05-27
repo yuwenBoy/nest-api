@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { OrderEntity } from 'src/entities/business/order.entity';
-import { OrderItemEntity } from 'src/entities/business/order_item.entity';
-import { StoreEntity } from 'src/entities/store/store.entity';
+import { OrderEntity } from '../../../entities/business/order.entity';
+import { OrderItemEntity } from '../../../entities/business/order_item.entity';
+import { StoreEntity } from '../../../entities/store/store.entity';
 import { AuthModule } from '../user/auth/auth.module';
 import { PayService } from './service/pay.service';
 import { PayController } from './controller/pay.controller';
 import { WxPayService } from './service/wxpay.service';
-import { MessageModule } from 'src/modules/chat/service/message.module';
+import { MessageModule } from '../../chat/service/message.module';
 @Module({
   imports: [
     AuthModule,

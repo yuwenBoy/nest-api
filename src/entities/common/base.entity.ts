@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 
 import { Transform, TransformFnParams } from 'class-transformer';
-import { formatTime } from 'src/utils/date';
+import { formatTime } from '../../utils/date';
 
 /**
  * @description：系统基类

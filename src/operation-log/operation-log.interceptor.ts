@@ -9,12 +9,12 @@ import {
   import { tap } from 'rxjs/operators';
   import { OperationLogService } from './operation-log.service';
   import { Request } from 'express';
-import { OperationLogEntity } from 'src/entities/admin/t_operation_log.entity';
-import { User } from 'src/common/types/user.type';
-import { SKIP_LOG_METADATA } from 'src/common/decorators/skip-log.decorator';
+import { OperationLogEntity } from '../entities/admin/t_operation_log.entity';
+import { User } from '../common/types/user.type';
+import { SKIP_LOG_METADATA } from '../common/decorators/skip-log.decorator';
 import { Reflector } from '@nestjs/core';
-import { formatDate } from 'src/utils/date';
-import { getIpLocation } from 'src/utils';
+import { formatDate } from '../utils/date';
+import { getIpLocation } from '../utils';
   
   @Injectable()
   export class OperationLogInterceptor implements NestInterceptor {

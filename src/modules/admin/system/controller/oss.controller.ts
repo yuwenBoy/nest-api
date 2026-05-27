@@ -9,14 +9,14 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CurrentUser } from 'src/modules/common/collections-permission/decorators/current.user';
+import { CurrentUser } from '../../../common/collections-permission/decorators/current.user';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
 import { OssService } from '../service/oss.service';
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
-import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
-import { SkipLog } from 'src/common/decorators/skip-log.decorator';
+import { AuthGuard } from '../../../common/auth/auth.guard';
+import { ApiAuth } from '../../../common/collections-permission/decorators/api.auth';
+import { SkipLog } from '../../../../common/decorators/skip-log.decorator';
 import { QiniuService } from '../service/qiniu.service';
-import { UserEntity } from 'src/entities/admin/t_user.entity';
+import { UserEntity } from '../../../../entities/admin/t_user.entity';
 import { getManager } from 'typeorm';
 import { UserService } from '../service/user.service';
 

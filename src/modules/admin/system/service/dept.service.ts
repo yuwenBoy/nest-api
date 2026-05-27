@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository, Like } from 'typeorm';
-import { DeptEntity } from 'src/entities/admin/dept.entity';
-import { toTableTree } from 'src/utils';
+import { DeptEntity } from '../../../../entities/admin/dept.entity';
+import { toTableTree } from '../../../../utils';
 
 @Injectable()
 export class DeptService {

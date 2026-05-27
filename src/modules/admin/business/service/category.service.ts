@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { BusinessCategoryEntity } from 'src/entities/business/category.entity';
-import { toTableTree } from 'src/utils';
+import { BusinessCategoryEntity } from '../../../../entities/business/category.entity';
+import { toTableTree } from '../../../../utils';
 import { EntityManager, getRepository, Repository } from 'typeorm';
 
 @Injectable()

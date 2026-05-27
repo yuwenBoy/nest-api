@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { BusinessEntity } from 'src/entities/business/business.entity';
+import { BusinessEntity } from '../../../../entities/business/business.entity';
 import {
   Brackets,
   EntityManager,
@@ -14,10 +14,10 @@ import {
   In,
   Repository,
 } from 'typeorm';
-import { PageListVo } from 'src/modules/common/page/pageList';
-import { StoreHoursEntity } from 'src/entities/store/store_hours.entity';
-import { StoreEntity } from 'src/entities/store/store.entity';
-import { StoreStatusEnum } from 'src/enum/business_enum';
+import { PageListVo } from '../../../common/page/pageList';
+import { StoreHoursEntity } from '../../../../entities/store/store_hours.entity';
+import { StoreEntity } from '../../../../entities/store/store.entity';
+import { StoreStatusEnum } from '../../../../enum/business_enum';
 
 @Injectable()
 export class HoursService {

@@ -1,18 +1,19 @@
 //auth.service.ts
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserEntity } from 'src/entities/admin/t_user.entity';
+import { UserEntity } from '../../../../entities/admin/t_user.entity';
 import { ModuleService } from './module.service';
 import { RoleModuleService } from './roleModule.service';
 
 import { UserRoleService } from './userRole.service';
 import { compareSync, hashSync } from 'bcryptjs';
-import { jwtContants, refreshExpiresIn } from 'src/modules/common/collections-permission/constants/jwtContants';
+import { jwtContants, refreshExpiresIn } from '../../../common/collections-permission/constants/jwtContants';
 import { UserService } from './user.service';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
+import { CreateTokenDto } from '../dto/user/createToken.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -103,7 +104,7 @@ export class AuthService {
    * 生成 刷新 token
    * @returns 返回token
    */
-  genToken(payload: any): CreateTokenDto {
+  genToken(payload: any): CreateTokenDto {   
     const accessToken = `Bearer ${this.jwtService.sign(payload, jwtContants)}`;
     const refreshToken = this.jwtService.sign(payload, {
         secret: jwtContants.secret,

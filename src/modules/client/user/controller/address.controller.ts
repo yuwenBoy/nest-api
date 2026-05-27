@@ -13,9 +13,9 @@ import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserAddressService } from '../service/address.service';
 import { IdDto } from '../dto/id.dto';
 import { CreateAddressDto, UpdateAddressDto } from '../dto/user.address.dto';
-import { SkipLog } from 'src/common/decorators/skip-log.decorator';
-import { CurrentUser } from 'src/modules/common/collections-permission/decorators';
-import { ClientAuthGuard } from 'src/modules/common/auth/client-auth.guard';
+import { SkipLog } from '../../../../common/decorators/skip-log.decorator';
+import { CurrentUser } from '../../../common/collections-permission/decorators';
+import { ClientAuthGuard } from '../../../common/auth/client-auth.guard';
 
 @ApiTags('客户端用户地址模块')
 @UseGuards(ClientAuthGuard)

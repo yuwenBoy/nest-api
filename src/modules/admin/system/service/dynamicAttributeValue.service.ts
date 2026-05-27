@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { And, Any, Brackets, In, Like, Repository } from 'typeorm';
-import { DynamicAttributeValueEntity } from 'src/entities/admin/dynamic_attribute_value.entity';
+import { DynamicAttributeValueEntity } from '../../../../entities/admin/dynamic_attribute_value.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { toTableTree } from 'src/utils';
-import { ProductDynamicAttributeEntity } from 'src/entities/product/product_dynamic_attribute.entity';
+import { toTableTree } from '../../../../utils';
+import { ProductDynamicAttributeEntity } from '../../../../entities/product/product_dynamic_attribute.entity';
 
 @Injectable()
 export class DynamicAttributeValueService {

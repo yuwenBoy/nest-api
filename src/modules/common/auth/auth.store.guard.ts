@@ -6,8 +6,8 @@ import {
   ExecutionContext,
   Logger,
 } from '@nestjs/common';
-import { getUrlQuery } from 'src/utils/url';
-import { AuthService } from 'src/modules/admin/system/service/auth.service';
+import { getUrlQuery } from '../../../utils/url';
+import { AuthService } from '../../admin/system/service/auth.service';
 @Injectable()
 // 门店过滤器
 export class AuthStoreFilterGuard implements CanActivate {

@@ -7,21 +7,21 @@ import {
 } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { Brackets, EntityManager, In, Not, Repository } from 'typeorm';
-import { ProductEntity } from 'src/entities/product/product.entity';
+import { ProductEntity } from '../../../../entities/product/product.entity';
 import { SaveProductDto } from '../dto/CreateProductDto';
 import {
   ProductAuditStatusEnum,
   ProductSaleStatusEnum,
-} from 'src/enum/business_enum';
-import { ProductGroupRelationEntity } from 'src/entities/product/product_group_relation.entity';
-import { ProductCategoryRelationEntity } from 'src/entities/product/product_category_relation.entity';
-import { ProductCategoryEntity } from 'src/entities/product/product_category.entity';
-import { ProductDynamicAttributeEntity } from 'src/entities/product/product_dynamic_attribute.entity';
-import { ProductSpecAttrEntity } from 'src/entities/product/product_spec_attr.entity';
-import { ProductSpecEntity } from 'src/entities/product/product_spec.entity';
-import { ProductSpecAttrOptionEntity } from 'src/entities/product/product_spec_attrOption.entity';
-import { ProductSpecAttrRelationEntity } from 'src/entities/product/product_spec_attr_relation.entity';
-import { DynamicAttributeValueEntity } from 'src/entities/admin/dynamic_attribute_value.entity';
+} from '../../../../enum/business_enum';
+import { ProductGroupRelationEntity } from '../../../../entities/product/product_group_relation.entity';
+import { ProductCategoryRelationEntity } from '../../../../entities/product/product_category_relation.entity';
+import { ProductCategoryEntity } from '../../../../entities/product/product_category.entity';
+import { ProductDynamicAttributeEntity } from '../../../../entities/product/product_dynamic_attribute.entity';
+import { ProductSpecAttrEntity } from '../../../../entities/product/product_spec_attr.entity';
+import { ProductSpecEntity } from '../../../../entities/product/product_spec.entity';
+import { ProductSpecAttrOptionEntity } from '../../../../entities/product/product_spec_attrOption.entity';
+import { ProductSpecAttrRelationEntity } from '../../../../entities/product/product_spec_attr_relation.entity';
+import { DynamicAttributeValueEntity } from '../../../../entities/admin/dynamic_attribute_value.entity';
 
 @Injectable()
 export class ProductService {

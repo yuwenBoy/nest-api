@@ -1,10 +1,10 @@
 import { Body, Controller,Get,Logger,Post, Query, UseGuards } from "@nestjs/common";
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { AuthGuard } from '../../../common/auth/auth.guard';
 import { ApiBearerAuth, ApiTags,ApiOperation } from "@nestjs/swagger";
-import { ApiAuth, CurrentUser, PermissionModule } from "src/modules/common/collections-permission/decorators";
-import { BusinessCategoryEntity } from "src/entities/business/category.entity";
+import { ApiAuth, CurrentUser, PermissionModule } from '../../../common/collections-permission/decorators';
+import { BusinessCategoryEntity } from '../../../../entities/business/category.entity';
 import { ProductCategoryService } from "../service/productCategory.service";
-import { SkipLog } from "src/common/decorators/skip-log.decorator";
+import { SkipLog } from '../../../../common/decorators/skip-log.decorator';
 
 @SkipLog() // 标记该不需控制器不需要记录日志
 @ApiTags('产品类目目管理')

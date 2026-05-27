@@ -1,14 +1,14 @@
 import { Body, Controller,Get,HttpCode,HttpStatus,Logger,Param,Post, Query, UseGuards } from "@nestjs/common";
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { AuthGuard } from '../../../common/auth/auth.guard';
 import { ApiBearerAuth, ApiTags,ApiOperation, ApiOkResponse } from "@nestjs/swagger";
-import { ApiAuth, CurrentUser, PermissionModule } from "src/modules/common/collections-permission/decorators";
-import { PageListVo } from "src/modules/common/page/pageList";
+import { ApiAuth, CurrentUser, PermissionModule } from '../../../common/collections-permission/decorators';
+import { PageListVo } from '../../../common/page/pageList';
 import { UserInfoDto } from "../../system/dto/user/userInfo.dto";
 import { StoreService } from "../service/store.service";
-import { StoreEntity } from "src/entities/store/store.entity";
+import { StoreEntity } from '../../../../entities/store/store.entity';
 import { UpdateStoreDTO } from "../dto/UpdateStoreDto";
 import { StoreOperationDto } from "../dto/store-operation.dto";
-import { StoreOperationTypeEnum, StoreStatusEnum } from "src/enum/business_enum";
+import { StoreOperationTypeEnum, StoreStatusEnum } from '../../../../enum/business_enum';
 
 
 @ApiTags('门店管理')

@@ -1,7 +1,7 @@
 import { Expose } from 'class-transformer';
 import { Column, Entity } from 'typeorm';
 import { BusinessBaseEntity } from '../common/base.entity';
-import { attributeTypeEnum } from 'src/enum/admin_enum';
+import { attributeTypeEnum } from '../../enum/admin_enum';
 
 /**
  * description:动态属性表

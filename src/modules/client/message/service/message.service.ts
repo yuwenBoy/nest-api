@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, In } from 'typeorm';
-import { MessageEntity } from 'src/entities/chat/message.entity';
-import { UserEntity } from 'src/entities/admin/t_user.entity';
+import { MessageEntity } from '../../../../entities/chat/message.entity';
+import { UserEntity } from '../../../../entities/admin/t_user.entity';
 
 @Injectable()
 export class MessageService {

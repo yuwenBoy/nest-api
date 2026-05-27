@@ -11,8 +11,8 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from '../service/user.service';
 import { LoginDto } from '../dto/login.dto';
-import { SkipLog } from 'src/common/decorators/skip-log.decorator';
-import { ClientAuthGuard } from 'src/modules/common/auth/client-auth.guard';
+import { SkipLog } from '../../../../common/decorators/skip-log.decorator';
+import { ClientAuthGuard } from '../../../common/auth/client-auth.guard';
 
 @ApiTags('客户端用户模块')
 @Controller('user')

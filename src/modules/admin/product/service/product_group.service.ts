@@ -1,11 +1,11 @@
 import { HttpException, HttpStatus, Injectable, Logger,Request } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProductGroupEntity } from 'src/entities/product/product_group.entity';
+import { ProductGroupEntity } from '../../../../entities/product/product_group.entity';
 import { Brackets, Repository } from 'typeorm';
-import { ProductGroupRelationEntity } from 'src/entities/product/product_group_relation.entity';
-import { ProductEntity } from 'src/entities/product/product.entity';
-import { ProductSpecEntity } from 'src/entities/product/product_spec.entity';
-import { StoreEntity } from 'src/entities/store/store.entity';
+import { ProductGroupRelationEntity } from '../../../../entities/product/product_group_relation.entity';
+import { ProductEntity } from '../../../../entities/product/product.entity';
+import { ProductSpecEntity } from '../../../../entities/product/product_spec.entity';
+import { StoreEntity } from '../../../../entities/store/store.entity';
 
 @Injectable()
 export class ProductGroupService {

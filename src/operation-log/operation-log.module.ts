@@ -2,8 +2,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OperationLogService } from './operation-log.service';
-import { OperationLogEntity } from 'src/entities/admin/t_operation_log.entity';
-import { AuthModule } from 'src/modules/admin/system/auth/auth.module';
+import { OperationLogEntity } from '../entities/admin/t_operation_log.entity';
+import { AuthModule } from '../modules/admin/system/auth/auth.module';
 import { OperationLogController } from './operation-log.controller';
 
 @Module({

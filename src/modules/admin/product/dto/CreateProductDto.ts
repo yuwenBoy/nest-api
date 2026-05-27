@@ -1,7 +1,7 @@
 import { DynamicAttributeEntity } from './../../../../entities/admin/dynamic_attribute.entity';
 import { Type } from 'class-transformer';
 import { IsNotEmpty, IsString, IsEmail, IsPhoneNumber, IsOptional, IsInt, IsArray, ValidateNested, IsUrl } from 'class-validator';
-import { ProductSpecEntity } from 'src/entities/product/product_spec.entity';
+import { ProductSpecEntity } from '../../../../entities/product/product_spec.entity';
 import { PropertiesMainDTO } from './propertiesMainDto';
 import { ApiProperty } from '@nestjs/swagger';
 

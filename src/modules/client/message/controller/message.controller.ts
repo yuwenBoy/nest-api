@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, HttpCode } from '@nestjs/common';
 import { MessageService } from '../service/message.service';
 import { ClientAuthGuard } from 'src/modules/common/auth/client-auth.guard';
 import { SkipLog } from 'src/common/decorators/skip-log.decorator';
@@ -13,7 +13,7 @@ export class ClientMessageController {
   async getMessageList(@Request() req) {
     return await this.messageService.getMessageList(req.user.id);
   }
-
+  @HttpCode(200)
   @Post('history')
   async getMessageHistory(@Body() body, @Request() req) {
     return await this.messageService.getMessageHistory(

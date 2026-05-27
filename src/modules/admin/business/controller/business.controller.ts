@@ -1,13 +1,13 @@
 import { Body, Controller,Get,HttpCode,HttpStatus,Logger,Post, Query, UseGuards } from "@nestjs/common";
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { AuthGuard } from '../../../common/auth/auth.guard';
 import { ApiBearerAuth, ApiTags,ApiOperation, ApiOkResponse } from "@nestjs/swagger";
-import { ApiAuth, CurrentUser, PermissionModule } from "src/modules/common/collections-permission/decorators";
+import { ApiAuth, CurrentUser, PermissionModule } from '../../../common/collections-permission/decorators';
 import { BusinessService } from "../service/business.service";
 import { CreateMerchantApplicationDto } from "../dto/CreateMerchantApplicationDto";
-import { PageListVo } from "src/modules/common/page/pageList";
+import { PageListVo } from '../../../common/page/pageList';
 import { CreateMerchantAuditApplicationDto } from "../dto/CreateMerchantAuditApplicationDto";
 import { UserInfoDto } from "../../system/dto/user/userInfo.dto";
-import { SkipLog } from "src/common/decorators/skip-log.decorator";
+import { SkipLog } from '../../../../common/decorators/skip-log.decorator';
 
 @ApiTags('商家管理')
 @ApiBearerAuth() // swagger文档设置token

@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, UseGuards, Req, Logger, Request, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from 'src/modules/common/collections-permission/decorators/current.user';
-import { PermissionModule } from 'src/modules/common/collections-permission/decorators';
+import { CurrentUser } from '../../../common/collections-permission/decorators/current.user';
+import { PermissionModule } from '../../../common/collections-permission/decorators';
 
 import { DeptService } from '../service/dept.service';
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
-import { ApiAuth } from 'src/modules/common/collections-permission/decorators/api.auth';
+import { AuthGuard } from '../../../common/auth/auth.guard';
+import { ApiAuth } from '../../../common/collections-permission/decorators/api.auth';
 
 /***
  * author：zhao.jian

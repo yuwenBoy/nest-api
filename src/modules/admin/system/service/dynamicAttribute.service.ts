@@ -1,11 +1,11 @@
-import { ProductDynamicAttributeEntity } from 'src/entities/product/product_dynamic_attribute.entity';
+import { ProductDynamicAttributeEntity } from '../../../../entities/product/product_dynamic_attribute.entity';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { Any, Brackets, EntityManager, getManager, getRepository, In, Like, Repository } from 'typeorm';
-import { PageListVo } from 'src/modules/common/page/pageList';
-import { DynamicAttributeEntity } from 'src/entities/admin/dynamic_attribute.entity';
-import { productCategoryDynamicAttributeRelationEntity } from 'src/entities/admin/product_category_dynamic_attribute_relation.entity';
-import { DynamicAttributeValueEntity } from 'src/entities/admin/dynamic_attribute_value.entity';
+import { PageListVo } from '../../../common/page/pageList';
+import { DynamicAttributeEntity } from '../../../../entities/admin/dynamic_attribute.entity';
+import { productCategoryDynamicAttributeRelationEntity } from '../../../../entities/admin/product_category_dynamic_attribute_relation.entity';
+import { DynamicAttributeValueEntity } from '../../../../entities/admin/dynamic_attribute_value.entity';
 
 @Injectable()
 export class DynamicAttributeService {

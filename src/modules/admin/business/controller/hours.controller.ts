@@ -1,8 +1,8 @@
 import { Body, Controller,Get,HttpCode,HttpStatus,Logger,Post, Query, UseGuards } from "@nestjs/common";
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { AuthGuard } from '../../../common/auth/auth.guard';
 import { ApiBearerAuth, ApiTags,ApiOperation, ApiOkResponse } from "@nestjs/swagger";
-import { ApiAuth, CurrentUser, PermissionModule } from "src/modules/common/collections-permission/decorators";
-import { PageListVo } from "src/modules/common/page/pageList";
+import { ApiAuth, CurrentUser, PermissionModule } from '../../../common/collections-permission/decorators';
+import { PageListVo } from '../../../common/page/pageList';
 import { UserInfoDto } from "../../system/dto/user/userInfo.dto";
 import { HoursService } from "../service/hours.service";
 

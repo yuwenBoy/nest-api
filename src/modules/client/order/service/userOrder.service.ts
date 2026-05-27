@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
 import { Connection, Repository } from 'typeorm';
-import { OrderEntity, OrderStatus } from 'src/entities/business/order.entity';
-import { OrderItemEntity } from 'src/entities/business/order_item.entity';
+import { OrderEntity, OrderStatus } from '../../../../entities/business/order.entity';
+import { OrderItemEntity } from '../../../../entities/business/order_item.entity';
 import { WxPayService } from '../../pay/service/wxpay.service';
-import { ChatGateway } from 'src/gateway/chat.gateway';
+import { ChatGateway } from '../../../../gateway/chat.gateway';
 
 @Injectable()
 export class UserOrderService {
@@ -101,6 +101,7 @@ export class UserOrderService {
       // 2. 关联门店表
       .leftJoin('store', 'store', 'store.id = order.store_id')
       .leftJoin('product', 'product', 'product.id = item.product_id')
+      .leftJoin('t_user', 'user', 'user.business_id = store.business_id')
       .where('order.user_id = :userId', { userId });
     
     // 处理状态过滤
@@ -122,9 +123,11 @@ export class UserOrderService {
         'order.rider_id as riderId',
         'order.rider_name as riderName',
         'order.rider_phone as riderPhone',
-
+        'store.business_id as merchantId',
+        'user.id as merchantUserId',
         'store.store_name as storeName',
         'store.avatar_img as storeLogo',
+        'store.contact_info as contactInfo',
 
         'item.id as itemId',
         'item.product_id as productId',
@@ -149,12 +152,15 @@ export class UserOrderService {
           orderNo: row.orderNo || row.order_no,
           storeName: row.storeName || row.store_name,
           storeLogo: row.storeLogo || row.store_logo,
+          storePhone:row.contactInfo,
           orderStatus: row.orderStatus !== undefined ? row.orderStatus : row.order_status,
           finalTotal: row.finalTotal || row.final_total,
           createTime: row.createTime || row.created_at,
           riderId: row.riderId || row.rider_id,
           riderName: row.riderName || row.rider_name,
           riderPhone: row.riderPhone || row.rider_phone,
+          merchantUserId: row.merchantUserId,
+          merchantId:row.merchantId,
           items: [],
         };
       }

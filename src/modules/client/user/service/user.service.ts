@@ -1,11 +1,11 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RedisService } from 'src/common/libs/redis/redis.service';
-import { UserEntity } from 'src/entities/admin/t_user.entity';
-import { UserProfileEntity } from 'src/entities/client/t_user_profile.entity';
-import { UserTypeEnum, UserStatusEnum } from 'src/enum/admin_enum';
-import { clientJwtContants } from 'src/modules/common/collections-permission/constants/jwtContants';
+import { RedisService } from '../../../../common/libs/redis/redis.service';
+import { UserEntity } from '../../../../entities/admin/t_user.entity';
+import { UserProfileEntity } from '../../../../entities/client/t_user_profile.entity';
+import { UserTypeEnum, UserStatusEnum } from '../../../../enum/admin_enum';
+import { clientJwtContants } from '../../../common/collections-permission/constants/jwtContants';
 import { Repository } from 'typeorm';
 import * as fs from 'fs';
 import * as path from 'path';

@@ -1,13 +1,13 @@
 import { Body, Controller,Get,Logger,Post, Query, UseGuards,Request } from "@nestjs/common";
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { AuthGuard } from '../../../common/auth/auth.guard';
 import { ApiBearerAuth, ApiTags,ApiOperation } from "@nestjs/swagger";
-import { ApiAuth, CurrentUser, PermissionModule } from "src/modules/common/collections-permission/decorators";
+import { ApiAuth, CurrentUser, PermissionModule } from '../../../common/collections-permission/decorators';
 import { UserInfoDto } from "../../system/dto/user/userInfo.dto";
 import { SaveProductDto } from "../dto/CreateProductDto";
 import { ProductService } from "../service/product.service";
-import { ProductEntity } from "src/entities/product/product.entity";
-import { SkipLog } from "src/common/decorators/skip-log.decorator";
-import { AuthStoreFilterGuard } from "src/modules/common/auth/auth.store.guard";
+import { ProductEntity } from '../../../../entities/product/product.entity';
+import { SkipLog } from '../../../../common/decorators/skip-log.decorator';
+import { AuthStoreFilterGuard } from '../../../common/auth/auth.store.guard';
 
 @ApiTags('产品管理')
 @ApiBearerAuth() // swagger文档设置token

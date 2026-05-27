@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { OrderEntity, OrderStatus } from 'src/entities/business/order.entity';
-import { OrderItemEntity } from 'src/entities/business/order_item.entity';
-import { ChatGateway } from 'src/gateway/chat.gateway';
+import { OrderEntity, OrderStatus } from '../../../../entities/business/order.entity';
+import { OrderItemEntity } from '../../../../entities/business/order_item.entity';
+import { ChatGateway } from '../../../../gateway/chat.gateway';
 
 @Injectable()
 export class MerchantOrderService {

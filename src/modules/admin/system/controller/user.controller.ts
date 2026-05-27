@@ -22,20 +22,20 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Response } from 'express';
-import { CurrentUser } from 'src/modules/common/collections-permission/decorators/current.user';
+import { CurrentUser } from '../../../common/collections-permission/decorators/current.user';
 import {
   ApiAuth,
   PermissionModule,
-} from 'src/modules/common/collections-permission/decorators';
-import { PageListVo } from 'src/modules/common/page/pageList';
-import { UserService } from 'src/modules/admin/system/service/user.service';
+} from '../../../common/collections-permission/decorators';
+import { PageListVo } from '../../../common/page/pageList';
+import { UserService } from '../service/user.service';
 import { DisabledDto } from '../dto/user/disabled.dto';
 import { UpdateUserPwdDto } from '../dto/user/updateUserPwd.dto';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+import { AuthGuard } from '../../../common/auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as xlsx  from 'xlsx';
-import { SkipLog } from 'src/common/decorators/skip-log.decorator';
+import { SkipLog } from '../../../../common/decorators/skip-log.decorator';
 
 /***
  * author：zhao.jian

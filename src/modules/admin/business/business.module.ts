@@ -1,34 +1,34 @@
 import { Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { BusinessCategoryEntity } from 'src/entities/business/category.entity';
+import { BusinessCategoryEntity } from '../../../entities/business/category.entity';
 import { AuthModule } from '../system/auth/auth.module';
 import { CategoryController } from './controller/category.controller';
 import { CategoryService } from './service/category.service';
 import { BusinessController } from './controller/business.controller';
 import { BusinessService } from './service/business.service';
-import { BusinessEntity } from 'src/entities/business/business.entity';
-import { BusinessCategoryRelationEntity } from 'src/entities/business/business_category_relation.entity';
-import { EmailService } from 'src/modules/common/services/email/email.service';
-import { BusinessAccountEntity } from 'src/entities/business/business_account.entity';
-import { UserEntity } from 'src/entities/admin/t_user.entity';
+import { BusinessEntity } from '../../../entities/business/business.entity';
+import { BusinessCategoryRelationEntity } from '../../../entities/business/business_category_relation.entity';
+import { EmailService } from '../../common/services/email/email.service';
+import { BusinessAccountEntity } from '../../../entities/business/business_account.entity';
+import { UserEntity } from '../../../entities/admin/t_user.entity';
 import { AccountController } from './controller/account.controller';
 import { AccountService } from './service/account.service';
 import { HoursService } from './service/hours.service';
 import { HoursController } from './controller/hours.controller';
-import { StoreEntity } from 'src/entities/store/store.entity';
-import { EmployeeEntity } from 'src/entities/store/employee.entity';
+import { StoreEntity } from '../../../entities/store/store.entity';
+import { EmployeeEntity } from '../../../entities/store/employee.entity';
 import { StoreController } from './controller/store.controller';
 import { StoreService } from './service/store.service';
 import { EmployeeController } from './controller/employee.controller';
 import { EmployeeService } from './service/employee.service';
-import { RoleEntity } from 'src/entities/admin/t_role.entity';
-import { StoreHoursEntity } from 'src/entities/store/store_hours.entity';
-import { StoreDeliveryAreaEntity } from 'src/entities/store/store_deliveryarea.entity';
-import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
+import { RoleEntity } from '../../../entities/admin/t_role.entity';
+import { StoreHoursEntity } from '../../../entities/store/store_hours.entity';
+import { StoreDeliveryAreaEntity } from '../../../entities/store/store_deliveryarea.entity';
+import { AuditLogEntity } from '../../../entities/business/audit_log.entity';
 import { AuditLogController } from './controller/auditLog.controller';
 import { AuditLogService } from './service/auditLog.service';
-import { StoreQualificationEntity } from 'src/entities/store/store_qualification.entity';
+import { StoreQualificationEntity } from '../../../entities/store/store_qualification.entity';
 
 /**
  * 商家管理模块

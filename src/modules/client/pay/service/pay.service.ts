@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
 import { Connection, Repository, DataSource } from 'typeorm';
-import { OrderEntity, OrderStatus } from 'src/entities/business/order.entity';
-import { OrderItemEntity } from 'src/entities/business/order_item.entity';
-import { StoreEntity } from 'src/entities/store/store.entity';
-import { UserEntity } from 'src/entities/admin/t_user.entity';
+import { OrderEntity, OrderStatus } from '../../../../entities/business/order.entity';
+import { OrderItemEntity } from '../../../../entities/business/order_item.entity';
+import { StoreEntity } from '../../../../entities/store/store.entity';
+import { UserEntity } from '../../../../entities/admin/t_user.entity';
 import { WxPayService } from './wxpay.service';
-import { ChatGateway } from 'src/gateway/chat.gateway';
+import { ChatGateway } from '../../../../gateway/chat.gateway';
 
 @Injectable()
 export class PayService {

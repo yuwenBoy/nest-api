@@ -1,17 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { Any, Brackets, Like, Repository } from 'typeorm';
-import { RoleEntity } from 'src/entities/admin/t_role.entity';
+import { RoleEntity } from '../../../../entities/admin/t_role.entity';
 
 import { UserRoleService } from './userRole.service';
-import { PageEnum } from 'src/enum/page.enum';
-import { PageListVo } from 'src/modules/common/page/pageList';
+import { PageEnum } from '../../../../enum/page.enum';
+import { PageListVo } from '../../../common/page/pageList';
 import { EntityManager } from 'typeorm/entity-manager/EntityManager';
 import { plainToInstance } from 'class-transformer';
-import { UserRoleEntity } from 'src/entities/admin/t_user_role.entity';
+import { UserRoleEntity } from '../../../../entities/admin/t_user_role.entity';
 import { UserRoleDto } from '../dto/userRole.dto';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
-import { RoleTypeEnum, UserTypeEnum } from 'src/enum/admin_enum';
+import { RoleTypeEnum, UserTypeEnum } from '../../../../enum/admin_enum';
 
 @Injectable()
 export class RoleService {
