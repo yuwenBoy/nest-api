@@ -397,6 +397,8 @@ SELECT
     a.id,
     a.username,
     a.cname AS name,
+    a.phone,
+    a.nick_name,
     r.name AS role_name,
     a.avatar,
     a.user_type,
@@ -417,7 +419,6 @@ LEFT JOIN store c ON c.business_id = b.id
 LEFT JOIN last_msg ON a.id = last_msg.partner_id AND last_msg.rn = 1
 LEFT JOIN unread_stats ON a.id = unread_stats.partner_id
 ${whereCondition}
-AND a.username != ''
 ${needReplyFilter}
 -- 排序优先级（未读多的排前面）
 ORDER BY unread_stats.unread_count DESC, last_msg.created_at DESC`;

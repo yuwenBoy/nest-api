@@ -91,20 +91,39 @@ export class MessageService {
     // 4. 查询用户信息
     const users = await this.dataSource.getRepository(UserEntity).find({
       where: { id: In(userIds) },
-      select: ['id', 'username', 'avatar', 'cname'], // 只选择需要的字段
+      select: ['id', 'username', 'avatar', 'cname','phone','userType'], // 只选择需要的字段
     });
 
     const userMap = new Map(users.map((u) => [u.id, u]));
 
     // 5. 组合结果
     const result = messages
-      .map((msg) => ({
-        ...msg,
-        senderUsername:userMap.get(msg.senderId)?.username || `用户${msg.senderId}`,
-        senderCname: userMap.get(msg.senderId)?.cname,
-        senderAvatar:userMap.get(msg.senderId)?.avatar || '',
-        isRead: msg.readAt !== null && msg.readAt !== undefined, // ✅ 添加 isRead 字段
-      }))
+      .map((msg) => {
+        const sender = userMap.get(msg.senderId);
+        let senderUsername: string;
+        
+        if (!sender) {
+          senderUsername = `用户${msg.senderId}`;
+        } else if (sender.userType === 3) {
+          // 用户类型为3（顾客）：显示"用户+手机号后四位"
+          const phone = sender.phone || '';
+          const phoneSuffix = phone.length >= 4 ? phone.slice(-4) : phone;
+          senderUsername = `用户${phoneSuffix}`;
+        } else if (sender.userType === 4) {
+          // 用户类型为4（骑士）：显示"骑士+name"
+          senderUsername = `骑士${sender.cname || sender.username || msg.senderId}`;
+        } else {
+          senderUsername = sender.username || `用户${msg.senderId}`;
+        }
+        
+        return {
+          ...msg,
+          senderUsername,
+          senderCname: sender?.cname,
+          senderAvatar: sender?.avatar || '',
+          isRead: msg.readAt !== null && msg.readAt !== undefined,
+        };
+      })
       .reverse();
     return result;
   }

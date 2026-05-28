@@ -12,13 +12,18 @@ export class ClientMessageController {
   @HttpCode(200)
   @Post('list')
   async getMessageList(@Request() req) {
-    return await this.messageService.getMessageList(req.user.id);
+    return await this.messageService.getMessageList(req.user.userId);  // ✅ 修复：使用 userId 而不是 id
   }
   @HttpCode(200)
   @Post('history')
   async getMessageHistory(@Body() body, @Request() req) {
+    console.log('=== 客户端消息历史接口 ===');
+    console.log('当前用户:', req.user);
+    console.log('请求体:', body);
+    console.log('targetUserId:', body.targetUserId);
+    console.log('============================');
     return await this.messageService.getMessageHistory(
-      req.user.id,
+      req.user.userId,  // ✅ 修复：使用 userId 而不是 id
       body.targetUserId,
       body.orderId
     );
@@ -28,7 +33,7 @@ export class ClientMessageController {
   @Post('send')
   async sendMessage(@Body() body, @Request() req) {
     return await this.messageService.sendMessage({
-      senderId: req.user.id,
+      senderId: req.user.userId,  // ✅ 修复：使用 userId 而不是 id
       receiverId: body.receiverId,
       content: body.content,
       orderId: body.orderId,
@@ -39,6 +44,6 @@ export class ClientMessageController {
   @HttpCode(200)
   @Post('markRead')
   async markAsRead(@Body() body, @Request() req) {
-    return await this.messageService.markAsRead(req.user.id, body.targetUserId);
+    return await this.messageService.markAsRead(req.user.userId, body.targetUserId);  // ✅ 修复：使用 userId 而不是 id
   }
 }

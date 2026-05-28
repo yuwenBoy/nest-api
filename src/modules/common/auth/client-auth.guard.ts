@@ -30,6 +30,7 @@ export class ClientAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     // 获取请求头中的token字段
     const token =
+      request.headers.authorization ||
       context.switchToRpc().getData().headers.authorization ||
       context.switchToHttp().getRequest().body.authorization ||
       getUrlQuery(request.url, 'authorization');
