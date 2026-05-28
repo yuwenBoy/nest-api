@@ -1,7 +1,7 @@
 import { Controller, Post, Body, UseGuards, Request, HttpCode } from '@nestjs/common';
 import { MessageService } from '../service/message.service';
-import { ClientAuthGuard } from 'src/modules/common/auth/client-auth.guard';
-import { SkipLog } from 'src/common/decorators/skip-log.decorator';
+import { ClientAuthGuard } from '../../../common/auth/client-auth.guard';
+import { SkipLog } from '../../../../common/decorators/skip-log.decorator';
 
 @SkipLog()
 @Controller('client/message')

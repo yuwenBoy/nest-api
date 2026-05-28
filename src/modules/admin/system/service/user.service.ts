@@ -300,12 +300,19 @@ export class UserService {
    *
    * 获取即时通讯联系人列表
    */
-  async getChatContactList(currentUser: any, type: string): Promise<any[]> {
+  async getChatContactList(currentUser: any, type: string, storeId?: number): Promise<any[]> {
     let currentUserId = currentUser.id;
     let currentUserType = currentUser.userType;
     let platformUserId = 200; // 商家端平台用户ID，默认值
     let whereCondition: string;
     let needReplyFilter: string = ''; // 需回复过滤条件
+
+    console.log('=== getChatContactList 参数 ===');
+    console.log('currentUser:', currentUser);
+    console.log('type:', type);
+    console.log('storeId:', storeId);
+    console.log('currentUserType:', currentUserType);
+    console.log('================================');
 
     // 平台端
     if (currentUserType === 1) {
@@ -321,17 +328,36 @@ export class UserService {
     }
     // 商家端
     else if (currentUserType === 2) {
+      console.log('=== 进入商家端分支 ===');
       if (type === 'ADMIN') {
+        console.log('执行 ADMIN 分支');
         whereCondition = `WHERE a.id=${platformUserId}`;
         needReplyFilter = ``;
       } else if (type === 'CUSTMSG') {
-        whereCondition = `WHERE a.user_type = 3 `;
+        console.log('执行 CUSTMSG 分支');
+        // 商家端查询顾客：通过订单关联找到所有有订单的顾客，同时保留有消息往来的顾客
+        let storeCondition = storeId ? `AND o.store_id = ${storeId}` : '';
+        whereCondition = `WHERE a.user_type = 3 AND (
+          EXISTS (SELECT 1 FROM message WHERE (sender_id = a.id AND receiver_id = ${currentUserId}) OR (sender_id = ${currentUserId} AND receiver_id = a.id)) OR
+          EXISTS (
+            SELECT 1 FROM \`order\` o 
+            JOIN store s ON o.store_id = s.id 
+            WHERE o.user_id = a.id AND s.business_id = (SELECT business_id FROM t_user WHERE id = ${currentUserId}) ${storeCondition}
+          )
+        ) `;
         needReplyFilter = ``;
       } else if (type === 'NEEDED') {
+        console.log('执行 NEEDED 分支');
         // 商家端：只看顾客发给我的需回复
         whereCondition = `WHERE a.user_type in (1,3,4) `;
         needReplyFilter = `AND (unread_stats.unread_count > 0 OR last_msg.rn = 1)`;
+      } else {
+        console.log('执行商家端默认分支，type:', type);
+        whereCondition = `WHERE a.user_type = 3 `;
       }
+    } else {
+      console.log('=== 用户类型不匹配，currentUserType:', currentUserType);
+      whereCondition = `WHERE a.user_type = 3 `;
     }
     let sql = `WITH base_msgs AS (
     SELECT 
@@ -395,7 +421,17 @@ AND a.username != ''
 ${needReplyFilter}
 -- 排序优先级（未读多的排前面）
 ORDER BY unread_stats.unread_count DESC, last_msg.created_at DESC`;
+    
+    console.log('=== 执行的SQL语句 ===');
+    console.log(sql);
+    console.log('====================');
+    
     let result = await this.userRepository.query(sql);
+    
+    console.log('=== 查询结果 ===');
+    console.log('结果数量:', result.length);
+    console.log('结果:', result);
+    console.log('================');
     let imageBaseUrl = this.config.get('admin.file.domain') + '/';
 
     result.forEach((item) => {

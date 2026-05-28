@@ -1,8 +1,8 @@
 import { Column, Entity } from 'typeorm';
 import { BusinessBaseEntity } from '../common/base.entity';
-import { AuditStatusEnum, AuditTargetType } from 'src/enum/audit_enum';
+import { AuditStatusEnum, AuditTargetType } from '../../enum/audit_enum';
 import { Transform, TransformFnParams } from 'class-transformer';
-import { formatTime } from 'src/utils/date';
+import { formatTime } from '../../utils/date';
 /**
  * description:审核记录表
  * @author: zhao.jian

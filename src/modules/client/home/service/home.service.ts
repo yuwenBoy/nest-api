@@ -7,18 +7,18 @@ import {
 } from '@nestjs/common';
 import axios from 'axios';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProductEntity } from 'src/entities/product/product.entity';
-import { ProductGroupEntity } from 'src/entities/product/product_group.entity';
-import { ProductGroupRelationEntity } from 'src/entities/product/product_group_relation.entity';
-import { ProductSpecEntity } from 'src/entities/product/product_spec.entity';
-import { ProductSpecAttrRelationEntity } from 'src/entities/product/product_spec_attr_relation.entity';
-import { StoreEntity } from 'src/entities/store/store.entity';
+import { ProductEntity } from '../../../../entities/product/product.entity';
+import { ProductGroupEntity } from '../../../../entities/product/product_group.entity';
+import { ProductGroupRelationEntity } from '../../../../entities/product/product_group_relation.entity';
+import { ProductSpecEntity } from '../../../../entities/product/product_spec.entity';
+import { ProductSpecAttrRelationEntity } from '../../../../entities/product/product_spec_attr_relation.entity';
+import { StoreEntity } from '../../../../entities/store/store.entity';
 import {
   ProductAuditStatusEnum,
   ProductSaleStatusEnum,
   StoreStatusEnum,
-} from 'src/enum/business_enum';
-import { PageListVo } from 'src/modules/common/page/pageList';
+} from '../../../../enum/business_enum';
+import { PageListVo } from '../../../common/page/pageList';
 import { In, MoreThan, Repository } from 'typeorm';
 import { DataSource } from 'typeorm';
 

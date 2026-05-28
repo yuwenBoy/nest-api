@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MessageEntity } from 'src/entities/chat/message.entity';
+import { MessageEntity } from '../../../entities/chat/message.entity';
 import { ClientMessageController } from './controller/message.controller';
 import { MessageService } from './service/message.service';
 import { UserModule } from '../user/user.module'; // ✅ 导入 UserModule

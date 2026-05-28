@@ -11,17 +11,17 @@ import {
   InjectEntityManager,
   InjectRepository,
 } from '@nestjs/typeorm';
-import { BusinessEntity } from 'src/entities/business/business.entity';
+import { BusinessEntity } from '../../../../entities/business/business.entity';
 import { Connection, Repository } from 'typeorm';
-import { StoreStatusEnum } from 'src/enum/business_enum';
-import { AuditStatusEnum, AuditTargetType } from 'src/enum/audit_enum';
-import { BusinessCategoryRelationEntity } from 'src/entities/business/business_category_relation.entity';
-import { PageListVo } from 'src/modules/common/page/pageList';
-import { UserEntity } from 'src/entities/admin/t_user.entity';
-import { StoreEntity } from 'src/entities/store/store.entity';
-import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
+import { StoreStatusEnum } from '../../../../enum/business_enum';
+import { AuditStatusEnum, AuditTargetType } from '../../../../enum/audit_enum';
+import { BusinessCategoryRelationEntity } from '../../../../entities/business/business_category_relation.entity';
+import { PageListVo } from '../../../common/page/pageList';
+import { UserEntity } from '../../../../entities/admin/t_user.entity';
+import { StoreEntity } from '../../../../entities/store/store.entity';
+import { AuditLogEntity } from '../../../../entities/business/audit_log.entity';
 import { AuditRejectDto } from '../dto/AuditRejectDto';
-import { StoreQualificationEntity } from 'src/entities/store/store_qualification.entity';
+import { StoreQualificationEntity } from '../../../../entities/store/store_qualification.entity';
 
 @Injectable()
 export class AuditLogService {

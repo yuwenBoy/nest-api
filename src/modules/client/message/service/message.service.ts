@@ -60,21 +60,22 @@ export class MessageService {
   }
 
   async getMessageHistory(userId: number, targetUserId: number, orderId?: number) {
+    console.log('getMessageHistory - userId:', userId, 'targetUserId:', targetUserId, 'orderId:', orderId);
+    
     const queryBuilder = this.messageRepository
       .createQueryBuilder('message')
       .where(
         '(message.senderId = :userId AND message.receiverId = :targetUserId) OR ' +
         '(message.senderId = :targetUserId AND message.receiverId = :userId)',
         { userId, targetUserId }
-      );
-
-    if (orderId) {
-      queryBuilder.andWhere('message.targetId = :orderId', { orderId });
-    }
+      );  
 
     queryBuilder.orderBy('message.createdAt', 'ASC');
 
     const messages = await queryBuilder.getMany();
+    
+    console.log('getMessageHistory - 查询到的消息数量:', messages.length);
+    console.log('getMessageHistory - 查询到的消息:', messages);
 
     const userIds = [...new Set(messages.map(m => m.senderId))];
     const users = await this.dataSource.getRepository(UserEntity).find({
@@ -102,8 +103,8 @@ export class MessageService {
       receiverId: messageData.receiverId,
       content: messageData.content,
       messageType: messageData.messageType || 'text',
-      targetId: messageData.orderId || null,
-      targetType: 3
+      targetId: messageData.receiverId, // 目标ID：对方用户ID
+      targetType: 1 // 目标类型：用户类型（1表示用户）
     });
 
     return await this.messageRepository.save(message);

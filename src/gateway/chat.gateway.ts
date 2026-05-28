@@ -9,10 +9,10 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger, UseGuards } from '@nestjs/common';
 import { MessageService } from '../modules/chat/service/message.service';
-import { UserEntity } from 'src/entities/admin/t_user.entity';
+import { UserEntity } from '../entities/admin/t_user.entity';
 import { DataSource } from 'typeorm';
-import { MessageStatusEnum } from 'src/enum/chat_enum';
-import { getClientIp, getIpLocation } from 'src/utils/index';
+import { MessageStatusEnum } from '../enum/chat_enum';
+import { getClientIp, getIpLocation } from '../utils/index';
 
 // 用户状态枚举
 export enum UserStatusEnum {

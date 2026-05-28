@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
 import { Transform, TransformFnParams } from 'class-transformer';
-import { formatTime } from 'src/utils/date';
+import { formatTime } from '../../utils/date';
 
 @Entity('t_operation_log')
 export class OperationLogEntity {

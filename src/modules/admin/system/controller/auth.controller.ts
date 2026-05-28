@@ -3,10 +3,10 @@ import { Body, Req, Res, Session } from '@nestjs/common/decorators';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../service/auth.service';
 import { LocalAuthGuard } from '../auth/local.auth.guard';
-import { Captcha } from 'src/modules/common/services/tools/Captcha';
+import { Captcha } from '../../../common/services/tools/Captcha';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
-import { AuthGuard } from 'src/modules/common/auth/auth.guard';
-import { SkipLog } from 'src/common/decorators/skip-log.decorator';
+import { AuthGuard } from '../../../common/auth/auth.guard';
+import { SkipLog } from '../../../../common/decorators/skip-log.decorator';
 
 @ApiTags('用户身份认证登录(jwt鉴权)')
 @Controller('auth')

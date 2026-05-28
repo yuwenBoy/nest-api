@@ -20,11 +20,11 @@ import {
   import {
     ApiAuth,
     PermissionModule,
-  } from 'src/modules/common/collections-permission/decorators';
-  import { PageListVo } from 'src/modules/common/page/pageList';
-  import { AuthGuard } from 'src/modules/common/auth/auth.guard';
+  } from '../modules/common/collections-permission/decorators';
+  import { PageListVo } from '../modules/common/page/pageList';
+  import { AuthGuard } from '../modules/common/auth/auth.guard';
 import { OperationLogService } from './operation-log.service';
-import { SkipLog } from 'src/common/decorators/skip-log.decorator';
+import { SkipLog } from '../common/decorators/skip-log.decorator';
 import { OnlineLogQueryDto } from './dto/online-log-query.dto';
 import { ExceptionLogQueryDto } from './dto/exception-log-query.dto';
 import { Response } from 'express';

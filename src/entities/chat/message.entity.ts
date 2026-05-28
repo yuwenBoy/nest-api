@@ -1,9 +1,9 @@
 import { Entity, Column, UpdateDateColumn } from 'typeorm';
 import { BusinessBaseEntity } from '../common/base.entity';
-import { MessageStatusEnum } from 'src/enum/chat_enum';
+import { MessageStatusEnum } from '../../enum/chat_enum';
 import { Transform, TransformFnParams } from 'class-transformer';
-import { formatTime } from 'src/utils/date';
-import { UserTypeEnum } from 'src/enum/admin_enum';
+import { formatTime } from '../../utils/date';
+import { UserTypeEnum } from '../../enum/admin_enum';
 @Entity('message')
 export class MessageEntity extends BusinessBaseEntity{
    

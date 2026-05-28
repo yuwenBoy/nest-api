@@ -1,12 +1,12 @@
-import cheerio from 'cheerio';
 // src/operation-log/operation-log.service.ts
+import * as cheerio from 'cheerio';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
-import { OperationLogEntity } from 'src/entities/admin/t_operation_log.entity';
-import { PageListVo } from 'src/modules/common/page/pageList';
+import { OperationLogEntity } from '../entities/admin/t_operation_log.entity';
+import { PageListVo } from '../modules/common/page/pageList';
 import { Like, Repository, And, Brackets } from 'typeorm';
-import { formatDate } from 'src/utils/date'
+import { formatDate } from '../utils/date'
 
 @Injectable()
 export class OperationLogService {

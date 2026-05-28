@@ -8,18 +8,18 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Not, Repository } from 'typeorm';
-import { PageListVo } from 'src/modules/common/page/pageList';
-import { PauseReason, StoreEntity } from 'src/entities/store/store.entity';
-import { EmployeeEntity } from 'src/entities/store/employee.entity';
-import { BusinessEntity } from 'src/entities/business/business.entity';
+import { PageListVo } from '../../../common/page/pageList';
+import { PauseReason, StoreEntity } from '../../../../entities/store/store.entity';
+import { EmployeeEntity } from '../../../../entities/store/employee.entity';
+import { BusinessEntity } from '../../../../entities/business/business.entity';
 import { UserInfoDto } from '../../system/dto/user/userInfo.dto';
 import { UpdateStoreDTO } from '../dto/UpdateStoreDto';
 import {
   StoreOperationTypeEnum,
   StoreStatusEnum,
-} from 'src/enum/business_enum';
-import { AuditLogEntity } from 'src/entities/business/audit_log.entity';
-import { AuditStatusEnum, AuditTargetType } from 'src/enum/audit_enum';
+} from '../../../../enum/business_enum';
+import { AuditLogEntity } from '../../../../entities/business/audit_log.entity';
+import { AuditStatusEnum, AuditTargetType } from '../../../../enum/audit_enum';
 
 @Injectable()
 export class StoreService {

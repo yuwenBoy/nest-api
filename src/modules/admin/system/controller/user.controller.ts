@@ -161,8 +161,8 @@ export class UserController {
      res.status(200).send(excelBuffer);
   }
 
-  @Post('/export')
   @ApiOperation({ summary: '导出用户' })
+  @Post('/export')
   async exportData(@Res() res:Response,@Body() query,@CurrentUser() userInfo: UserInfoDto): Promise<void> {
     this.UserService.pageQuery(query,userInfo).then(data=>{
        let userData = data.content; 
@@ -198,7 +198,7 @@ export class UserController {
   @HttpCode(200)
   @Post('getChatContactList')
   async getChatContactList(@CurrentUser() userInfo: UserInfoDto,@Body() body):Promise<any[]>{
-     return await this.UserService.getChatContactList(userInfo,body.type);
+     return await this.UserService.getChatContactList(userInfo, body.type, body.storeId);
   }
 }
 

@@ -2,7 +2,7 @@ import { Column, Entity, BeforeInsert, JoinColumn, OneToOne, OneToMany } from 't
 import { ZJBaseEntity } from '../common/base.entity';
 import { DeptEntity } from './dept.entity';
 import { PositionEntity } from './position.entity';
-import { UserStatusEnum, UserTypeEnum } from 'src/enum/admin_enum';
+import { UserStatusEnum, UserTypeEnum } from '../../enum/admin_enum';
 import { EmployeeEntity } from '../store/employee.entity';
 
 /**
