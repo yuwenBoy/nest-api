@@ -103,7 +103,7 @@ export class MessageService {
       content: messageData.content,
       messageType: messageData.messageType || 'text',
       targetId: messageData.orderId || null,
-      targetType: messageData.orderId ? 1 : 0
+      targetType: 3
     });
 
     return await this.messageRepository.save(message);

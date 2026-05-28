@@ -86,15 +86,33 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       try {
         this.logger.log('开始验证Token...');
 
+        // 先尝试用管理员token验证
         userInfo = this.AuthService.verifyToken(token);
+        
+        // 如果管理员验证失败，尝试用客户端token验证
+        if (!userInfo) {
+          this.logger.log('管理员Token验证失败，尝试客户端Token验证...');
+          userInfo = this.AuthService.verifyClientToken(token);
+        }
 
-        this.logger.log('Token 验证成功！', JSON.stringify(userInfo));
+        this.logger.log('Token 验证成功！');
+        this.logger.log('用户信息:', userInfo);
+        const userId = userInfo?.id || userInfo?.userId;
+        this.logger.log('用户ID:', userId);
       } catch (error) {
-        this.logger.error('WebSocket 认证失败');
+        this.logger.error('WebSocket 认证失败:', error.message);
 
         client.emit('error', { message: 'WebSocket 认证失败' });
 
         // 关闭连接
+        client.disconnect(true);
+        return;
+      }
+
+      // 检查用户信息（支持 id 和 userId 两种字段名）
+      const userId = userInfo?.id || userInfo?.userId;
+      if (!userInfo || !userId) {
+        this.logger.error('用户信息为空或缺少ID');
         client.disconnect(true);
         return;
       }
@@ -112,7 +130,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const location = await getIpLocation(ip);
 
       // 加入房间
-      const roomName = `user_${userInfo.id}`;
+      const roomName = `user_${userId}`;
 
       this.logger.log('准备加入房间：' + roomName);
       await client.join(roomName);
@@ -129,27 +147,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       //      console.log(`延迟1秒检查 - 房间 ${roomName} 中有 ${socketsInRoom?.size || 0 } 个客户端`)
       //    }, 1000);
 
-      client.data.userId = userInfo.id; // 将用户ID挂载到socket
+      client.data.userId = userId; // 将用户ID挂载到socket
       //    client.data.username = userInfo.username; // 将用户名挂载到socket
       // 2. 👇 新增：查用户名、昵称
+      this.logger.log(`开始查询用户信息，用户ID: ${userId}`);
       const user = await this.dataSource.getRepository(UserEntity).findOne({
-        where: { id: userInfo.id },
+        where: { id: userId },
         select: ['id', 'username', 'cname'],
       });
 
+      this.logger.log('查询到的用户:', user);
+
       if (!user) {
+        this.logger.error(`未找到用户，ID: ${userId}`);
         client.disconnect(true);
         return;
       }
 
       // 从数据库读取用户的在线状态，如果没有则默认为在线
       const userRepository = this.dataSource.getRepository(UserEntity);
-      const dbUser = await userRepository.findOne({ where: { id: userInfo.id } });
+      const dbUser = await userRepository.findOne({ where: { id: userId } });
       const savedStatus = (dbUser?.onlineStatus as UserStatusEnum) || UserStatusEnum.ONLINE;
       
       // 添加到在线用户列表
       const now = new Date();
-      ChatGateway.onlineUsers.set(userInfo.id, {
+      ChatGateway.onlineUsers.set(userId, {
         socketId: client.id,
         status: savedStatus,
         ip: client.request.connection.remoteAddress,
@@ -162,16 +184,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         lastActiveTime: now,
       });
       this.logger.log(
-        `用户 ${userInfo.id} 上线，状态: ${UserStatusEnum.ONLINE}，当前在线用户数: ${ChatGateway.onlineUsers.size}`,
+        `用户 ${userId} 上线，状态: ${UserStatusEnum.ONLINE}，当前在线用户数: ${ChatGateway.onlineUsers.size}`,
       );
 
       // 广播用户上线状态（使用数据库中的状态）
-      this.broadcastUserStatus(userInfo.id, savedStatus);
+      this.broadcastUserStatus(userId, savedStatus);
 
       // 4. 发送欢迎消息（使用数据库中的状态）
       client.emit('connected', {
         message: 'WebSocket 连接成功！',
-        userId: userInfo.id,
+        userId: userId,
         status: savedStatus,
       });
     } catch (error) {

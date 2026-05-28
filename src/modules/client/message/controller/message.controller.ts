@@ -9,6 +9,7 @@ import { SkipLog } from 'src/common/decorators/skip-log.decorator';
 export class ClientMessageController {
   constructor(private readonly messageService: MessageService) {}
 
+  @HttpCode(200)
   @Post('list')
   async getMessageList(@Request() req) {
     return await this.messageService.getMessageList(req.user.id);
@@ -23,6 +24,7 @@ export class ClientMessageController {
     );
   }
 
+  @HttpCode(200)
   @Post('send')
   async sendMessage(@Body() body, @Request() req) {
     return await this.messageService.sendMessage({
@@ -34,6 +36,7 @@ export class ClientMessageController {
     });
   }
 
+  @HttpCode(200)
   @Post('markRead')
   async markAsRead(@Body() body, @Request() req) {
     return await this.messageService.markAsRead(req.user.id, body.targetUserId);

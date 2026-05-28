@@ -7,7 +7,7 @@ import { RoleModuleService } from './roleModule.service';
 
 import { UserRoleService } from './userRole.service';
 import { compareSync, hashSync } from 'bcryptjs';
-import { jwtContants, refreshExpiresIn } from '../../../common/collections-permission/constants/jwtContants';
+import { jwtContants, clientJwtContants, refreshExpiresIn } from '../../../common/collections-permission/constants/jwtContants';
 import { UserService } from './user.service';
 import { UserInfoDto } from '../dto/user/userInfo.dto';
 import { ConfigService } from '@nestjs/config';
@@ -116,13 +116,27 @@ export class AuthService {
     };
   }
 
-  /** 校验 token */
+  /** 校验 token（管理员） */
   verifyToken(token: string): string {
     try {
       if (!token) return null;
       const user = this.jwtService.verify(
         token.replace('Bearer ', ''),
         jwtContants,
+      );
+      return user;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /** 校验 token（客户端） */
+  verifyClientToken(token: string): string {
+    try {
+      if (!token) return null;
+      const user = this.jwtService.verify(
+        token.replace('Bearer ', ''),
+        clientJwtContants,
       );
       return user;
     } catch (error) {

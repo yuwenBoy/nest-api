@@ -120,6 +120,7 @@ export class UserOrderService {
         'order.order_status as orderStatus',
         'order.final_total as finalTotal',
         'order.created_at as createTime',
+        'order.user_id as userId',
         'order.rider_id as riderId',
         'order.rider_name as riderName',
         'order.rider_phone as riderPhone',
@@ -156,6 +157,7 @@ export class UserOrderService {
           orderStatus: row.orderStatus !== undefined ? row.orderStatus : row.order_status,
           finalTotal: row.finalTotal || row.final_total,
           createTime: row.createTime || row.created_at,
+          userId: row.userId,
           riderId: row.riderId || row.rider_id,
           riderName: row.riderName || row.rider_name,
           riderPhone: row.riderPhone || row.rider_phone,
@@ -237,6 +239,7 @@ export class UserOrderService {
       prepareTime: order.prepareTime,
       deliveryStartTime: order.deliveryStartTime,
       deliveryEndTime: order.deliveryEndTime,
+      userId: order.userId,
       goods: goods.map((item) => ({
         id: item.id,
         productId: item.productId,
