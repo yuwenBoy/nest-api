@@ -28,8 +28,15 @@ export class MessageService {
 
     const users = await this.dataSource.getRepository(UserEntity).find({
       where: { id: In([...userIds]) },
-      select: ['id', 'username', 'cname', 'avatar']
+      select: ['id', 'username', 'cname', 'avatar', 'business_id']
     });
+
+    const businessIds = users.filter(u => u.business_id).map(u => u.business_id);
+    const businesses = await this.dataSource.getRepository(BusinessEntity).find({
+      where: { id: In(businessIds as number[]) },
+      select: ['id', 'title']
+    });
+    const businessMap = new Map(businesses.map(b => [b.id, b.title]));
 
     const userMap = new Map(users.map(u => [u.id, u]));
 
@@ -40,13 +47,23 @@ export class MessageService {
       const user = userMap.get(otherUserId);
 
       if (!conversationMap.has(otherUserId)) {
+        let name = user?.cname || user?.username || `用户${otherUserId}`;
+        
+        if (user?.business_id) {
+          const businessName = businessMap.get(user.business_id);
+          if (businessName) {
+            name = `${businessName}`;
+          }
+        }
+
         conversationMap.set(otherUserId, {
           userId: otherUserId,
-          name: user?.cname || user?.username || `用户${otherUserId}`,
+          name: name,
           avatar: user?.avatar || '',
           lastMessage: msg.content,
           lastTime: msg.createdAt.getTime(),
-          unreadCount: 0
+          unreadCount: 0,
+          isBusiness: !!user?.business_id
         });
       }
 
