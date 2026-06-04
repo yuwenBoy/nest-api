@@ -8,6 +8,7 @@ import { OrderItemEntity } from '../../../entities/business/order_item.entity';
 import { AuthModule } from '../user/auth/auth.module';
 import { WxPayService } from '../pay/service/wxpay.service';
 import { MessageModule } from '../../chat/service/message.module';
+import { StoreEntity } from '../../../entities/store/store.entity';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { MessageModule } from '../../chat/service/message.module';
     TypeOrmModule.forFeature([
       OrderEntity,
       OrderItemEntity,
+      StoreEntity,
     ]),
   ],
   controllers: [

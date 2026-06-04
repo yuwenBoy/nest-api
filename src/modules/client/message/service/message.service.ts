@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, In } from 'typeorm';
 import { MessageEntity } from '../../../../entities/chat/message.entity';
 import { UserEntity } from '../../../../entities/admin/t_user.entity';
+import { StoreEntity } from '../../../../entities/store/store.entity';
 
 @Injectable()
 export class MessageService {
@@ -32,11 +33,17 @@ export class MessageService {
     });
 
     const businessIds = users.filter(u => u.business_id).map(u => u.business_id);
-    const businesses = await this.dataSource.getRepository(BusinessEntity).find({
-      where: { id: In(businessIds as number[]) },
-      select: ['id', 'title']
+    const stores = await this.dataSource.getRepository(StoreEntity).find({
+      where: { business_id: In(businessIds as number[]) },
+      select: ['id', 'storeName', 'business_id']
     });
-    const businessMap = new Map(businesses.map(b => [b.id, b.title]));
+    const storeMap = new Map<number, string>();
+    stores.forEach(store => {
+      // 如果有多个门店，优先选择默认门店
+      if (!storeMap.has(store.business_id)) {
+        storeMap.set(store.business_id, store.storeName);
+      }
+    });
 
     const userMap = new Map(users.map(u => [u.id, u]));
 
@@ -50,9 +57,9 @@ export class MessageService {
         let name = user?.cname || user?.username || `用户${otherUserId}`;
         
         if (user?.business_id) {
-          const businessName = businessMap.get(user.business_id);
-          if (businessName) {
-            name = `${businessName}`;
+          const storeName = storeMap.get(user.business_id);
+          if (storeName) {
+            name = `${storeName}`;
           }
         }
 

@@ -244,4 +244,26 @@ export class MessageService {
     //   relations: ['sender'], // 如果有User关联关系
     });
   }
+
+  /**
+   * 获取未读消息列表
+   * @param userId 当前用户ID（接收者）
+   * @param senderId 发送者ID
+   * @returns 未读消息列表
+   */
+  async getUnreadMessages(userId: number, senderId: number): Promise<MessageEntity[]> {
+    console.log(`🔹 getUnreadMessages - 查询未读消息: receiverId=${userId}, senderId=${senderId}`);
+    const messages = await this.messageRepository.find({
+      where: {
+        receiverId: userId,
+        senderId: senderId,
+        readAt: null,
+      },
+    });
+    console.log(`🔹 getUnreadMessages - 找到 ${messages.length} 条未读消息`);
+    messages.forEach((msg, idx) => {
+      console.log(`   消息${idx}: id=${msg.id}, senderId=${msg.senderId}, receiverId=${msg.receiverId}, content=${msg.content.substring(0, 20)}...`);
+    });
+    return messages;
+  }
 }

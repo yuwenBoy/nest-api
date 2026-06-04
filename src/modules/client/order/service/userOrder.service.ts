@@ -5,6 +5,7 @@ import { OrderEntity, OrderStatus } from '../../../../entities/business/order.en
 import { OrderItemEntity } from '../../../../entities/business/order_item.entity';
 import { WxPayService } from '../../pay/service/wxpay.service';
 import { ChatGateway } from '../../../../gateway/chat.gateway';
+import { StoreEntity } from '../../../../entities/store/store.entity';
 
 @Injectable()
 export class UserOrderService {
@@ -13,6 +14,8 @@ export class UserOrderService {
     private orderRepo: Repository<OrderEntity>,
     @InjectRepository(OrderItemEntity)
     private orderItemRepo: Repository<OrderItemEntity>,
+     @InjectRepository(StoreEntity)
+    private storeRepo: Repository<StoreEntity>,
     @InjectConnection() // 核心：添加这个装饰器
     private readonly connection: Connection,
     private readonly wxPayService: WxPayService,
@@ -208,6 +211,8 @@ export class UserOrderService {
       where: { orderId },
     });
 
+    const store = await this.storeRepo.findOne({where:{id:order.storeId}
+    });
     // 3. 格式化返回数据
     return {
       id: order.id,
@@ -221,6 +226,7 @@ export class UserOrderService {
       deliveryTime: order.deliveryTime || '尽快送达',
       storeId: order.storeId,
       storeName: order.storeName,
+      storePhone:store.contactInfo,
       goodsTotal: order.goodsTotal,
       deliveryFee: order.deliveryFee,
       discount: order.discount || 0,
@@ -448,5 +454,64 @@ export class UserOrderService {
     const estimated = new Date(startTime);
     estimated.setMinutes(estimated.getMinutes() + 30); // 默认30分钟送达
     return estimated;
+  }
+
+  /**
+   * 获取订单统计数量
+   * @param userId 用户ID
+   * @returns 各状态订单数量
+   */
+  async getOrderCount(userId: number) {
+    const counts = await this.orderRepo
+      .createQueryBuilder('order')
+      .select('order.order_status as status, COUNT(*) as count')
+      .where('order.user_id = :userId', { userId })
+      .groupBy('order.order_status')
+      .getRawMany();
+
+    const result: any = {
+      pending: 0,      // 待付款
+      pendingAccept: 0, // 待接单
+      preparing: 0,    // 备货中
+      waitingDelivery: 0, // 待配送
+      delivering: 0,   // 配送中
+      completed: 0,    // 已完成
+      canceled: 0,     // 已取消
+      total: 0,        // 全部订单
+    };
+
+    counts.forEach((item: any) => {
+      const status = item.status;
+      const count = parseInt(item.count);
+
+      switch (status) {
+        case OrderStatus.UNPAID:
+          result.pending = count;
+          break;
+        case OrderStatus.PENDING_ACCEPT:
+          result.pendingAccept = count;
+          break;
+        case OrderStatus.ACCEPTED_PREPARE:
+          result.preparing = count;
+          break;
+        case OrderStatus.DAIPEISONG:
+          result.waitingDelivery = count;
+          break;
+        case OrderStatus.PEISONGZHONG:
+          result.delivering = count;
+          break;
+        case OrderStatus.YIWANCHENG:
+          result.completed = count;
+          break;
+        case OrderStatus.CANCELED_MANUAL:
+        case OrderStatus.CANCELED_TIMEOUT:
+          result.canceled += count;
+          break;
+      }
+
+      result.total += count;
+    });
+
+    return result;
   }
 }

@@ -122,4 +122,15 @@ export class userOrderController {
     const result = await this.orderService.getOrderDetail(body.orderId, userId);
     return result
   }
+
+  /**
+   * 获取订单统计数量
+   */
+  @HttpCode(HttpStatus.OK)
+  @Post('count')
+  async getOrderCount(@CurrentUser() userInfo: any) {
+    const userId = userInfo.userId;
+    const result = await this.orderService.getOrderCount(userId);
+    return result
+  }
 }

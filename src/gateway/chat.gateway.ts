@@ -227,6 +227,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { receiverId, content, targetId, targetType } = payload;
     const senderId = client.data.userId;
     
+    this.logger.log(`📤 收到私聊消息: senderId=${senderId}, receiverId=${receiverId}, content=${content.substring(0, 20)}...`);
+    
     // 更新发送者最后活跃时间
     this.updateLastActiveTime(senderId);
     
@@ -238,6 +240,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       targetId,
       targetType,
     });
+    
+    this.logger.log(`✅ 消息保存成功: messageId=${message.id}, senderId=${message.senderId}, receiverId=${message.receiverId}`);
 
     // 2. 查询发送者信息（用于显示）
     const sender = await this.dataSource.getRepository(UserEntity).findOne({
@@ -343,8 +347,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  // ✅ 标记消息为已读
-  @SubscribeMessage('mark_as_read')
+  // ✅ 标记消息为已读（旧版本，兼容旧客户端）
+  @SubscribeMessage('mark_as_read_v1')
   async handleMarkAsRead(client: Socket, payload: { messageIds: number[] }) {
     const userId = client.data.userId;
 
@@ -388,13 +392,36 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
+  /**
+   * 标记消息为已读（根据消息ID列表）
+   */
+  @SubscribeMessage('mark_as_read_by_ids')
+  async handleMarkMessagesRead(client: Socket, payload: { messageIds: number[] }) {
+    const messageIds = payload.messageIds;
+    
+    this.logger.log(`收到标记已读请求: messageIds=${messageIds}`);
+    
+    if (messageIds && messageIds.length > 0) {
+      try {
+        await this.messageService.markAsReadByMessageIds(messageIds);
+        this.logger.log(`消息已成功标记为已读: messageIds=${messageIds}`);
+        
+        client.emit('messages_marked_read', {
+          messageIds,
+          timestamp: new Date(),
+        });
+      } catch (error) {
+        this.logger.error(`标记消息已读失败: ${error.message}`);
+      }
+    }
+  }
+
   // ==============================
   // 🔥 【唯一正确】给商家推送新订单
   // ==============================
   sendOrderToMerchant(merchantUserId: number, orderData: any) {
     const room = `user_${merchantUserId}`;
     console.log('✅ 真正的 chat 命名空间 server 推送：', room);
-    // 👉 这里的 this.server 100% 存在！
     this.server.to(room).emit('new_shop_order', orderData);
   }
 
@@ -418,27 +445,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       timestamp: Date;
     },
   ) {
-    // 推送给商家的房间
     const merchantRoom = `store_${storeId}`;
-    const adminRoom = 'admin_orders'; // 管理员可以监听所有订单
+    const adminRoom = 'admin_orders';
 
     console.log('📦 推送新订单通知到商家:', merchantRoom);
 
-    // 推送到商家专用房间
     this.server
       .to(merchantRoom)
       .emit('new_order_notification', notificationData);
 
-    // 同时推送到管理员房间
     this.server.to(adminRoom).emit('new_order_notification', notificationData);
 
-    // 播放提示音给商家
     this.server.to(merchantRoom).emit('play_notification_sound', {
       type: 'new_order',
       orderNo: notificationData.orderNo,
     });
 
-    // 广播给所有在线管理员
     this.server.emit('order_created', {
       orderId: notificationData.orderId,
       orderNo: notificationData.orderNo,
@@ -515,14 +537,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (userId) {
       const userInfo = ChatGateway.onlineUsers.get(userId);
       if (userInfo) {
-        // 更新状态
         userInfo.status = payload.status;
         ChatGateway.onlineUsers.set(userId, userInfo);
         
-        // 更新最后活跃时间
         this.updateLastActiveTime(userId);
         
-        // 保存状态到数据库
         const userRepository = this.dataSource.getRepository(UserEntity);
         try {
           const result = await userRepository.update(userId, { onlineStatus: payload.status });
@@ -533,10 +552,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         
         this.logger.log(`用户 ${userId} 状态更新为: ${payload.status}`);
 
-        // 广播状态变化
         this.broadcastUserStatus(userId, payload.status);
 
-        // 确认状态更新
         client.emit('status_updated', {
           userId,
           status: payload.status,
@@ -561,30 +578,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
-   * 标记消息为已读（匹配前端的 mark_as_read 事件）
-   */
-  @SubscribeMessage('mark_as_read')
-  async handleMarkMessagesRead(client: Socket, payload: { messageIds: number[] }) {
-    const messageIds = payload.messageIds;
-    
-    this.logger.log(`收到标记已读请求: messageIds=${messageIds}`);
-    
-    if (messageIds && messageIds.length > 0) {
-      try {
-        await this.messageService.markAsReadByMessageIds(messageIds);
-        this.logger.log(`消息已成功标记为已读: messageIds=${messageIds}`);
-        
-        client.emit('messages_marked_read', {
-          messageIds,
-          timestamp: new Date(),
-        });
-      } catch (error) {
-        this.logger.error(`标记消息已读失败: ${error.message}`);
-      }
-    }
-  }
-
-  /**
    * 标记整个会话的消息为已读（匹配前端的 mark_conversation_read 事件）
    */
   @SubscribeMessage('mark_conversation_read')
@@ -592,12 +585,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const userId = client.data.userId;
     const { targetId, targetType } = payload;
     
-    this.logger.log(`收到标记会话已读请求: userId=${userId}, targetId=${targetId}, targetType=${targetType}`);
+    this.logger.log(`📖 收到标记会话已读请求: userId=${userId}(阅读者), targetId=${targetId}(对方), targetType=${targetType}`);
     
     if (userId && targetId) {
       try {
+        // 获取未读消息列表（用于获取发送者ID）
+        // userId 是当前用户（阅读者/接收者），targetId 是对方（消息发送者）
+        // 需要查询当前用户收到的来自对方的消息：receiverId=userId, senderId=targetId
+        this.logger.log(`📖 调用 getUnreadMessages(receiverId=${userId}, senderId=${targetId})`);
+        const unreadMessages = await this.messageService.getUnreadMessages(userId, targetId);
+        
+        this.logger.log(`📖 找到未读消息数: ${unreadMessages.length}`);
+        unreadMessages.forEach((msg, idx) => {
+          this.logger.log(`   消息${idx}: id=${msg.id}, senderId=${msg.senderId}, receiverId=${msg.receiverId}, content=${msg.content.substring(0, 30)}...`);
+        });
+        
         await this.messageService.markConversationRead(userId, targetId, targetType);
-        this.logger.log(`会话已成功标记为已读: userId=${userId}, targetId=${targetId}`);
+        this.logger.log(`✅ 会话已成功标记为已读: userId=${userId}, targetId=${targetId}`);
         
         client.emit('conversation_marked_read', {
           userId,
@@ -605,8 +609,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           targetType,
           timestamp: new Date(),
         });
+        
+        // 向发送者发送已读通知
+        const senderIds = [...new Set(unreadMessages.map(msg => msg.senderId))];
+        this.logger.log(`📢 需要通知的发送者ID列表: ${senderIds}`);
+        
+        senderIds.forEach(senderId => {
+          if (senderId !== userId) {
+            const senderRoom = `user_${senderId}`;
+            this.logger.log(`📢 向发送者 ${senderId} 的房间 ${senderRoom} 发送已读通知`);
+            this.server.to(senderRoom).emit('message_read', {
+              readerId: userId,      // 阅读者ID（当前用户）
+              senderId: senderId,   // 消息发送者ID
+              targetId: targetId,   // 会话目标ID
+              timestamp: new Date(),
+            });
+          } else {
+            this.logger.log(`⚠️ 跳过发送者ID ${senderId}，因为等于当前用户ID ${userId}`);
+          }
+        });
       } catch (error) {
-        this.logger.error(`标记会话已读失败: ${error.message}`);
+        this.logger.error(`❌ 标记会话已读失败: ${error.message}`);
       }
     }
   }
