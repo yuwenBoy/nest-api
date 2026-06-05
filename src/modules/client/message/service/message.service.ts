@@ -138,7 +138,10 @@ export class MessageService {
     await this.messageRepository
       .createQueryBuilder()
       .update(MessageEntity)
-      .set({ readAt: new Date() })
+      .set({ 
+        readAt: new Date(),
+        status: 2 // 更新为已读状态
+      })
       .where('receiverId = :userId', { userId })
       .andWhere('senderId = :targetUserId', { targetUserId })
       .andWhere('readAt IS NULL')

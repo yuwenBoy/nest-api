@@ -10,7 +10,8 @@ import { Server, Socket } from 'socket.io';
 import { Logger, UseGuards } from '@nestjs/common';
 import { MessageService } from '../modules/chat/service/message.service';
 import { UserEntity } from '../entities/admin/t_user.entity';
-import { DataSource } from 'typeorm';
+import { MessageEntity } from '../entities/chat/message.entity';
+import { DataSource, In } from 'typeorm';
 import { MessageStatusEnum } from '../enum/chat_enum';
 import { getClientIp, getIpLocation } from '../utils/index';
 
@@ -313,6 +314,52 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(`用户 ${client.data.userId} 加入房间 ${roomId}`);
   }
 
+  /**
+   * 标记消息为已读（前端调用的主要接口）
+   * 逻辑：接收方标记已读 -> 更新数据库 -> 通知发送者
+   */
+  @SubscribeMessage('mark_as_read')
+  async handleMarkAsRead(client: Socket, payload: { messageIds: number[] }) {
+    const userId = client.data.userId;
+    const { messageIds } = payload;
+    
+    this.logger.log(`📖 收到标记已读请求: userId=${userId}, messageIds=${messageIds}`);
+    
+    if (messageIds && messageIds.length > 0) {
+      try {
+        // ✅ 接收方标记已读：更新别人发给我的消息（receiverId = userId）
+        await this.messageService.updateStatus(
+          messageIds,
+          MessageStatusEnum.READ,
+          userId,
+          false,  // isSender=false 表示当前用户是接收者
+        );
+        
+        // ✅ 通知发送者消息已读
+        for (const messageId of messageIds) {
+          const message = await this.messageService.getMessageById(messageId);
+          if (message && message.senderId !== userId) {
+            const senderRoom = `user_${message.senderId}`;
+            this.server.to(senderRoom).emit('message_read', {
+              messageIds: [message.id],
+              status: MessageStatusEnum.READ,
+              readAt: new Date(),
+              readerId: userId,
+            });
+            this.logger.log(`📖 通知发送者 ${message.senderId} 消息 ${message.id} 已读`);
+          }
+        }
+        
+        client.emit('messages_marked_read', {
+          messageIds,
+          timestamp: new Date(),
+        });
+      } catch (error) {
+        this.logger.error(`标记消息已读失败: ${error.message}`);
+      }
+    }
+  }
+
   @SubscribeMessage('mark_as_delivered')
   async handleMarkAsDelivered(
     client: Socket,
@@ -338,8 +385,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const message = await this.messageService.getMessageById(messageId);
       if (message) {
         const senderRoom = `user_${message.senderId}`;
-        this.server.to(senderRoom).emit('message_status_updated', {
-          messageId: message.id,
+        this.server.to(senderRoom).emit('message_delivered', {
+          messageIds: [message.id],
           status: MessageStatusEnum.DELIVERED,
           updatedAt: new Date(),
         });
@@ -370,8 +417,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const message = await this.messageService.getMessageById(messageId);
       if (message) {
         const senderRoom = `user_${message.senderId}`;
-        this.server.to(senderRoom).emit('message_status_updated', {
-          messageId: message.id,
+        this.server.to(senderRoom).emit('message_read', {
+          messageIds: [message.id],
           status: MessageStatusEnum.READ,
           readAt: new Date(),
           readerId: userId,
@@ -397,14 +444,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    */
   @SubscribeMessage('mark_as_read_by_ids')
   async handleMarkMessagesRead(client: Socket, payload: { messageIds: number[] }) {
+    const userId = client.data.userId;
     const messageIds = payload.messageIds;
     
-    this.logger.log(`收到标记已读请求: messageIds=${messageIds}`);
+    this.logger.log(`收到标记已读请求: userId=${userId}, messageIds=${messageIds}`);
     
     if (messageIds && messageIds.length > 0) {
       try {
         await this.messageService.markAsReadByMessageIds(messageIds);
         this.logger.log(`消息已成功标记为已读: messageIds=${messageIds}`);
+        
+        // ✅ 通知发送者消息已读
+        messageIds.forEach(async (messageId) => {
+          const message = await this.messageService.getMessageById(messageId);
+          if (message && message.senderId !== userId) {
+            const senderRoom = `user_${message.senderId}`;
+            this.server.to(senderRoom).emit('message_read', {
+              messageIds: [message.id],
+              status: MessageStatusEnum.READ,
+              readAt: new Date(),
+              readerId: userId,
+            });
+            this.logger.log(`📖 通知发送者 ${message.senderId} 消息 ${message.id} 已读`);
+          }
+        });
         
         client.emit('messages_marked_read', {
           messageIds,
@@ -412,6 +475,46 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         });
       } catch (error) {
         this.logger.error(`标记消息已读失败: ${error.message}`);
+      }
+    }
+  }
+
+  /**
+   * 同步消息状态（客户端定时请求）
+   */
+  @SubscribeMessage('sync_message_status')
+  async handleSyncMessageStatus(client: Socket, payload: { messageIds: number[] }) {
+    const userId = client.data.userId;
+    const { messageIds } = payload;
+    
+    this.logger.log(`📊 收到消息状态同步请求: userId=${userId}, messageIds=${messageIds}`);
+    
+    if (messageIds && messageIds.length > 0) {
+      try {
+        // 查询消息的当前状态
+        const messages = await this.dataSource.getRepository(MessageEntity).find({
+          where: { id: In(messageIds) },
+          select: ['id', 'status', 'readAt'],
+        });
+        
+        // 按状态分组通知
+        const statusMap: Record<number, any> = {};
+        messages.forEach(msg => {
+          statusMap[msg.id] = {
+            status: msg.status,
+            readAt: msg.readAt,
+          };
+        });
+        
+        this.logger.log(`📊 返回消息状态: ${JSON.stringify(statusMap)}`);
+        
+        client.emit('message_status_sync', {
+          messageIds,
+          statusMap,
+          timestamp: new Date(),
+        });
+      } catch (error) {
+        this.logger.error(`同步消息状态失败: ${error.message}`);
       }
     }
   }
@@ -608,6 +711,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           targetId,
           targetType,
           timestamp: new Date(),
+        });
+        
+        // 向阅读者发送会话更新通知（用于更新消息列表页面的未读角标）
+        const readerRoom = `user_${userId}`;
+        this.server.to(readerRoom).emit('message_update', {
+          senderId: targetId,      // 对方ID
+          targetId: userId,        // 当前用户ID
+          lastMessage: '',
+          lastTime: new Date(),
+          unreadCount: 0,          // 未读数量清零
         });
         
         // 向发送者发送已读通知

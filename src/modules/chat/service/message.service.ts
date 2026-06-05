@@ -31,7 +31,10 @@ export class MessageService {
     await this.messageRepository
       .createQueryBuilder()
       .update(MessageEntity)
-      .set({ readAt: new Date() })
+      .set({ 
+        readAt: new Date(),
+        status: MessageStatusEnum.READ
+      })
       .where('id IN (:...messageIds)', { messageIds })
       .andWhere('read_at IS NULL')
       .execute();
@@ -48,7 +51,10 @@ export class MessageService {
     await this.messageRepository
       .createQueryBuilder()
       .update(MessageEntity)
-      .set({ readAt: new Date() })
+      .set({ 
+        readAt: new Date(),
+        status: MessageStatusEnum.READ // 更新为已读状态
+      })
       .where('receiver_id = :userId', { userId })
       .andWhere('sender_id = :targetId', { targetId })
       .andWhere('read_at IS NULL')
@@ -171,6 +177,16 @@ export class MessageService {
 
   /**
    * ✅ 更新消息状态
+   * @param messageIds 要更新的消息ID列表
+   * @param status 目标状态
+   * @param userId 当前操作用户ID
+   * @param isSender 是否为发送方（true=发送方更新自己消息状态，false=接收方标记已读）
+   * 
+   * 逻辑说明：
+   * - 当接收方标记已读时（isSender=false），需要更新的消息是"别人发给我的消息"
+   *   即：receiverId = userId（当前用户是接收者）
+   * - 当发送方更新状态时（isSender=true），需要更新的消息是"我发出的消息"
+   *   即：senderId = userId（当前用户是发送者）
    */
   async updateStatus(
     messageIds: number[],
@@ -184,10 +200,13 @@ export class MessageService {
       updateData.readAt = new Date();
     }
 
+    // 接收方标记已读：更新的是别人发给我的消息
+    // 发送方更新状态：更新的是我发出的消息
     const whereCondition = isSender
-     ? { id: In(messageIds), senderId: userId }
+      ? { id: In(messageIds), senderId: userId }
       : { id: In(messageIds), receiverId: userId };
-    await this.messageRepository.update(whereCondition,updateData);
+      
+    await this.messageRepository.update(whereCondition, updateData);
   }
 
   /**

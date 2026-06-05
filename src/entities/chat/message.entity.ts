@@ -31,7 +31,7 @@ export class MessageEntity extends BusinessBaseEntity{
   @Column({ 
     name: 'status', 
     enum: MessageStatusEnum, 
-    default: MessageStatusEnum.SENT 
+    default: MessageStatusEnum.PENDING 
   })  
   status: MessageStatusEnum; // ✅ 消息状态
 
